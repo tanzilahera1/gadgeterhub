@@ -1,0 +1,13 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron/low-stock",
+      "schedule": "0 3 * * *"
+    },
+    {
+      "path": "/api/cron/daily-report",
+      "schedule": "0 18 * * *"
+    }
+  ]
+}
+ 
