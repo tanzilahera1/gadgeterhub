@@ -5,10 +5,12 @@ import HeroSection from "@/components/home/HeroSection";
 import HomeProductGrid from "@/components/home/HomeProductGrid";
 import { IProduct } from "@/types/product";
 import Footer from "@/components/layout/Footer";
+import { dbConnect } from "@/lib/db";
+
+export const revalidate = 60; // ISR চালু
 
 async function getHomepageData() {
-  const { dbConnect: connect } = await import("@/lib/db");
-  await connect();
+  await dbConnect();
 
   // ✅ ফিক্স: featured + trending এ category.slug populate করো
   const featured = await Product.find({ featured: true, status: "published" })

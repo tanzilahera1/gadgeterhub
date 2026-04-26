@@ -10,6 +10,19 @@ import { Search } from "lucide-react";
 import { FilterQuery, Types } from "mongoose";
 import Footer from "@/components/layout/Footer";
 
+// ✅ যোগ করো
+export const revalidate = 3600; // 1 ঘন্টা পর রিবিল্ড
+export const dynamicParams = true; // নতুন ক্যাটাগরি আসলে 404 না, on-demand বানাবে
+
+// ✅ Build টাইমে সব ক্যাটাগরির পেজ বানাও
+export async function generateStaticParams() {
+  await dbConnect();
+  const categories = await Category.find().select('slug').lean();
+  return categories.map((cat) => ({
+    category: cat.slug,
+  }));
+}
+
 // ✅ টাইপ ডিফাইন
 type LeanProduct = Omit<IProduct, "_id"> & { _id: Types.ObjectId };
 type LeanCategory = Omit<ICategory, "_id"> & { _id: Types.ObjectId };
@@ -61,12 +74,12 @@ export default async function CategoryListingPage({
   const { products } = data;
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+    <section className="max-w-7xl mx-auto px-4  py-4">
       {/* ✅ সাইডবার বাদ - শুধু কনটেন্ট */}
 
       {/* Product Grid - 4 কলাম */}
       {products.length > 0 ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 ">
           {products.map((product) => (
             <ProductCard key={product._id.toString()} product={product} />
           ))}
@@ -88,6 +101,6 @@ export default async function CategoryListingPage({
       <div className="mt-20">
         <Footer />
       </div>
-    </div>
+    </section>
   );
 }

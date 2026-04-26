@@ -1,15 +1,12 @@
 import mongoose, { Mongoose } from "mongoose";
-import { MongoClient } from "mongodb"; // ✅ সরাসরি mongodb থেকে ইম্পোর্ট করুন
+import { MongoClient } from "mongodb";
 
 const MONGODB_URI = process.env.MONGODB_URI!;
 
 if (!MONGODB_URI) {
-  throw new Error(
-    "Please define the MONGODB_URI environment variable inside .env.local",
-  );
+  throw new Error("Please define MONGODB_URI in .env.local");
 }
 
-// Global টাইপ ডিফাইন করা (Next.js HMR এর জন্য)
 interface GlobalMongoose {
   conn: Mongoose | null;
   promise: Promise<Mongoose> | null;
@@ -20,23 +17,16 @@ declare global {
 }
 
 let cached = global.mongoose;
-
 if (!cached) {
   cached = global.mongoose = { conn: null, promise: null };
 }
 
-// ১. Named Export - Mongoose কানেকশন ফাংশন
 export async function dbConnect(): Promise<Mongoose> {
-  if (cached!.conn) {
-    return cached!.conn;
-  }
+  if (cached!.conn) return cached!.conn;
 
   if (!cached!.promise) {
-    const opts = {
-      bufferCommands: false,
-    };
-
-    cached!.promise = mongoose.connect(MONGODB_URI, opts).then((m) => m);
+    // bufferCommands: false বাদ দাও। ডিফল্ট true থাকবে
+    cached!.promise = mongoose.connect(MONGODB_URI).then((m) => m);
   }
 
   try {
@@ -49,8 +39,6 @@ export async function dbConnect(): Promise<Mongoose> {
   return cached!.conn;
 }
 
-// ২. Named Export - Auth.js (NextAuth) এর জন্য MongoClient Promise
-// এটি Mongoose এর কানেকশন পুল থেকেই ড্রাইভারে অ্যাক্সেস দেয়
 export const clientPromise: Promise<MongoClient> = dbConnect().then(
   (mongooseInstance) => {
     return mongooseInstance.connection.getClient() as unknown as MongoClient;

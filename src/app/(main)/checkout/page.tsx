@@ -57,18 +57,16 @@ export default async function CheckoutPage() {
   const serializableItems = JSON.parse(JSON.stringify(items));
 
   return (
-    <div className="container mx-auto px-4 py-12 min-h-screen">
+    <div className="container mx-auto px-4 py-4 min-h-screen">
       <div className="max-w-7xl mx-auto">
-        <div className="flex flex-col gap-2 mb-10">
+        <div className="flex flex-col gap-2 max-w-6xl mx-auto">
           <div className="flex items-center gap-3">
             <div className="size-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary">
               <PackageCheck className="size-6" />
             </div>
-            <h1 className="text-3xl md:text-5xl font-black tracking-tight">
-              চেকআউট
-            </h1>
+            <h1 className="text-3xl  font-black tracking-widest">চেকআউট</h1>
           </div>
-          <p className="text-muted-foreground ml-1">
+          <p className="text-muted-foreground  ">
             আপনার পছন্দের প্রিমিয়াম গ্যাজেটগুলো পেতে নিচের তথ্যগুলো পূরণ করুন।
           </p>
         </div>

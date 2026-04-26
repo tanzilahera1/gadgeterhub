@@ -1,9 +1,11 @@
 import type { Metadata, Viewport } from "next";
 import { Hind_Siliguri } from "next/font/google";
 import "@/styles/globals.css";
-import { cn } from "@/lib/utils";
+
 import { Providers } from "@/components/providers/Providers";
-import { Toaster } from "sonner";
+
+import { auth } from "@/auth";
+import { ToastProvider } from "@/components/ui/toast-provider";
 
 const hindSiliguri = Hind_Siliguri({
   weight: ["300", "400", "500", "600", "700"],
@@ -140,26 +142,23 @@ export const viewport: Viewport = {
   userScalable: true,
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+}) {
+  const session = await auth();
+
   return (
     <html
       lang="en"
-      className={cn(
-        "h-full",
-        "antialiased",
-        hindSiliguri.variable,
-        "font-sans",
-      )}
+      className={`h-full antialiased ${hindSiliguri.variable} font-sans`}
       suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col">
-        <Providers>
+        <Providers session={session}>
           {children}
-          <Toaster position="top-right" richColors />
+          <ToastProvider />
         </Providers>
       </body>
     </html>

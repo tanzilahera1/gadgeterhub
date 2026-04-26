@@ -3,7 +3,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { ShoppingCart, Heart, Star, Minus, Plus, Loader2 } from "lucide-react";
+import { ShoppingCart, Star, Minus, Plus, Loader2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { formatPrice, calculateDiscount } from "@/lib/priceUtils";
 import { useCart } from "@/hooks/useCart";
@@ -22,7 +22,7 @@ export default function ProductCard({ product }: { product: IProduct }) {
     removeItem,
     isAdding,
     isUpdating,
-    isRemoving,
+    isRemoving, 
   } = useCart();
 
   // Price calculations
@@ -133,7 +133,7 @@ export default function ProductCard({ product }: { product: IProduct }) {
         )}
 
         {/* Wishlist Button */}
-        <button
+        {/* <button
           onClick={(e) => {
             e.preventDefault();
             toast.success("Wishlist এ যোগ করা হয়েছে!");
@@ -141,7 +141,7 @@ export default function ProductCard({ product }: { product: IProduct }) {
           className="absolute right-3 top-3 z-10 flex size-8 items-center justify-center rounded-full bg-background/50 text-foreground/70 transition-colors hover:text-destructive"
         >
           <Heart className="size-4" />
-        </button>
+        </button> */}
 
         {/* Out of Stock Overlay */}
         {product.stockQuantity === 0 && (
@@ -246,3 +246,4 @@ export default function ProductCard({ product }: { product: IProduct }) {
     </article>
   );
 }
+ 

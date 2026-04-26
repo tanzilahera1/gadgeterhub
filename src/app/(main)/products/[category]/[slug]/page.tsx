@@ -4,13 +4,59 @@ import { formatPrice } from "@/lib/priceUtils";
 import { notFound } from "next/navigation";
 import { ProductImageGallery } from "@/components/product/ProductImageGallery";
 import { ProductActions } from "@/components/product/ProductActions";
-import { Truck, RefreshCcw, Star } from "lucide-react";
+import { Star } from "lucide-react";
 import Link from "next/link";
 import ProductCard from "@/components/products/ProductCard";
 
 import type { IProduct, IProductSpecification } from "@/types/product";
 import type { ICategory } from "@/types/category";
 import Footer from "@/components/layout/Footer";
+import { Metadata } from "next";
+import { Types } from "mongoose";
+
+export const revalidate = 3600;
+export const dynamicParams = true;
+
+// ✅ টাইপ ডিফাইন করো any এর বদলে
+type ProductWithCategorySlug = {
+  slug: string;
+  category: {
+    _id: Types.ObjectId;
+    slug: string;
+  };
+};
+
+export async function generateStaticParams() {
+  await dbConnect();
+  const products = await Product.find({ status: "published" })
+    .select("slug category")
+    .populate("category", "slug")
+    .lean<ProductWithCategorySlug[]>(); // টাইপ দাও এখানে
+
+  return products.map((p) => ({
+    category: p.category.slug, // এখন আর any না
+    slug: p.slug,
+  }));
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ category: string; slug: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+  await dbConnect();
+  const product = await Product.findOne({ slug }).lean<IProduct>();
+  if (!product) return { title: "Product Not Found" };
+
+  return {
+    title: product.seoTitle || product.title,
+    description: product.seoDesc || product.shortDesc,
+    openGraph: {
+      images: [product.thumbnail],
+    },
+  };
+}
 
 type PopulatedProduct = Omit<IProduct, "category"> & {
   category: ICategory;
@@ -124,7 +170,7 @@ export default async function ProductDetailPage({
 
             {/* Save Badge */}
             {product.salePrice && (
-              <span className="text-xs sm:text-sm md:text-md lg:text-lg  font-semibold text-emerald-600 bg-emerald-50 px-2 py-1 rounded">
+              <span className="sm:text-lg md:text-xl  font-semibold text-emerald-600 bg-emerald-50 px-2 py-1 rounded">
                 বাঁচবে {formatPrice(product.regularPrice - product.salePrice)}
               </span>
             )}
@@ -136,25 +182,6 @@ export default async function ProductDetailPage({
               productId={String(product._id)}
               stock={product.stockQuantity}
             />
-          </div>
-
-          {/* Trust Badges */}
-          <div className="grid grid-cols-2 gap-3 pt-3">
-            <div className="flex items-center gap-2 p-3 rounded-xl bg-muted/40">
-              <Truck className="size-4 text-primary" />
-              <div>
-                <p className="text-[10px] text-muted-foreground">Delivery</p>
-                <p className="text-xs font-bold">24-48h</p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2 p-3 rounded-xl bg-muted/40">
-              <RefreshCcw className="size-4 text-primary" />
-              <div>
-                <p className="text-[10px] text-muted-foreground">Return</p>
-                <p className="text-xs font-bold">7 Days</p>
-              </div>
-            </div>
           </div>
         </div>
       </div>
@@ -188,7 +215,7 @@ export default async function ProductDetailPage({
       {relatedProducts.length > 0 && (
         <div className="space-y-4 pt-10">
           <h2 className="text-xl font-black">Related Products</h2>
-          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
             {relatedProducts.map((p: IProduct) => (
               <ProductCard key={String(p._id)} product={p} />
             ))}

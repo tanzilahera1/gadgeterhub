@@ -101,15 +101,18 @@ export default function CartPageClient() {
                 >
                   <Link
                     href={productHref}
-                    className="relative size-24 sm:size-32 shrink-0 overflow-hidden rounded-2xl bg-muted/30 aspect-square flex items-center justify-center"
+                    className="relative size-24 sm:size-32 shrink-0 overflow-hidden rounded-xl bg-muted/20 aspect-square group-hover:shadow-lg transition-shadow duration-300"
                   >
                     <Image
                       src={product.thumbnail}
                       alt={product.title}
                       fill
-                      className="object-contain p-2 transition-transform duration-500 group-hover:scale-110"
+                      className="object-cover transition-transform duration-700 ease-in-out group-hover:scale-110"
                       sizes="(max-width: 640px) 96px, 128px"
                     />
+
+                    {/* ইমেজকে কার্ডের মতো প্রিমিয়াম দেখানোর জন্য একটি হালকা ওভারলে (ঐচ্ছিক) */}
+                    <div className="absolute inset-0 ring-1 ring-inset ring-black/5 rounded-2xl" />
                   </Link>
 
                   <div className="flex-1 min-w-0 flex flex-col justify-between py-1">
@@ -146,7 +149,7 @@ export default function CartPageClient() {
                           </span>
                         </div>
                         {product.salePrice && (
-                          <span className="text-[9px] sm:text-xs text-muted-foreground line-through decoration-destructive/70 decoration-1">
+                          <span className="text-[9px] sm:text-xs text-muted-foreground line-through tracking-widest">
                             {formatPrice(product.regularPrice)}
                           </span>
                         )}

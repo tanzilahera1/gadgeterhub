@@ -10,9 +10,7 @@ import Footer from "@/components/layout/Footer";
 import type { IProduct } from "@/types/product";
 import type { ICategory } from "@/types/category";
 import type { FilterQuery } from "mongoose";
-
-// ✅ FIX: 빌্ড এরর সমাধান করতে
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 interface SearchParams {
   category?: string;
@@ -92,7 +90,7 @@ export default async function ProductsPage({
   );
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+    <section className="max-w-7xl mx-auto px-4  py-4">
       {/* Category Title (শুধু প্রোডাক্টস পেজের জন্য) */}
       {!isSearchRoute && currentCategory && (
         <div className="mb-10 animate-in fade-in slide-in-from-left-4 duration-500">
@@ -107,7 +105,7 @@ export default async function ProductsPage({
 
       {/* Product Grid or Empty State */}
       {products.length > 0 ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 animate-in fade-in duration-1000">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3  animate-in fade-in duration-1000">
           {products.map((product) => (
             <ProductCard
               key={String(product._id)}
@@ -146,6 +144,6 @@ export default async function ProductsPage({
           <Footer />
         </div>
       )}
-    </div>
+    </section>
   );
 }

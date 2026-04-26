@@ -29,7 +29,7 @@ export default function HomeProductGrid({
           </span>
           {icon && <span className="text-2xl">{icon}</span>}
         </h2>
-        {viewMoreLink && (
+        {viewMoreLink && ( 
           <Button
             variant="ghost"
             asChild
@@ -46,7 +46,7 @@ export default function HomeProductGrid({
       </div>
 
       {/* Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4 lg:gap-5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 ">
         {products.map((product) => (
           <ProductCard key={product.slug} product={product} />
         ))}
@@ -54,3 +54,4 @@ export default function HomeProductGrid({
     </section>
   );
 }
+ 
