@@ -114,7 +114,7 @@ export default function ProductCard({ product }: { product: IProduct }) {
       <div className="relative aspect-4/3 w-full overflow-hidden bg-muted/20 rounded-t-xl">
         <Link href={productHref} className="absolute inset-0 z-0 block">
           <Image
-            src={product.thumbnail} 
+            src={product.thumbnail}
             alt={product.title}
             fill
             className="object-cover transition-transform duration-700 ease-in-out group-hover:scale-110"
@@ -158,7 +158,6 @@ export default function ProductCard({ product }: { product: IProduct }) {
 
       {/* 2. Content Container */}
       <div className="flex flex-1 flex-col p-4 sm:p-5">
-        
         <div className="mb-4 flex flex-1 flex-col">
           <div className="mb-1.5 flex items-start justify-between gap-3">
             <Link href={productHref} className="flex-1">
@@ -183,23 +182,22 @@ export default function ProductCard({ product }: { product: IProduct }) {
         <div className="mt-auto flex items-end justify-between gap-2">
           {/* Price Stack */}
           <div className="flex flex-col gap-0.5">
-            {/* ✅ FIX 2: চিকন লাল দাগ (decoration-[1px] এবং অপাসিটি কমানো হয়েছে) */}
-            {discountPercentage > 0 ? (
-              <span className="  text-muted-foreground line-through decoration-destructive/70 decoration tracking-widest">
-                {formatPrice(product.regularPrice)}
-              </span> 
-            ) : (
-              <span className="h-4"></span>
-            )}
-            <span className="text-2xl  font-black leading-none tracking-tight text-foreground">
+            {/* Sale Price FIRST */}
+            <span className="text-2xl font-black leading-none text-foreground">
               {formatPrice(displayPrice)}
             </span>
+
+            {/* Regular Price AFTER */}
+            {discountPercentage > 0 && (
+              <span className="text-muted-foreground line-through text-sm tracking-widest">
+                {formatPrice(product.regularPrice)}
+              </span>
+            )}
           </div>
 
           {/* Dynamic Action Area */}
           <div className="relative z-10 flex min-w-27.5 shrink-0 justify-end">
             {!isInCart ? (
-              /* ✅ FIX 1: টেক্সট কালার text-white dark:text-black দেওয়া হয়েছে */
               <button
                 onClick={handleAddToCart}
                 disabled={product.stockQuantity === 0 || isActionPending}
