@@ -34,7 +34,7 @@ export default function ProductCard({ product }: { product: IProduct }) {
     product.regularPrice,
     product.salePrice,
   );
-  const displayPrice = product.salePrice || product.regularPrice;
+  const displayPrice = product?.salePrice || product?.regularPrice;
 
   // Type Guards for slug routing
   const getCategorySlug = (): string => {
