@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { addToCart, updateQty, removeFromCart } from "@/actions/cart";
 import { toast } from "sonner";
+import { ICart, ICartItem, IPopulatedCartItem } from "@/types/cart";
 
 export function useCart() {
   const queryClient = useQueryClient();
@@ -94,11 +95,66 @@ export function useCart() {
       formData.append("itemQuantity", quantity.toString());
       return updateQty(formData);
     },
-    onSuccess: (data) => {
-      if (data.success) {
-        queryClient.invalidateQueries({ queryKey: ["cart-count"] });
-        queryClient.invalidateQueries({ queryKey: ["cart-details"] });
+    onMutate: async (updatedItem) => {
+      await queryClient.cancelQueries({ queryKey: ["cart-count"] });
+      await queryClient.cancelQueries({ queryKey: ["cart-details"] });
+
+      const previousCount = queryClient.getQueryData<number>(["cart-count"]);
+      const previousDetails = queryClient.getQueryData<
+        ICart & { items: (ICartItem | IPopulatedCartItem)[] }
+      >(["cart-details"]);
+
+      // Optimistically update details and count
+      if (previousDetails?.items) {
+        const item = previousDetails.items.find(
+          (i: ICartItem | IPopulatedCartItem) => {
+            const id =
+              typeof i.product === "object"
+                ? String(i.product._id)
+                : String(i.product);
+            return id === updatedItem.productId;
+          },
+        );
+
+        if (item) {
+          const qtyDiff = updatedItem.quantity - item.itemQuantity;
+
+          // Update details
+          queryClient.setQueryData(["cart-details"], {
+            ...previousDetails,
+            items: previousDetails.items.map(
+              (i: ICartItem | IPopulatedCartItem) => {
+                const id =
+                  typeof i.product === "object"
+                    ? String(i.product._id)
+                    : String(i.product);
+                return id === updatedItem.productId
+                  ? { ...i, itemQuantity: updatedItem.quantity }
+                  : i;
+              },
+            ),
+          });
+
+          // Update count
+          queryClient.setQueryData(
+            ["cart-count"],
+            (old: number = 0) => old + qtyDiff,
+          );
+        }
       }
+
+      return { previousCount, previousDetails };
+    },
+    onError: (err, newItem, context) => {
+      if (context) {
+        queryClient.setQueryData(["cart-count"], context.previousCount);
+        queryClient.setQueryData(["cart-details"], context.previousDetails);
+      }
+      toast.error("কোয়ান্টিটি আপডেট করা যায়নি");
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["cart-count"] });
+      queryClient.invalidateQueries({ queryKey: ["cart-details"] });
     },
   });
 
@@ -109,12 +165,65 @@ export function useCart() {
       formData.append("productId", productId);
       return removeFromCart(formData);
     },
+    onMutate: async ({ productId }) => {
+      await queryClient.cancelQueries({ queryKey: ["cart-count"] });
+      await queryClient.cancelQueries({ queryKey: ["cart-details"] });
+
+      const previousCount = queryClient.getQueryData<number>(["cart-count"]);
+      const previousDetails = queryClient.getQueryData<
+        ICart & { items: (ICartItem | IPopulatedCartItem)[] }
+      >(["cart-details"]);
+
+      if (previousDetails?.items) {
+        const itemToRemove = previousDetails.items.find(
+          (i: ICartItem | IPopulatedCartItem) => {
+            const id =
+              typeof i.product === "object"
+                ? String(i.product._id)
+                : String(i.product);
+            return id === productId;
+          },
+        );
+
+        if (itemToRemove) {
+          // Update details by removing item
+          queryClient.setQueryData(["cart-details"], {
+            ...previousDetails,
+            items: previousDetails.items.filter(
+              (i: ICartItem | IPopulatedCartItem) => {
+                const id =
+                  typeof i.product === "object"
+                    ? String(i.product._id)
+                    : String(i.product);
+                return id !== productId;
+              },
+            ),
+          });
+
+          // Update count
+          queryClient.setQueryData(["cart-count"], (old: number = 0) =>
+            Math.max(0, old - itemToRemove.itemQuantity),
+          );
+        }
+      }
+
+      return { previousCount, previousDetails };
+    },
     onSuccess: (data) => {
       if (data.success) {
-        queryClient.invalidateQueries({ queryKey: ["cart-count"] });
-        queryClient.invalidateQueries({ queryKey: ["cart-details"] });
-        toast.success("Item removed");
+        toast.success("আইটেম রিমুভ করা হয়েছে");
       }
+    },
+    onError: (err, newItem, context) => {
+      if (context) {
+        queryClient.setQueryData(["cart-count"], context.previousCount);
+        queryClient.setQueryData(["cart-details"], context.previousDetails);
+      }
+      toast.error("রিমুভ করা সম্ভব হয়নি");
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["cart-count"] });
+      queryClient.invalidateQueries({ queryKey: ["cart-details"] });
     },
   });
 

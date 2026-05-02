@@ -78,10 +78,10 @@ export function ProductActions({ productId, stock }: ProductActionsProps) {
       {
         onSuccess: (data: { success?: boolean }) => {
           if (data?.success) {
-            toast.success("Added to cart 🛒", {
-              description: "Item added successfully.",
+            toast.success("কার্টে যোগ করা হয়েছে 🛒", {
+              description: "পণ্যটি সফলভাবে যোগ করা হয়েছে।",
               action: {
-                label: "Checkout",
+                label: "চেকআউট",
                 onClick: () => router.push("/checkout"),
               },
             });
@@ -114,10 +114,10 @@ export function ProductActions({ productId, stock }: ProductActionsProps) {
       {/* Quantity - Centralized */}
       <div className="space-y-2">
         <p className="text-xs font-black uppercase tracking-widest text-muted-foreground/60">
-          Quantity{" "}
+          পরিমাণ{" "}
           {isInCart && (
             <span className="text-primary ml-2 lowercase font-medium">
-              (in cart)
+              (কার্টে আছে)
             </span>
           )}
         </p>
@@ -132,11 +132,11 @@ export function ProductActions({ productId, stock }: ProductActionsProps) {
           <p className="text-xs">
             {stock > 0 ? (
               <span className="text-emerald-600 font-bold bg-emerald-50 px-2 py-1 rounded-full">
-                {stock} in stock
+                {stock} স্টক আছে
               </span>
             ) : (
               <span className="text-red-500 font-bold bg-red-50 px-2 py-1 rounded-full">
-                Out of stock
+                স্টক নেই
               </span>
             )}
           </p>
@@ -156,7 +156,7 @@ export function ProductActions({ productId, stock }: ProductActionsProps) {
           )}
         >
           <ShoppingCart className="size-4 shrink-0" />
-          {isInCart ? "Added" : "Add to Cart"}
+          {isInCart ? "যোগ করা হয়েছে" : "যোগ করুন"}
         </Button>
 
         <Button
@@ -176,7 +176,7 @@ export function ProductActions({ productId, stock }: ProductActionsProps) {
           "
         >
           <Zap className="size-4 text-yellow-400 fill-yellow-400 shrink-0" />
-          {isInCart ? "Checkout" : "Buy Now"}
+          {isInCart ? "চেকআউট" : "কিনুন"}
         </Button>
       </div>
 
@@ -184,7 +184,7 @@ export function ProductActions({ productId, stock }: ProductActionsProps) {
       <div className="flex items-center gap-4 py-2">
         <div className="h-px flex-1 bg-foreground/10"></div>
         <span className="shrink-0 text-xs font-black uppercase tracking-[0.3em] text-muted-foreground/60">
-          Service Info
+          সার্ভিস ইনফো
         </span>
         <div className="h-px flex-1 bg-foreground/10"></div>
       </div>
@@ -194,16 +194,16 @@ export function ProductActions({ productId, stock }: ProductActionsProps) {
         <div className="flex items-center gap-3 px-4 py-3 bg-muted/30">
           <Truck className="size-4 text-primary shrink-0" />
           <div>
-            <p className="text-[10px] text-muted-foreground">Delivery</p>
-            <p className="text-xs font-bold">24–48h</p>
+            <p className="text-[10px] text-muted-foreground">ডেলিভারি</p>
+            <p className="text-xs font-bold">২৪–৪৮ ঘণ্টা</p>
           </div>
         </div>
 
         <div className="flex items-center gap-3 px-4 py-3 bg-muted/30">
           <RefreshCcw className="size-4 text-primary shrink-0" />
           <div>
-            <p className="text-[10px] text-muted-foreground">Return</p>
-            <p className="text-xs font-bold">7 Days</p>
+            <p className="text-[10px] text-muted-foreground">রিটার্ন</p>
+            <p className="text-xs font-bold">৭ দিন</p>
           </div>
         </div>
       </div>

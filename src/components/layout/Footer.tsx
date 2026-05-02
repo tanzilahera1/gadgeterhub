@@ -106,7 +106,7 @@ export default function Footer() {
               <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground">
                 Follow Us
               </h4>
-              <div className="flex flex-wrap gap-3">
+              <div className="flex flex-wrap gap-2">
                 {FOOTER_DATA.socials.map(
                   ({ label, Icon, href, brandColor }) => (
                     <LinkNext

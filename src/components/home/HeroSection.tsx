@@ -108,7 +108,7 @@ export default function HeroSection({ featuredProducts }: HeroSectionProps) {
           >
             <Image
               src={product.thumbnail}
-              alt={product.title} 
+              alt={product.title}
               fill
               sizes="(max-width: 640px) 55vw, (max-width: 768px) 45vw, (max-width: 1024px) 33vw, 25vw"
               priority={isFirst}
@@ -178,7 +178,8 @@ export default function HeroSection({ featuredProducts }: HeroSectionProps) {
                   isInCart
                     ? "bg-slate-500/50 text-white/70 cursor-not-allowed"
                     : "bg-primary hover:bg-primary/90 text-primary-foreground",
-                  addingId === product._id.toString() && "opacity-50 pointer-events-none",
+                  addingId === product._id.toString() &&
+                    "opacity-50 pointer-events-none",
                 )}
               >
                 {addingId === product._id.toString() ? (
@@ -187,7 +188,7 @@ export default function HeroSection({ featuredProducts }: HeroSectionProps) {
                   <ShoppingCart className="h-3 w-3 md:h-4 md:w-4" />
                 )}
                 <span className="text-[9px] md:text-xs font-bold">
-                  {isInCart ? "যোগ করা" : "কিনুন"}
+                  {isInCart ? "যোগ করা হয়েছে" : "কিনুন"}
                 </span>
               </button>
             </div>
