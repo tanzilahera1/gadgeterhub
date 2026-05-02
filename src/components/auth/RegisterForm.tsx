@@ -24,7 +24,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { signIn } from "next-auth/react";
 
 const registerSchema = z.object({
-  fullName: z.string().min(3, "নাম কমপক্ষে ৩ অক্ষর হওয়া উচিত"),
+  name: z.string().min(3, "নাম কমপক্ষে ৩ অক্ষর হওয়া উচিত"),
   email: z.string().email("সঠিক ইমেইল অ্যাড্রেস দিন"),
   password: z
     .string()
@@ -100,25 +100,25 @@ export function RegisterForm() {
           </div>
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-            {/* Full Name */}
+            {/* Name */}
             <div className="space-y-1.5">
               <div className="relative group/field">
                 <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within/field:text-primary transition-colors">
                   <User className="size-4.5" />
                 </div>
                 <Input
-                  {...register("fullName")}
-                  placeholder="Your Full Name"
+                  {...register("name")}
+                  placeholder="Your Name"
                   className={cn(
                     "h-14 pl-12 pr-4 bg-white/60 border-slate-200 rounded-2xl focus:bg-white focus:ring-4 ring-primary/5 transition-all text-sm font-bold",
-                    errors.fullName &&
+                    errors.name &&
                       "border-rose-500 focus:ring-rose-500/5 bg-rose-50/30",
                   )}
                 />
               </div>
-              {errors.fullName && (
+              {errors.name && (
                 <p className="text-[10px] font-bold text-rose-500 ml-1">
-                  {errors.fullName.message}
+                  {errors.name.message}
                 </p>
               )}
             </div>

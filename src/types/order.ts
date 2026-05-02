@@ -20,7 +20,7 @@ export interface IOrderItem {
 }
 
 export interface IOrderShipping {
-  fullName: string;
+  name: string;
   phone: string;
   addressLine1: string;
   addressLine2?: string;

@@ -16,9 +16,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 
 interface UserProfile {
-  fullName?: string | null;
+  name?: string | null;
   email?: string | null;
   phone?: string | null;
   image?: string | null;
@@ -26,9 +27,10 @@ interface UserProfile {
 
 export function ProfileForm({ initialData }: { initialData: UserProfile }) {
   const { update: updateSession } = useSession();
+  const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
-    fullName: initialData?.fullName || "",
+    name: initialData?.name || "",
     email: initialData?.email || "",
     phone: initialData?.phone || "",
     image: initialData?.image || "",
@@ -40,31 +42,28 @@ export function ProfileForm({ initialData }: { initialData: UserProfile }) {
 
     try {
       const res = await fetch("/api/user/profile", {
-        method: "PATCH",
+        method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          fullName: formData.fullName,
-          phone: formData.phone,
-          image: formData.image,
-        }),
+        body: JSON.stringify(formData),
       });
 
       const data = await res.json();
       if (data.success) {
-        toast.success("Profile updated successfully");
-        updateSession({ name: formData.fullName, image: formData.image });
+        await updateSession();
+        toast.success("প্রোফাইল আপডেট হয়েছে");
+        router.refresh();
       } else {
         toast.error(data.error || "Failed to update profile");
       }
-    } catch (error) {
-      toast.error(`Something went wrong from profile from ${error}`);
+    } catch {
+      toast.error("Something went wrong");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
       <form onSubmit={handleSubmit} className="space-y-8">
         {/* Profile Image Section */}
         <div className="bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-sm flex flex-col md:flex-row items-center gap-8 relative overflow-hidden">
@@ -75,7 +74,7 @@ export function ProfileForm({ initialData }: { initialData: UserProfile }) {
               {formData.image ? (
                 <Image
                   src={formData.image}
-                  alt={formData.fullName}
+                  alt={formData.name || "Profile"}
                   fill
                   sizes="128px"
                   className="object-cover"
@@ -115,12 +114,12 @@ export function ProfileForm({ initialData }: { initialData: UserProfile }) {
                 <User className="size-3" /> Full Name
               </label>
               <Input
-                value={formData.fullName}
+                value={formData.name}
                 onChange={(e) =>
-                  setFormData((p) => ({ ...p, fullName: e.target.value }))
+                  setFormData((p) => ({ ...p, name: e.target.value }))
                 }
                 className="h-14 rounded-2xl bg-slate-50 border-none font-bold text-base focus-visible:ring-primary/20 px-6"
-                placeholder="Enter your full name"
+                placeholder="Enter your name"
               />
             </div>
             <div className="space-y-3">

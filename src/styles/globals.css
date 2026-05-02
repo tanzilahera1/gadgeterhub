@@ -274,6 +274,12 @@
     background: oklch(from var(--primary) l c h / 30%);
     backdrop-filter: blur(10px);
   }
+
+  @keyframes shimmer {
+    100% {
+      transform: translateX(100%);
+    }
+  }
 }
 
 @layer components {

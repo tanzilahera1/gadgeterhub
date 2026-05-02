@@ -1,7 +1,15 @@
 // src/components/order/TrackOrderForm.tsx
 "use client";
 import { useState } from "react";
-import { Search, ChevronRight, Package, Truck, CheckCircle2, Clock, MapPin } from "lucide-react";
+import {
+  Search,
+  ChevronRight,
+  Package,
+  Truck,
+  CheckCircle2,
+  Clock,
+  MapPin,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
@@ -32,7 +40,7 @@ type TrackedOrder = Pick<
   | "createdAt"
 > & {
   shipping: {
-    fullName: string;
+    name: string;
     address: string;
     city: string;
     district: string;
@@ -57,9 +65,13 @@ export function TrackOrderForm() {
     setLoading(true);
     try {
       const res = await fetch(
-        `/api/order/track?orderId=${encodeURIComponent(orderId)}&phone=${encodeURIComponent(phone)}`
+        `/api/order/track?orderId=${encodeURIComponent(orderId)}&phone=${encodeURIComponent(phone)}`,
       );
-      const data = await res.json() as { success: boolean; order?: TrackedOrder; error?: string };
+      const data = (await res.json()) as {
+        success: boolean;
+        order?: TrackedOrder;
+        error?: string;
+      };
 
       if (data.success && data.order) {
         setOrder(data.order);
@@ -150,7 +162,7 @@ export function TrackOrderForm() {
                   Order #{order.orderNumber}
                 </h3>
                 <p className="text-slate-400 font-bold text-sm">
-                  Customer: {order.shipping.fullName}
+                  Name: {order.shipping.name}
                 </p>
               </div>
               <div className="text-left md:text-right space-y-1">
@@ -184,7 +196,7 @@ export function TrackOrderForm() {
                           "size-12 rounded-2xl flex items-center justify-center transition-all duration-500 relative z-10",
                           isActive
                             ? "bg-primary text-white shadow-lg shadow-primary/40 ring-4 ring-primary/20"
-                            : "bg-white/5 text-white/20"
+                            : "bg-white/5 text-white/20",
                         )}
                       >
                         <stage.icon
@@ -195,7 +207,7 @@ export function TrackOrderForm() {
                         <p
                           className={cn(
                             "text-[10px] font-black uppercase tracking-widest transition-colors",
-                            isActive ? "text-white" : "text-white/20"
+                            isActive ? "text-white" : "text-white/20",
                           )}
                         >
                           {stage.label}
@@ -208,7 +220,7 @@ export function TrackOrderForm() {
                       </div>
                     </div>
                   );
-                })} 
+                })}
               </div>
             </div>
           </div>
@@ -219,7 +231,9 @@ export function TrackOrderForm() {
                 Shipping To
               </h4>
               <div className="space-y-1">
-                <p className="font-bold text-slate-900">{order.shipping.address}</p>
+                <p className="font-bold text-slate-900">
+                  {order.shipping.address}
+                </p>
                 <p className="text-sm font-medium text-slate-500">
                   {order.shipping.city}, {order.shipping.district}
                 </p>
@@ -230,7 +244,8 @@ export function TrackOrderForm() {
                 Support Center
               </h4>
               <p className="text-sm font-medium text-slate-500">
-                Need help with your order? Our support team is here to assist you.
+                Need help with your order? Our support team is here to assist
+                you.
               </p>
               <Button
                 variant="link"

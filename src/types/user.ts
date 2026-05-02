@@ -4,7 +4,7 @@ import { Types } from "mongoose";
 
 export interface IAddress {
   label: string; // 'Home', 'Office'
-  fullName: string;
+  name: string;
   phone: string;
   addressLine1: string;
   addressLine2?: string;
@@ -21,8 +21,14 @@ export interface IAddressDoc extends IAddress {
   updatedAt: Date;
 }
 
+export interface IAddressSerializable extends IAddress {
+  _id: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface IUser {
-  fullName: string;
+  name: string;
   email: string;
   password?: string;
   image?: string;

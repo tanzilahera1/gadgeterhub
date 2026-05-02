@@ -4,7 +4,7 @@ import type { IUser } from "@/types/user";
 const AddressSchema = new Schema(
   {
     label: { type: String, required: true, default: "Home" },
-    fullName: { type: String, required: true },
+    name: { type: String, required: true },
     phone: { type: String, required: true },
     addressLine1: { type: String, required: true },
     addressLine2: { type: String },
@@ -18,7 +18,7 @@ const AddressSchema = new Schema(
 
 const UserSchema = new Schema<IUser & Document>(
   {
-    fullName: { type: String, required: true, trim: true },
+    name: { type: String, required: true, trim: true },
     email: {
       type: String,
       required: true,

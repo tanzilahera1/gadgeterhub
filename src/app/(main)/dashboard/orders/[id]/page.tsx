@@ -236,10 +236,10 @@ export default async function UserOrderDetailsPage({
             <div className="space-y-6">
               <div className="space-y-1">
                 <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest">
-                  RECEIVER NAME
+                  NAME
                 </p>
                 <p className="text-base font-black text-slate-900">
-                  {order.shipping.fullName}
+                  {order.shipping.name}
                 </p>
               </div>
               <div className="space-y-1">

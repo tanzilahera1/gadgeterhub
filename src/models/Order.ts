@@ -17,7 +17,7 @@ const OrderItemSchema = new Schema(
 
 const OrderShippingSchema = new Schema(
   {
-    fullName: { type: String, required: true },
+    name: { type: String, required: true },
     phone: { type: String, required: true },
     addressLine1: { type: String, required: true },
     addressLine2: { type: String },

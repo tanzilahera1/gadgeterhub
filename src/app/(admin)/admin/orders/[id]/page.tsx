@@ -222,10 +222,10 @@ export default async function OrderDetailsPage({
                 </div>
                 <div>
                   <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-0.5">
-                    FULL NAME
+                    NAME
                   </p>
                   <p className="text-base font-black text-slate-900">
-                    {order.shipping.fullName}
+                    {order.shipping.name}
                   </p>
                 </div>
               </div>
@@ -255,15 +255,18 @@ export default async function OrderDetailsPage({
                   </p>
                   <p className="text-sm font-bold text-slate-700 leading-relaxed">
                     {order.shipping.addressLine1}
-                    {order.shipping.district && order.shipping.district !== order.shipping.addressLine1 && (
-                      <>
-                        , <br />
-                        {order.shipping.district}
-                        {order.shipping.city && order.shipping.city !== order.shipping.district && (
-                          <>, {order.shipping.city}</>
-                        )}
-                      </>
-                    )}
+                    {order.shipping.district &&
+                      order.shipping.district !==
+                        order.shipping.addressLine1 && (
+                        <>
+                          , <br />
+                          {order.shipping.district}
+                          {order.shipping.city &&
+                            order.shipping.city !== order.shipping.district && (
+                              <>, {order.shipping.city}</>
+                            )}
+                        </>
+                      )}
                   </p>
                   <div className="flex items-center gap-2 mt-2">
                     <span className="text-[10px] font-black uppercase bg-primary/10 text-primary px-2 py-0.5 rounded">
@@ -271,10 +274,10 @@ export default async function OrderDetailsPage({
                         ? "Inside Dhaka"
                         : "Outside Dhaka"}
                     </span>
-                    <CopyAddressButton address={`${order.shipping.addressLine1}, ${order.shipping.district || ""}`} />
+                    <CopyAddressButton
+                      address={`${order.shipping.addressLine1}, ${order.shipping.district || ""}`}
+                    />
                   </div>
-
-
                 </div>
               </div>
             </div>
@@ -305,12 +308,10 @@ export default async function OrderDetailsPage({
                           {order.paymentProvider}
                         </p>
                       </div>
-
                     </div>
                     <Badge className="bg-amber-500/20 text-amber-500 border-amber-500/30 text-[10px] font-black uppercase">
                       Unverified
                     </Badge>
-
                   </div>
                   <div className="pt-4 border-t border-white/5 space-y-3">
                     <div>
@@ -321,7 +322,6 @@ export default async function OrderDetailsPage({
                       <p className="text-xl font-mono font-black text-white tracking-widest break-all">
                         {order.transactionId}
                       </p>
-
                     </div>
                     <div>
                       <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">

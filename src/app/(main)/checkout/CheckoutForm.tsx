@@ -43,7 +43,7 @@ import Link from "next/link";
 
 const CheckoutSchema = z
   .object({
-    fullName: z.string().min(3, "নাম কমপক্ষে ৩ অক্ষর হওয়া উচিত"),
+    name: z.string().min(3, "নাম কমপক্ষে ৩ অক্ষর হওয়া উচিত"),
     phone: z.string().regex(/^01[3-9]\d{8}$/, "সঠিক ফোন নম্বর দিন"),
     addressLine1: z.string().min(5, "বিস্তারিত ঠিকানা দিন"),
     deliveryArea: z.enum(["dhaka", "outside"] as const),
@@ -123,7 +123,7 @@ export function CheckoutForm({ cart, user }: CheckoutFormProps) {
   } = useForm<CheckoutValues>({
     resolver: zodResolver(CheckoutSchema),
     defaultValues: {
-      fullName: user?.name || "",
+      name: user?.name || "",
       phone: user?.phone || "",
       deliveryArea: "dhaka",
       paymentMethod: "cod",
@@ -225,13 +225,13 @@ export function CheckoutForm({ cart, user }: CheckoutFormProps) {
                   নাম
                 </Label>
                 <Input
-                  {...register("fullName")}
+                  {...register("name")}
                   placeholder="আপনার পুরো নাম"
                   className="h-12 rounded-xl bg-background/50 text-base"
                 />
-                {errors.fullName && (
+                {errors.name && (
                   <p className="text-xs text-destructive font-bold">
-                    {errors.fullName.message}
+                    {errors.name.message}
                   </p>
                 )}
               </div>

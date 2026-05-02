@@ -12,7 +12,7 @@ import { cookies, headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 
 const CheckoutSchema = z.object({
-  fullName: z.string().min(3, "নাম কমপক্ষে ৩ অক্ষর হওয়া উচিত"),
+  name: z.string().min(3, "নাম কমপক্ষে ৩ অক্ষর হওয়া উচিত"),
   phone: z.string().regex(/^01[3-9]\d{8}$/, "সঠিক ফোন নম্বর দিন"),
   district: z.string().min(1, "জেলা সিলেক্ট করুন"),
   addressLine1: z.string().min(5, "বিস্তারিত ঠিকানা দিন"),
@@ -93,7 +93,7 @@ export async function createOrder(formData: FormData) {
     user: session?.user?.id || undefined,
     items: orderItems,
     shipping: {
-      fullName: validated.data.fullName,
+      name: validated.data.name,
       phone: validated.data.phone,
       addressLine1: validated.data.addressLine1,
       district: validated.data.district,

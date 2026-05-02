@@ -7,7 +7,7 @@ import bcrypt from "bcryptjs";
 import { signOut } from "@/auth";
 
 const RegisterSchema = z.object({
-  fullName: z.string().min(3, "Name must be at least 3 characters"),
+  name: z.string().min(3, "Name must be at least 3 characters"),
   email: z.string().email("Invalid email address"),
   password: z.string().min(8, "Password must be at least 8 characters"),
 });
@@ -19,7 +19,7 @@ export async function signUp(formData: z.infer<typeof RegisterSchema>) {
       return { error: "Validation failed", details: validated.error.flatten() };
     }
 
-    const { fullName, email, password } = validated.data;
+    const { name, email, password } = validated.data;
 
     await dbConnect();
 
@@ -31,7 +31,7 @@ export async function signUp(formData: z.infer<typeof RegisterSchema>) {
     const hashedPassword = await bcrypt.hash(password, 12);
 
     const newUser = new User({
-      fullName,
+      name,
       email,
       password: hashedPassword,
       role: "user",

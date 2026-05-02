@@ -20,18 +20,18 @@ async function getInitialData() {
     .limit(20)
     .lean();
 
-  const categoriesDocs = await Category.find().lean();
+  const categoriesDocs = await Category.find().lean<ICategory[]>();
 
-  const products = (productsDocs as any[]).map((p) => ({
+  const products = (productsDocs as unknown as (Omit<IProduct, 'category'> & { category: ICategory })[]).map((p) => ({
     ...p,
     _id: String(p._id),
     category: {
       ...p.category,
-      _id: String((p.category as any)._id),
+      _id: String(p.category._id),
     },
   })) as IProduct[];
 
-  const categories = (categoriesDocs as any[]).map((c) => ({
+  const categories = categoriesDocs.map((c) => ({
     ...c,
     _id: String(c._id),
   })) as ICategory[];

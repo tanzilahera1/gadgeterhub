@@ -27,6 +27,12 @@ export default async function AddressesPage() {
   if (!session?.user?.id) redirect("/login");
 
   const addresses = await getAddresses(session.user.id);
+  const serializableAddresses = addresses.map((addr) => ({
+    ...addr,
+    _id: addr._id.toString(),
+    createdAt: addr.createdAt.toISOString(),
+    updatedAt: addr.updatedAt.toISOString(),
+  }));
 
   return (
     <div className="space-y-10">
@@ -42,7 +48,7 @@ export default async function AddressesPage() {
         </div>
       </div>
 
-      <AddressManager initialAddresses={addresses} />
+      <AddressManager initialAddresses={serializableAddresses} />
     </div>
   );
 }

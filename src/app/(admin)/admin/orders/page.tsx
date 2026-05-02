@@ -141,7 +141,7 @@ export default async function AdminOrdersPage() {
                 const config = STATUS_CONFIG[status];
                 return (
                   <tr
-                    key={(order as any)._id}
+                    key={order._id?.toString()}
                     className="hover:bg-slate-50/50 transition-colors group"
                   >
                     <td className="px-6 py-5">
@@ -152,7 +152,7 @@ export default async function AdminOrdersPage() {
                     <td className="px-6 py-5">
                       <div className="space-y-1">
                         <p className="text-sm font-bold text-slate-900 leading-none">
-                          {order.shipping.fullName}
+                          {order.shipping.name}
                         </p>
                         <p className="text-[10px] text-slate-400 font-medium">
                           {order.shipping.phone}
@@ -198,7 +198,7 @@ export default async function AdminOrdersPage() {
                       </div>
                     </td>
                     <td className="px-6 py-5 text-right">
-                      <Link href={`/admin/orders/${(order as any)._id}`}>
+                      <Link href={`/admin/orders/${order._id?.toString()}`}>
                         <button className="size-9 rounded-xl bg-slate-100 flex items-center justify-center text-slate-400 hover:bg-primary hover:text-white transition-all group-hover:scale-110 shadow-sm">
                           <Eye className="size-4" />
                         </button>

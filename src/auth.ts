@@ -62,7 +62,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         return {
           id: user._id.toString(),
           email: user.email,
-          name: user.fullName,
+          name: user.name,
           image: user.image,
           role: user.role,
         };
@@ -71,9 +71,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   ],
   callbacks: {
     async jwt({ token, user, trigger, account }) {
-      // প্রথম লগিনে DB থেকে ফ্রেশ ডাটা এবং lastLogin আপডেট
+      await dbConnect();
+
+      // প্রথম লগিনে বা সাইন-ইনে
       if (user) {
-        await dbConnect();
+        // DB-তে শেষ লগিন টাইম আপডেট করো
         const dbUser = await User.findByIdAndUpdate(
           user.id,
           { lastLogin: new Date() },
@@ -82,14 +84,14 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
         if (dbUser) {
           token.id = dbUser._id.toString();
-          token.role = dbUser.role;
-          token.fullName = dbUser.fullName;
+          token.role = dbUser.role || "user";
+          token.name = dbUser.name || user.name;
+        } else {
+          // যদি কোনো কারণে DB-তে ইউজার না থাকে (যেমন একদম নতুন ওউথ ইউজার)
+          token.id = user.id;
+          token.role = (user as { role?: string }).role || "user";
+          token.name = user.name;
         }
-      }
-
-      // Google দিয়ে লগিন করলে role ডিফল্ট 'user'
-      if (account?.provider === "google" && !token.role) {
-        token.role = "user";
       }
 
       // OAuth হলে ইমেইল ভেরিফাইড ধরে নাও
@@ -103,8 +105,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         const dbUser = await User.findOne({ email: token.email }).lean<IUser>();
         if (dbUser) {
           token.role = dbUser.role;
-          token.fullName = dbUser.fullName;
-          token.name = dbUser.fullName;
+          token.name = dbUser.name;
           token.image = dbUser.image;
         }
       }
@@ -115,7 +116,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       if (session.user) {
         session.user.id = token.id as string;
         session.user.role = token.role as "user" | "admin";
-        session.user.name = token.fullName as string;
+        session.user.name = token.name as string;
       }
       return session;
     },

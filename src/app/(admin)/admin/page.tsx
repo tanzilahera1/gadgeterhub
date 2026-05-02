@@ -12,6 +12,7 @@ import Product from "@/models/Product";
 import Order from "@/models/Order";
 import { dbConnect } from "@/lib/db";
 import { formatPrice } from "@/lib/priceUtils";
+import { IOrder } from "@/types/order";
 
 async function getStats() {
   await dbConnect();
@@ -35,8 +36,6 @@ async function getStats() {
     recentOrders: JSON.parse(JSON.stringify(recentOrders)),
   };
 }
-
-
 
 export default async function AdminDashboardPage() {
   const stats = await getStats();
@@ -138,11 +137,14 @@ export default async function AdminDashboardPage() {
             <h3 className="text-lg font-black tracking-tight text-slate-900">
               Recent Activity
             </h3>
-            <Link href="/admin/orders" className="text-xs font-bold text-primary hover:underline">
+            <Link
+              href="/admin/orders"
+              className="text-xs font-bold text-primary hover:underline"
+            >
               View All Orders
             </Link>
           </div>
-          
+
           <div className="space-y-4">
             {stats.recentOrders.length > 0 ? (
               <div className="overflow-x-auto">
@@ -156,26 +158,40 @@ export default async function AdminDashboardPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-50">
-                    {stats.recentOrders.map((order: any) => (
-                      <tr key={order._id} className="group transition-colors hover:bg-slate-50/50">
+                    {stats.recentOrders.map((order: IOrder) => (
+                      <tr
+                        key={order._id?.toString()}
+                        className="group transition-colors hover:bg-slate-50/50"
+                      >
                         <td className="py-4">
-                          <Link href={`/admin/orders/${order._id}`} className="text-xs font-mono font-black text-slate-900 hover:text-primary">
+                          <Link
+                            href={`/admin/orders/${order._id?.toString()}`}
+                            className="text-xs font-mono font-black text-slate-900 hover:text-primary"
+                          >
                             #{order.orderNumber}
                           </Link>
                         </td>
                         <td className="py-4">
-                          <p className="text-xs font-bold text-slate-900">{order.shipping.fullName}</p>
+                          <p className="text-xs font-bold text-slate-900">
+                            {order.shipping.name}
+                          </p>
                         </td>
                         <td className="py-4">
-                          <p className="text-xs font-black text-slate-900">{formatPrice(order.total)}</p>
+                          <p className="text-xs font-black text-slate-900">
+                            {formatPrice(order.total)}
+                          </p>
                         </td>
                         <td className="py-4 text-right">
-                          <span className={cn(
-                            "text-[9px] font-black uppercase px-2 py-1 rounded-md",
-                            order.orderStatus === "pending" ? "bg-amber-100 text-amber-600" :
-                            order.orderStatus === "delivered" ? "bg-emerald-100 text-emerald-600" :
-                            "bg-blue-100 text-blue-600"
-                          )}>
+                          <span
+                            className={cn(
+                              "text-[9px] font-black uppercase px-2 py-1 rounded-md",
+                              order.orderStatus === "pending"
+                                ? "bg-amber-100 text-amber-600"
+                                : order.orderStatus === "delivered"
+                                  ? "bg-emerald-100 text-emerald-600"
+                                  : "bg-blue-100 text-blue-600",
+                            )}
+                          >
                             {order.orderStatus}
                           </span>
                         </td>
@@ -191,7 +207,6 @@ export default async function AdminDashboardPage() {
               </div>
             )}
           </div>
-
         </div>
 
         <div className="bg-slate-900 rounded-3xl p-8 text-white relative overflow-hidden">
