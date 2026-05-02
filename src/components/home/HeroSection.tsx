@@ -188,7 +188,7 @@ export default function HeroSection({ featuredProducts }: HeroSectionProps) {
                   <ShoppingCart className="h-3 w-3 md:h-4 md:w-4" />
                 )}
                 <span className="text-[9px] md:text-xs font-bold">
-                  {isInCart ? "যোগ করা হয়েছে" : "কিনুন"}
+                  {isInCart ? "যোগ হয়েছে" : "কিনুন"}
                 </span>
               </button>
             </div>
