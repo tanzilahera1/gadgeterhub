@@ -17,16 +17,25 @@ declare global {
 }
 
 let cached = global.mongoose;
+
 if (!cached) {
   cached = global.mongoose = { conn: null, promise: null };
 }
 
 export async function dbConnect(): Promise<Mongoose> {
-  if (cached!.conn) return cached!.conn;
+  if (cached!.conn) {
+    return cached!.conn;
+  }
 
   if (!cached!.promise) {
-    // bufferCommands: false বাদ দাও। ডিফল্ট true থাকবে
-    cached!.promise = mongoose.connect(MONGODB_URI).then((m) => m);
+    const opts = {
+      bufferCommands: false,
+      serverSelectionTimeoutMS: 5000,
+    };
+
+    cached!.promise = mongoose.connect(MONGODB_URI, opts).then((mongoose) => {
+      return mongoose;
+    });
   }
 
   try {
@@ -39,8 +48,23 @@ export async function dbConnect(): Promise<Mongoose> {
   return cached!.conn;
 }
 
-export const clientPromise: Promise<MongoClient> = dbConnect().then(
-  (mongooseInstance) => {
-    return mongooseInstance.connection.getClient() as unknown as MongoClient;
-  },
-);
+// NextAuth এর জন্য আলাদা MongoClient কানেকশন
+let client: MongoClient;
+let clientPromise: Promise<MongoClient>;
+
+if (process.env.NODE_ENV === "development") {
+  const globalWithMongo = global as typeof globalThis & {
+    _mongoClientPromise?: Promise<MongoClient>;
+  };
+
+  if (!globalWithMongo._mongoClientPromise) {
+    client = new MongoClient(MONGODB_URI);
+    globalWithMongo._mongoClientPromise = client.connect();
+  }
+  clientPromise = globalWithMongo._mongoClientPromise;
+} else {
+  client = new MongoClient(MONGODB_URI);
+  clientPromise = client.connect();
+}
+
+export { clientPromise };
