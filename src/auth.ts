@@ -32,7 +32,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         const parsed = z
           .object({
             email: z.string().email(),
-            password: z.string().min(8),
+            password: z.string(),
           })
           .safeParse(credentials);
 
@@ -45,18 +45,14 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           IUser & { _id: mongoose.Types.ObjectId }
         >();
 
-        // UX উন্নত করার জন্য আলাদা আলাদা এরর
-        if (!user) {
-          throw new CredentialsSignin("UserNotFound");
-        }
-
-        if (!user.password) {
-          throw new CredentialsSignin("SocialAccountOnly");
+        // জেনেরিক এরর মেসেজ ব্যবহার করো সিকিউরিটির জন্য
+        if (!user || !user.password) {
+          throw new CredentialsSignin("InvalidCredentials");
         }
 
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) {
-          throw new CredentialsSignin("InvalidPassword");
+          throw new CredentialsSignin("InvalidCredentials");
         }
 
         return {

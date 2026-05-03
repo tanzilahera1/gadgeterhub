@@ -3,18 +3,9 @@ import Order from "@/models/Order";
 import { dbConnect } from "@/lib/db";
 import { formatPrice } from "@/lib/priceUtils";
 import { format } from "date-fns";
-import {
-  Search,
-  Filter,
-  Eye,
-  ShoppingCart,
-  CheckCircle2,
-  Clock,
-  Truck,
-  XCircle,
-  AlertCircle,
-} from "lucide-react";
+import { Search, Filter, Eye, ShoppingCart, AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { StatusUpdater } from "@/components/admin/StatusUpdater";
 import { IOrder } from "@/types/order";
 
 async function getOrders(): Promise<IOrder[]> {
@@ -22,44 +13,6 @@ async function getOrders(): Promise<IOrder[]> {
   const orders = await Order.find().sort({ createdAt: -1 }).lean();
   return JSON.parse(JSON.stringify(orders));
 }
-
-const STATUS_CONFIG = {
-  pending: {
-    label: "Pending",
-    icon: Clock,
-    color: "text-amber-600 bg-amber-50 border-amber-200",
-  },
-  processing: {
-    label: "Processing",
-    icon: Clock,
-    color: "text-blue-600 bg-blue-50 border-blue-200",
-  },
-  shipped: {
-    label: "Shipped",
-    icon: Truck,
-    color: "text-indigo-600 bg-indigo-50 border-indigo-200",
-  },
-  delivered: {
-    label: "Delivered",
-    icon: CheckCircle2,
-    color: "text-emerald-600 bg-emerald-50 border-emerald-200",
-  },
-  cancelled: {
-    label: "Cancelled",
-    icon: XCircle,
-    color: "text-rose-600 bg-rose-50 border-rose-200",
-  },
-  confirmed: {
-    label: "Confirmed",
-    icon: CheckCircle2,
-    color: "text-blue-600 bg-blue-50 border-blue-200",
-  },
-  returned: {
-    label: "Returned",
-    icon: AlertCircle,
-    color: "text-slate-600 bg-slate-50 border-slate-200",
-  },
-};
 
 export default async function AdminOrdersPage() {
   const orders = await getOrders();
@@ -136,9 +89,6 @@ export default async function AdminOrdersPage() {
             </thead>
             <tbody className="divide-y divide-slate-50">
               {orders.map((order) => {
-                const status = (order.orderStatus ||
-                  "pending") as keyof typeof STATUS_CONFIG;
-                const config = STATUS_CONFIG[status];
                 return (
                   <tr
                     key={order._id?.toString()}
@@ -187,15 +137,10 @@ export default async function AdminOrdersPage() {
                       </div>
                     </td>
                     <td className="px-6 py-5">
-                      <div
-                        className={cn(
-                          "inline-flex items-center gap-1.5 px-3 py-1 rounded-full border text-[10px] font-black uppercase tracking-wider",
-                          config.color,
-                        )}
-                      >
-                        <config.icon className="size-3" />
-                        {config.label}
-                      </div>
+                      <StatusUpdater
+                        orderId={order._id.toString()}
+                        currentStatus={order.orderStatus || "pending"}
+                      />
                     </td>
                     <td className="px-6 py-5 text-right">
                       <Link href={`/admin/orders/${order._id?.toString()}`}>

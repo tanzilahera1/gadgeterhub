@@ -59,6 +59,7 @@ const OrderSchema = new Schema<IOrder>(
       type: String,
       enum: [
         "pending",
+        "confirmed",
         "processing",
         "shipped",
         "delivered",

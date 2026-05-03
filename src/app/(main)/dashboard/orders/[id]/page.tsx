@@ -14,6 +14,8 @@ import {
   ShieldCheck,
   Info,
   Calendar,
+  XCircle,
+  AlertCircle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
@@ -22,7 +24,8 @@ import { redirect, notFound } from "next/navigation";
 import type { IOrderSerializable, IOrderItem } from "@/types/order";
 
 const STATUS_STEPS = [
-  { id: "pending", label: "Confirmed", icon: Clock },
+  { id: "pending", label: "Pending", icon: Clock },
+  { id: "confirmed", label: "Confirmed", icon: CheckCircle2 },
   { id: "processing", label: "Processing", icon: Package },
   { id: "shipped", label: "Shipped", icon: Truck },
   { id: "delivered", label: "Delivered", icon: CheckCircle2 },
@@ -90,58 +93,83 @@ export default async function UserOrderDetailsPage({
         {/* Left Side: Progress & Items */}
         <div className="lg:col-span-2 space-y-8">
           {/* Progress Tracker */}
-          <section className="bg-white rounded-[2.5rem] border border-slate-200 shadow-sm p-6 sm:p-12">
-            <h3 className="text-lg font-black tracking-tight mb-8 sm:mb-12 flex items-center gap-2">
-              <Truck className="size-6 text-primary" />
-              Delivery Status
-            </h3>
+          {currentStatus !== "cancelled" && currentStatus !== "returned" ? (
+            <section className="bg-white rounded-[2.5rem] border border-slate-200 shadow-sm p-6 sm:p-12">
+              <h3 className="text-lg font-black tracking-tight mb-8 sm:mb-12 flex items-center gap-2">
+                <Truck className="size-6 text-primary" />
+                Delivery Status
+              </h3>
 
-            <div className="relative flex items-center justify-between">
-              <div className="absolute left-0 top-4.5 w-full h-1 bg-slate-100 rounded-full" />
-              <div
-                className="absolute left-0 top-4.5 h-1 bg-primary rounded-full transition-all duration-1000"
-                style={{
-                  width: `${(currentStepIndex / (STATUS_STEPS.length - 1)) * 100}%`,
-                }}
-              />
+              <div className="relative flex items-center justify-between">
+                <div className="absolute left-0 top-4.5 w-full h-1 bg-slate-100 rounded-full" />
+                <div
+                  className="absolute left-0 top-4.5 h-1 bg-primary rounded-full transition-all duration-1000"
+                  style={{
+                    width: `${(currentStepIndex / (STATUS_STEPS.length - 1)) * 100}%`,
+                  }}
+                />
 
-              {STATUS_STEPS.map((step, idx) => {
-                const isCompleted = idx <= currentStepIndex;
-                return (
-                  <div
-                    key={step.id}
-                    className="relative z-10 flex flex-col items-center gap-4"
-                  >
+                {STATUS_STEPS.map((step, idx) => {
+                  const isCompleted = idx <= currentStepIndex;
+                  return (
                     <div
-                      className={cn(
-                        "size-10 rounded-full flex items-center justify-center border-4 transition-all duration-500",
-                        isCompleted
-                          ? "bg-primary border-white text-white shadow-lg shadow-primary/20 scale-110"
-                          : "bg-white border-slate-100 text-slate-300",
-                      )}
+                      key={step.id}
+                      className="relative z-10 flex flex-col items-center gap-4"
                     >
-                      <step.icon className="size-4" />
-                    </div>
-                    <div className="text-center">
-                      <p
+                      <div
                         className={cn(
-                          "text-[10px] font-black uppercase tracking-widest leading-none mb-1",
-                          isCompleted ? "text-slate-900" : "text-slate-400",
+                          "size-10 rounded-full flex items-center justify-center border-4 transition-all duration-500",
+                          isCompleted
+                            ? "bg-primary border-white text-white shadow-lg shadow-primary/20 scale-110"
+                            : "bg-white border-slate-100 text-slate-300",
                         )}
                       >
-                        {step.label}
-                      </p>
-                      {isCompleted && (
-                        <p className="text-[8px] font-bold text-primary/60 uppercase">
-                          Completed
+                        <step.icon className="size-4" />
+                      </div>
+                      <div className="text-center">
+                        <p
+                          className={cn(
+                            "text-[10px] font-black uppercase tracking-widest leading-none mb-1",
+                            isCompleted ? "text-slate-900" : "text-slate-400",
+                          )}
+                        >
+                          {step.label}
                         </p>
-                      )}
+                        {isCompleted && (
+                          <p className="text-[8px] font-bold text-primary/60 uppercase">
+                            Completed
+                          </p>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                );
-              })}
-            </div>
-          </section>
+                  );
+                })}
+              </div>
+            </section>
+          ) : (
+            <section className="rounded-[2.5rem] border border-slate-200 shadow-sm p-12 flex flex-col items-center justify-center text-center space-y-4 bg-rose-50">
+              <div className="size-16 rounded-full flex items-center justify-center bg-rose-100 text-rose-600">
+                {currentStatus === "cancelled" ? (
+                  <XCircle className="size-8" />
+                ) : (
+                  <AlertCircle className="size-8" />
+                )}
+              </div>
+              <div>
+                <h3 className="text-xl font-black uppercase tracking-widest text-rose-600">
+                  Order{" "}
+                  {currentStatus === "cancelled" ? "Cancelled" : "Returned"}
+                </h3>
+                <p className="text-slate-500 font-medium text-sm mt-1">
+                  This order has been{" "}
+                  {currentStatus === "cancelled"
+                    ? "cancelled"
+                    : "returned and processed"}
+                  .
+                </p>
+              </div>
+            </section>
+          )}
 
           {/* Items List */}
           <section className="bg-white rounded-[2.5rem] border border-slate-200 shadow-sm overflow-hidden">
