@@ -31,6 +31,8 @@ export const metadata = {
   description: "Track your ongoing and past orders.",
 };
 
+export const dynamic = "force-dynamic";
+
 interface OrderItemData {
   productImage: string;
   productTitle: string;

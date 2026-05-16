@@ -30,13 +30,17 @@ export async function dbConnect(): Promise<Mongoose> {
   if (!cached!.promise) {
     const opts = {
       bufferCommands: false,
-      serverSelectionTimeoutMS: 30000, // ৩০ সেকেন্ড করে দিলাম (Atlas-এর জন্য নিরাপদ)
+      serverSelectionTimeoutMS: 30000, 
       heartbeatFrequencyMS: 10000,
       socketTimeoutMS: 45000,
       family: 4, 
+      retryWrites: true,
+      w: "majority" as const,
+      appName: "GadgetCollections",
     };
 
     cached!.promise = mongoose.connect(MONGODB_URI, opts).then((mongoose) => {
+      console.log("MongoDB connected successfully via Mongoose");
       return mongoose;
     });
   }
@@ -66,7 +70,10 @@ if (process.env.NODE_ENV === "development") {
   }
   clientPromise = globalWithMongo._mongoClientPromise;
 } else {
-  client = new MongoClient(MONGODB_URI);
+  client = new MongoClient(MONGODB_URI, {
+    family: 4,
+    serverSelectionTimeoutMS: 30000,
+  });
   clientPromise = client.connect();
 }
 

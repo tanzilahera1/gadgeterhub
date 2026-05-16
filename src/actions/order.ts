@@ -152,6 +152,9 @@ export async function createOrder(formData: FormData) {
     `🛍️ *New Order: ${orderNumber}*\n\n💰 *Total:* ৳${total}\n📞 *Phone:* ${validated.data.phone}`,
   );
 
+  revalidatePath("/admin/orders");
+  revalidatePath("/dashboard/orders");
+
   return { orderNumber };
 }
 

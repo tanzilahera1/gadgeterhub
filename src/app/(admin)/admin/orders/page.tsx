@@ -8,6 +8,8 @@ import { cn } from "@/lib/utils";
 import { StatusUpdater } from "@/components/admin/StatusUpdater";
 import { IOrder } from "@/types/order";
 
+export const dynamic = "force-dynamic";
+
 async function getOrders(): Promise<IOrder[]> {
   await dbConnect();
   const orders = await Order.find().sort({ createdAt: -1 }).lean();
@@ -163,7 +165,7 @@ export default async function AdminOrdersPage() {
                     </div>
                   </td>
                 </tr>
-              )}
+              )}  
             </tbody>
           </table>
         </div>

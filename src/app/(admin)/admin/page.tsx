@@ -14,6 +14,8 @@ import { dbConnect } from "@/lib/db";
 import { formatPrice } from "@/lib/priceUtils";
 import { IOrder } from "@/types/order";
 
+export const dynamic = "force-dynamic";
+
 async function getStats() {
   await dbConnect();
   const totalOrders = await Order.countDocuments();
