@@ -1,4 +1,3 @@
-// src/components/products/ProductsPageContent.tsx
 "use client";
 
 import { useSearchParams } from "next/navigation";
@@ -36,7 +35,7 @@ export function ProductsPageContent({
       if (maxPrice) params.append("maxPrice", maxPrice);
       if (sort) params.append("sort", sort);
 
-      const res = await fetch(`/api/products?${params}`);
+      const res = await fetch(`/api/products?${params.toString()}`);
       return res.json();
     },
     enabled: hasFilters,
@@ -46,6 +45,10 @@ export function ProductsPageContent({
   const products: IProduct[] = data || initialProducts;
   const currentCategory =
     category && initialCategories.find((c) => c.slug === category);
+
+  const resultsText = `${products.length} ${
+    products.length === 1 ? "product" : "products"
+  } found`;
 
   if (isLoading && hasFilters) {
     return (
@@ -57,14 +60,14 @@ export function ProductsPageContent({
 
   return (
     <>
-      {/* Category Title */}
-      {currentCategory && (
-        <div className="mb-10 animate-in fade-in slide-in-from-left-4 duration-500">
+      {/* Category / Search Title */}
+      {(currentCategory || search) && (
+        <div className="mb-10 text-center animate-in fade-in slide-in-from-top-4 duration-500">
           <h1 className="text-3xl font-black tracking-tight text-foreground">
-            {currentCategory.name}
+            {currentCategory ? currentCategory.name : `“${search}”`}
           </h1>
           <p className="text-sm font-bold text-muted-foreground mt-1 uppercase tracking-widest">
-            {products.length} products found
+            {resultsText}
           </p>
         </div>
       )}

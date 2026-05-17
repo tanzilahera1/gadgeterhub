@@ -5,6 +5,7 @@ import Category from "@/models/Category";
 import type { IProduct } from "@/types/product";
 import type { ICategory } from "@/types/category";
 import type { FilterQuery } from "mongoose";
+import { NextResponse } from "next/server";
 
 // টাইপ এরর ফিক্স করার জন্য Populated টাইপ
 type PopulatedProductDoc = Omit<IProduct, "category"> & {
@@ -70,9 +71,9 @@ export async function GET(request: Request) {
       }),
     );
 
-    return Response.json(products);
+    return NextResponse.json(products);
   } catch (error) {
     console.error("API Products Error:", error);
-    return Response.json([], { status: 500 });
+    return NextResponse.json([], { status: 500 });
   }
 }

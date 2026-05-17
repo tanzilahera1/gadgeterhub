@@ -72,11 +72,11 @@ const FOOTER_DATA = {
 
 export default function Footer() {
   return (
-    <footer className="relative border-t border-border/40 bg-card/30 backdrop-blur-3xl mt-20 overflow-hidden">
+    <footer className=" relative border-t border-border/40 bg-card/30 backdrop-blur-3xl mt-20 overflow-hidden">
       {/* 🌟 Background Decorative Glow */}
       <div className="absolute top-0 left-1/4 size-64 bg-primary/5 rounded-full blur-[120px] -z-10" />
 
-      <div className="container mx-auto px-4 py-16">
+      <div className=" container sm:max-w-6xl sm:mx-auto  px-4 py-16">
         <div className="grid grid-cols-2 gap-10 md:grid-cols-4 lg:grid-cols-5">
           {/* Brand & Dynamic Socials */}
           <div className="col-span-2 lg:col-span-2 space-y-8">
@@ -204,7 +204,7 @@ export default function Footer() {
         </div>
 
         {/* 💳 Trust Badges & Payment */}
-        <div className="mt-16 pt-8 border-t border-border/20 flex flex-col md:flex-row items-center justify-between gap-8">
+        <div className=" mt-16 pt-8 border-t border-border/20 flex flex-col md:flex-row items-center justify-between gap-8">
           <div className="flex flex-col items-center md:items-start gap-3">
             <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
               Payment Partners
@@ -241,7 +241,7 @@ export default function Footer() {
           </div>
 
           <div className="flex items-center gap-4">
-            <div className="flex flex-col items-end gap-1">
+            <div className="flex flex-col items-center gap-1">
               <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
                 Certified Secure
               </p>
@@ -258,12 +258,12 @@ export default function Footer() {
         </div>
 
         {/* Bottom Bar */}
-        <div className="mt-12 pt-8 border-t border-border/10 flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
-          <p>
+        <div className=" mt-12 pt-8 border-t border-border/10 flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
+          <p className="text-center">
             © {new Date().toLocaleString("en-US", { year: "numeric" })}{" "}
             GadgetCollections. Developed with ❤️ in Bangladesh.
           </p>
-          <div className="flex gap-6">
+          <div className="flex gap-12">
             <LinkNext
               href="/privacy"
               className="hover:text-primary transition-colors"

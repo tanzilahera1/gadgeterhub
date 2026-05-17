@@ -25,7 +25,7 @@ export default async function SearchPage() {
 
   return (
     <section className="max-w-7xl mx-auto px-4 py-8">
-      <div className="mb-8 animate-in fade-in slide-in-from-left-4 duration-500">
+      <div className="mb-8 animate-in fade-in slide-in-from-left-4 duration-500 text-center">
         <h1 className="text-3xl font-black tracking-tight text-foreground">
           Search Results
         </h1>

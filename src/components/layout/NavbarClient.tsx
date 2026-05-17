@@ -1,7 +1,6 @@
-// src/components/layout/NavbarClient.tsx
 "use client";
 
-import { useState, useEffect, Suspense } from "react";
+import { useState, useEffect, useCallback, Suspense } from "react";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import {
@@ -31,7 +30,7 @@ const NAV_ITEMS = [
   { label: "Contact", href: "/contact", icon: PhoneCall },
 ];
 
-// ✅ useSearchParams শুধু এই inner component এ — Suspense দিয়ে wrap হবে
+// ✅ Desktop Nav Links
 function NavLinks() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -81,7 +80,7 @@ function NavLinks() {
   );
 }
 
-// ✅ Mobile Nav Links — আলাদা করা
+// ✅ Mobile Nav Links
 function MobileNavLinks({ onClose }: { onClose: () => void }) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -136,16 +135,18 @@ function MobileNavLinks({ onClose }: { onClose: () => void }) {
   );
 }
 
-// ✅ pathname change এ mobile menu বন্ধ করার জন্য আলাদা component
-function MobileMenuCloser({ onClose }: { onClose: () => void }) {
+// ✅ Route change হলে menu/search বন্ধ
+function NavigationCloser({ onClose }: { onClose: () => void }) {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const searchKey = searchParams.toString();
 
   useEffect(() => {
-    const timeoutId = setTimeout(() => {
+    const timeoutId = window.setTimeout(() => {
       onClose();
     }, 0);
-    return () => clearTimeout(timeoutId);
-  }, [pathname, onClose]);
+    return () => window.clearTimeout(timeoutId);
+  }, [pathname, searchKey, onClose]);
 
   return null;
 }
@@ -163,9 +164,22 @@ export default function NavbarClient() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const handleMobileClose = () => {
+  // stable callback — route change এ সব বন্ধ
+  const handleNavigationClose = useCallback(() => {
     setMobileOpen(false);
     setShowSearch(false);
+  }, []);
+
+  // Search toggle — mobile menu বন্ধ করে
+  const handleSearchToggle = () => {
+    setMobileOpen(false);
+    setShowSearch((s) => !s);
+  };
+
+  // Mobile toggle — search বন্ধ করে
+  const handleMobileToggle = () => {
+    setShowSearch(false);
+    setMobileOpen((o) => !o);
   };
 
   return (
@@ -190,7 +204,7 @@ export default function NavbarClient() {
             </span>
           </Link>
 
-          {/* ✅ Desktop Nav — Suspense দিয়ে wrap */}
+          {/* Desktop Nav */}
           <Suspense
             fallback={
               <div className="hidden lg:flex items-center gap-1">
@@ -216,8 +230,10 @@ export default function NavbarClient() {
               variant="ghost"
               size="icon"
               className="h-9 w-9 rounded-full hover:bg-accent/50 transition-all hover:scale-105 active:scale-95"
-              onClick={() => setShowSearch((s) => !s)}
+              onClick={handleSearchToggle}
               aria-label="Search"
+              aria-expanded={showSearch}
+              aria-controls="navbar-search-dropdown"
             >
               {showSearch ? (
                 <X className="size-4" />
@@ -233,7 +249,7 @@ export default function NavbarClient() {
               variant="ghost"
               size="icon"
               className="h-9 w-9 lg:hidden rounded-full hover:bg-accent/50 transition-all hover:scale-105 active:scale-95"
-              onClick={() => setMobileOpen((o) => !o)}
+              onClick={handleMobileToggle}
               aria-label="Toggle menu"
               aria-expanded={mobileOpen}
             >
@@ -247,14 +263,17 @@ export default function NavbarClient() {
         </div>
       </nav>
 
-      {/* ✅ pathname change এ close — Suspense wrap */}
+      {/* Route change listener */}
       <Suspense fallback={null}>
-        <MobileMenuCloser onClose={handleMobileClose} />
+        <NavigationCloser onClose={handleNavigationClose} />
       </Suspense>
 
       {/* Search Dropdown */}
       {showSearch && (
-        <div className="fixed top-12 left-0 right-0 z-60">
+        <div
+          id="navbar-search-dropdown"
+          className="fixed top-12 left-0 right-0 z-60"
+        >
           <SearchDropdown onClose={() => setShowSearch(false)} />
         </div>
       )}
@@ -270,7 +289,6 @@ export default function NavbarClient() {
             className="fixed top-12 left-0 right-0 z-55 lg:hidden bg-popover/95 shadow-2xl animate-in slide-in-from-top-2 duration-200"
             style={{ backdropFilter: "blur(30px) saturate(180%)" }}
           >
-            {/* ✅ Mobile Nav Links — Suspense wrap */}
             <Suspense
               fallback={
                 <div className="p-4 text-sm text-muted-foreground">
@@ -286,7 +304,7 @@ export default function NavbarClient() {
 
       {/* Floating Action Buttons */}
       <div className="fixed bottom-20 right-4 z-40 flex flex-col gap-3">
-        {/* WhatsApp Button */}
+        {/* WhatsApp */}
         <Link
           href="https://wa.me/8801568390014"
           target="_blank"
