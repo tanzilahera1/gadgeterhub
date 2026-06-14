@@ -123,6 +123,20 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       if (user?.id) {
         const { mergeGuestCartToUser } = await import("@/actions/cart");
         await mergeGuestCartToUser(user.id);
+
+        try {
+          const User = (await import("@/models/User")).default;
+          const Order = (await import("@/models/Order")).default;
+          const dbUser = await User.findById(user.id).select("phone").lean<{ phone?: string }>();
+          if (dbUser?.phone) {
+            await Order.updateMany(
+              { user: { $exists: false }, customerPhone: dbUser.phone },
+              { user: user.id }
+            );
+          }
+        } catch (err) {
+          console.error("Failed to link guest orders on signIn:", err);
+        }
       }
     },
   },

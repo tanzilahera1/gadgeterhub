@@ -52,9 +52,18 @@ interface RecentOrderData {
 
 async function getDashboardStats(userId: string) {
   await dbConnect();
-  const [orderCount, userRecord, recentOrders] = await Promise.all([
+
+  const userRecord = await User.findById(userId).select("wishlist phone").lean<{ wishlist: string[]; phone?: string }>();
+
+  if (userRecord?.phone) {
+    await Order.updateMany(
+      { user: { $exists: false }, customerPhone: userRecord.phone },
+      { user: userId }
+    );
+  }
+
+  const [orderCount, recentOrders] = await Promise.all([
     Order.countDocuments({ user: userId }),
-    User.findById(userId).select("wishlist").lean<{ wishlist: string[] }>(),
     Order.find({ user: userId })
       .sort({ createdAt: -1 })
       .limit(2)

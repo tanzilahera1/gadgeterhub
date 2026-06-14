@@ -62,14 +62,6 @@ export function DashboardSidebar() {
                       )}
                     />
                     <span className="flex-1">{link.label}</span>
-                    <ChevronRight
-                      className={cn(
-                        "size-4 transition-all opacity-0 group-hover:opacity-100",
-                        active
-                          ? "opacity-100 translate-x-1"
-                          : "group-hover:translate-x-1",
-                      )}
-                    />
                   </Link>
                 </li>
               );
@@ -85,7 +77,7 @@ export function DashboardSidebar() {
           <p className="text-xs font-medium text-slate-400 mb-4 leading-relaxed">
             Our support team is here for you 24/7.
           </p>
-          <Link href="/help">
+          <Link href="/contact">
             <button className="w-full py-3 rounded-xl bg-white/10 hover:bg-white/20 border border-white/10 text-xs font-black uppercase tracking-widest transition-all">
               Contact Us
             </button>

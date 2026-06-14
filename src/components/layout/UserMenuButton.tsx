@@ -222,17 +222,7 @@ export default function UserMenuButton() {
               <span className="text-xs font-bold">Browse Products</span>
             </Link>
           </DropdownMenuItem>
-          <DropdownMenuItem asChild>
-            <Link
-              href="/help"
-              className="rounded-xl flex items-center gap-3 p-3.5 cursor-pointer hover:bg-slate-50 text-slate-700 transition-all group"
-            >
-              <div className="size-8 rounded-lg bg-slate-50 flex items-center justify-center text-slate-500 group-hover:bg-white group-hover:shadow-sm">
-                <HelpCircle className="size-4.5" />
-              </div>
-              <span className="text-xs font-bold">Help & Support</span>
-            </Link>
-          </DropdownMenuItem>
+
         </div>
 
         <DropdownMenuSeparator className="bg-slate-100 mx-2" />

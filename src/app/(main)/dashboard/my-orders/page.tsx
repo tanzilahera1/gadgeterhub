@@ -1,6 +1,7 @@
 // src/app/(main)/dashboard/my-orders/page.tsx
 import { auth } from "@/auth";
 import Order from "@/models/Order";
+import User from "@/models/User";
 import { dbConnect } from "@/lib/db";
 import { formatPrice } from "@/lib/priceUtils";
 import { format } from "date-fns";
@@ -69,6 +70,15 @@ export default async function UserOrdersPage() {
 
   if (!session?.user) {
     redirect("/login?callbackUrl=/dashboard/my-orders");
+  }
+
+  await dbConnect();
+  const dbUser = await User.findById(session.user.id).select("phone").lean<{ phone?: string }>();
+  if (dbUser?.phone) {
+    await Order.updateMany(
+      { user: { $exists: false }, customerPhone: dbUser.phone },
+      { user: session.user.id }
+    );
   }
 
   const orders = await getUserOrders(session.user.id!);
