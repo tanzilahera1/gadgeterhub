@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Loader2, ArrowRight, UserPlus } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { signIn } from "next-auth/react";
 
 const ClaimSchema = z.object({
   email: z.string().email("সঠিক ইমেইল দিন"),
@@ -45,8 +46,22 @@ export function AccountClaimForm({ orderNumber }: { orderNumber: string }) {
         return;
       }
 
-      toast.success("সফলভাবে একাউন্ট তৈরি হয়েছে! এখন লগিন করুন।");
-      router.push("/login");
+      toast.success("সফলভাবে একাউন্ট তৈরি হয়েছে!");
+      
+      // Auto login after claim
+      const signInResult = await signIn("credentials", {
+        redirect: false,
+        email: data.email,
+        password: data.password,
+      });
+
+      if (signInResult?.error) {
+        toast.error("স্বয়ংক্রিয়ভাবে লগিন হতে সমস্যা হয়েছে, অনুগ্রহ করে লগিন করুন।");
+        router.push("/login");
+      } else {
+        router.push("/dashboard");
+        router.refresh(); // Refresh to update server components with new auth state
+      }
     } catch (error) {
       toast.error("সার্ভার এরর, একটু পর আবার চেষ্টা করুন।");
     } finally {
