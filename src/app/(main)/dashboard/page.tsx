@@ -3,6 +3,8 @@ import { dbConnect } from "@/lib/db";
 import { redirect } from "next/navigation";
 import Order from "@/models/Order";
 import User from "@/models/User";
+import { cookies } from "next/headers";
+import { ClearGuestOrdersCookie } from "@/components/dashboard/ClearGuestOrdersCookie";
 import { formatPrice } from "@/lib/priceUtils";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -55,11 +57,25 @@ async function getDashboardStats(userId: string) {
 
   const userRecord = await User.findById(userId).select("wishlist phone").lean<{ wishlist: string[]; phone?: string }>();
 
+  // 1. Link guest orders by phone number
   if (userRecord?.phone) {
     await Order.updateMany(
       { user: { $exists: false }, customerPhone: userRecord.phone },
       { user: userId }
     );
+  }
+
+  // 2. Link guest orders stored in cookies
+  const cookieStore = await cookies();
+  const guestOrdersVal = cookieStore.get("guest_orders")?.value;
+  if (guestOrdersVal) {
+    const orderNumbers = guestOrdersVal.split(",");
+    if (orderNumbers.length > 0) {
+      await Order.updateMany(
+        { orderNumber: { $in: orderNumbers }, user: { $exists: false } },
+        { user: userId }
+      );
+    }
   }
 
   const [orderCount, recentOrders] = await Promise.all([
@@ -75,6 +91,7 @@ async function getDashboardStats(userId: string) {
     orderCount,
     wishlistCount: userRecord?.wishlist?.length || 0,
     recentOrders: JSON.parse(JSON.stringify(recentOrders)) as RecentOrderData[],
+    hasGuestOrders: !!guestOrdersVal,
   };
 }
 
@@ -88,6 +105,7 @@ export default async function DashboardOverview() {
 
   return (
     <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
+      {stats.hasGuestOrders && <ClearGuestOrdersCookie />}
       {/* Greeting Banner */}
       <div className="relative overflow-hidden bg-white/40 backdrop-blur-xl border border-white/50 rounded-[2.5rem] p-8 sm:p-12 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.05)]">
         <div className="absolute top-0 right-0 size-64 bg-primary/5 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none" />

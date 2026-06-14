@@ -3,6 +3,8 @@ import { auth } from "@/auth";
 import Order from "@/models/Order";
 import User from "@/models/User";
 import { dbConnect } from "@/lib/db";
+import { cookies } from "next/headers";
+import { ClearGuestOrdersCookie } from "@/components/dashboard/ClearGuestOrdersCookie";
 import { formatPrice } from "@/lib/priceUtils";
 import { format } from "date-fns";
 import {
@@ -73,6 +75,8 @@ export default async function UserOrdersPage() {
   }
 
   await dbConnect();
+  
+  // 1. Link guest orders by phone number
   const dbUser = await User.findById(session.user.id).select("phone").lean<{ phone?: string }>();
   if (dbUser?.phone) {
     await Order.updateMany(
@@ -81,10 +85,24 @@ export default async function UserOrdersPage() {
     );
   }
 
+  // 2. Link guest orders stored in cookies
+  const cookieStore = await cookies();
+  const guestOrdersVal = cookieStore.get("guest_orders")?.value;
+  if (guestOrdersVal) {
+    const orderNumbers = guestOrdersVal.split(",");
+    if (orderNumbers.length > 0) {
+      await Order.updateMany(
+        { orderNumber: { $in: orderNumbers }, user: { $exists: false } },
+        { user: session.user.id }
+      );
+    }
+  }
+
   const orders = await getUserOrders(session.user.id!);
 
   return (
     <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
+      {guestOrdersVal && <ClearGuestOrdersCookie />}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
         <div className="space-y-1">
           <h1 className="text-3xl font-black tracking-tight text-slate-900 flex items-center gap-3 lowercase first-letter:uppercase">

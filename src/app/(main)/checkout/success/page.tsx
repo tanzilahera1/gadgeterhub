@@ -11,7 +11,7 @@ import {
   ArrowRight,
 } from "lucide-react";
 import { useSearchParams } from "next/navigation";
-import { Suspense } from "react";
+import { Suspense, useEffect } from "react";
 
 import { useSession } from "next-auth/react";
 import { AccountClaimForm } from "./AccountClaimForm";
@@ -20,6 +20,21 @@ function SuccessContent() {
   const searchParams = useSearchParams();
   const orderNumber = searchParams.get("order");
   const { data: session } = useSession();
+
+  useEffect(() => {
+    if (orderNumber) {
+      const cookiesArr = document.cookie.split("; ");
+      const guestOrdersCookie = cookiesArr.find((row) => row.startsWith("guest_orders="));
+      let existingOrders: string[] = [];
+      if (guestOrdersCookie) {
+        existingOrders = decodeURIComponent(guestOrdersCookie.split("=")[1]).split(",");
+      }
+      if (!existingOrders.includes(orderNumber)) {
+        existingOrders.push(orderNumber);
+        document.cookie = `guest_orders=${encodeURIComponent(existingOrders.join(","))}; path=/; max-age=31536000; SameSite=Lax`;
+      }
+    }
+  }, [orderNumber]);
 
   return (
     <div className="container mx-auto px-4 py-20">
