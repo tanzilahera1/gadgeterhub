@@ -1,3 +1,5 @@
+// src/lib/telegram.ts — কোনো পরিবর্তন নেই
+
 export async function sendTelegramMessage(message: string) {
   const botToken = process.env.TELEGRAM_BOT_TOKEN;
   const chatId = process.env.TELEGRAM_CHAT_ID;

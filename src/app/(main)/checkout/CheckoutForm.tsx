@@ -1,4 +1,4 @@
-// src\app\(main)\checkout\CheckoutForm.tsx
+// src/app/(main)/checkout/CheckoutForm.tsx
 "use client";
 
 import { useForm, useWatch } from "react-hook-form";
@@ -8,7 +8,8 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useQueryClient } from "@tanstack/react-query";
-import { createOrder } from "@/actions/order";
+import { createOrder, } from "@/actions/order";
+import { DELIVERY_CHARGES } from "@/lib/delivery-charges";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -32,18 +33,11 @@ import { formatPrice } from "@/lib/priceUtils";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
 import type { IPopulatedCartItem } from "@/types/cart";
-
-import {
-  Dialog,
-  DialogContent,
-  DialogTitle,
-  DialogDescription,
-} from "@/components/ui/dialog";
 import Link from "next/link";
 
 const CheckoutSchema = z
   .object({
-    name: z.string().min(3, "নাম কমপক্ষে ৩ অক্ষর হওয়া উচিত"),
+    name: z.string().min(3, "নাম কমপক্ষে ৩ অক্ষর হওয়া উচিত"),
     phone: z.string().regex(/^01[3-9]\d{8}$/, "সঠিক ফোন নম্বর দিন"),
     isGift: z.boolean().optional(),
     receiverName: z.string().optional(),
@@ -114,8 +108,6 @@ export function CheckoutForm({ cart, user }: CheckoutFormProps) {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [copied, setCopied] = useState(false);
-  const [showSuccessModal, setShowSuccessModal] = useState(false);
-  const [orderId, setOrderId] = useState<string | null>(null);
 
   const {
     register,
@@ -146,7 +138,7 @@ export function CheckoutForm({ cart, user }: CheckoutFormProps) {
         Object.keys(parsed).forEach((key) => {
           setValue(key as keyof CheckoutValues, parsed[key]);
         });
-        toast.success("আপনার আগের তথ্যগুলো রিস্টোর করা হয়েছে।");
+        toast.success("আপনার আগের তথ্যগুলো রিস্টোর করা হয়েছে।");
       } catch (e) {
         console.error("Failed to restore checkout data", e);
       } finally {
@@ -163,7 +155,8 @@ export function CheckoutForm({ cart, user }: CheckoutFormProps) {
     name: "paymentProvider",
   }) as ProviderKey;
 
-  const deliveryCharge = deliveryArea === "dhaka" ? 60 : 120;
+  // ✅ Single source of truth — server থেকে আসা DELIVERY_CHARGES ব্যবহার
+  const deliveryCharge = DELIVERY_CHARGES[deliveryArea];
   const grandTotal = cart.total + deliveryCharge;
 
   const handleCopy = (num: string) => {
@@ -184,6 +177,7 @@ export function CheckoutForm({ cart, user }: CheckoutFormProps) {
           formData.append(key, value);
         }
       });
+      // ✅ district ও deliveryArea দুটোই পাঠাচ্ছি
       formData.append(
         "district",
         data.deliveryArea === "dhaka" ? "Dhaka" : "Outside Dhaka",
@@ -191,15 +185,14 @@ export function CheckoutForm({ cart, user }: CheckoutFormProps) {
 
       const result = await createOrder(formData);
       if (result && "orderNumber" in result) {
-        // Immediately clear cart badge & details from React Query cache
         queryClient.invalidateQueries({ queryKey: ["cart-count"] });
         queryClient.invalidateQueries({ queryKey: ["cart-details"] });
         router.push(`/checkout/success?order=${result.orderNumber}`);
       } else if (result && result.error) {
-        toast.error("কিছু ভুল হয়েছে, দয়া করে আবার চেষ্টা করুন।");
+        toast.error("কিছু ভুল হয়েছে, দয়া করে আবার চেষ্টা করুন।");
       }
     } catch {
-      toast.error("কিছু ভুল হয়েছে।");
+      toast.error("কিছু ভুল হয়েছে।");
     } finally {
       setIsSubmitting(false);
     }
@@ -211,12 +204,18 @@ export function CheckoutForm({ cart, user }: CheckoutFormProps) {
         <div className="mb-8 p-4 bg-primary/5 border border-primary/20 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-4">
           <div>
             <h3 className="font-bold text-lg">অর্ডারটি দ্রুত করতে চান?</h3>
-            <p className="text-sm text-muted-foreground">Google দিয়ে লগিন করলে আপনার নাম ও ইমেইল অটো-ফিলাপ হয়ে যাবে।</p>
+            <p className="text-sm text-muted-foreground">
+              Google দিয়ে লগিন করলে আপনার নাম ও ইমেইল অটো-ফিলাপ হয়ে যাবে।
+            </p>
           </div>
           <Link href={`/login?callbackUrl=${encodeURIComponent("/checkout")}`}>
-            <Button type="button" variant="outline" className="shrink-0 gap-2 font-bold border-primary/20 hover:bg-primary/10">
+            <Button
+              type="button"
+              variant="outline"
+              className="shrink-0 gap-2 font-bold border-primary/20 hover:bg-primary/10"
+            >
               <User className="size-4" />
-              Google দিয়ে লগিন করুন
+              Google দিয়ে লগিন করুন
             </Button>
           </Link>
         </div>
@@ -276,8 +275,12 @@ export function CheckoutForm({ cart, user }: CheckoutFormProps) {
                     className="size-5 rounded border-border/40 text-primary focus:ring-primary"
                   />
                   <div>
-                    <p className="font-bold text-sm">পার্সেলটি অন্য কেউ রিসিভ করবেন?</p>
-                    <p className="text-xs text-muted-foreground">ডেলিভারি রিসিভারের নাম ও নম্বর আলাদা দিন</p>
+                    <p className="font-bold text-sm">
+                      পার্সেলটি অন্য কেউ রিসিভ করবেন?
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      ডেলিভারি রিসিভারের নাম ও নম্বর আলাদা দিন
+                    </p>
                   </div>
                 </label>
               </div>
@@ -330,7 +333,7 @@ export function CheckoutForm({ cart, user }: CheckoutFormProps) {
                 <Truck className="size-5" />
               </div>
               <h2 className="text-base sm:text-lg font-black uppercase tracking-widest">
-                ডেলিভারি এরিয়া
+                ডেলিভারি এরিয়া
               </h2>
             </div>
             <RadioGroup
@@ -344,13 +347,13 @@ export function CheckoutForm({ cart, user }: CheckoutFormProps) {
                   id: "dhaka" as const,
                   label: "ঢাকার ভেতর",
                   sub: "Home Delivery",
-                  price: 60,
+                  price: DELIVERY_CHARGES.dhaka,
                 },
                 {
                   id: "outside" as const,
                   label: "ঢাকার বাইরে",
                   sub: "Courier Service",
-                  price: 120,
+                  price: DELIVERY_CHARGES.outside,
                 },
               ].map((area) => (
                 <div
@@ -439,7 +442,7 @@ export function CheckoutForm({ cart, user }: CheckoutFormProps) {
                   <div className="leading-tight">
                     <p className="font-bold text-base">ক্যাশ অন ডেলিভারি</p>
                     <p className="text-[10px] text-muted-foreground font-black uppercase tracking-widest mt-1">
-                      পণ্য হাতে পেয়ে টাকা দিন
+                      পণ্য হাতে পেয়ে টাকা দিন
                     </p>
                   </div>
                 </div>
@@ -460,8 +463,6 @@ export function CheckoutForm({ cart, user }: CheckoutFormProps) {
                     <Check className="size-3.5 stroke-[4px]" />
                   </div>
                 )}
-
-                {/* Icon */}
                 <Zap
                   className={cn(
                     "size-6 shrink-0",
@@ -470,13 +471,9 @@ export function CheckoutForm({ cart, user }: CheckoutFormProps) {
                       : "text-muted-foreground",
                   )}
                 />
-
-                {/* Label */}
                 <span className="font-bold text-base flex-1 min-w-0 truncate">
                   মোবাইল ব্যাংকিং
                 </span>
-
-                {/* Logos */}
                 <div className="flex shrink-0 -space-x-2 pr-4">
                   {["bkash", "nagad", "rocket"].map((p) => (
                     <div
@@ -580,7 +577,7 @@ export function CheckoutForm({ cart, user }: CheckoutFormProps) {
                     className="h-12 rounded-xl text-base"
                   />
                   <p className="text-[10px] text-muted-foreground font-medium ml-1">
-                    যে নাম্বার থেকে টাকা পাঠিয়েছেন
+                    যে নাম্বার থেকে টাকা পাঠিয়েছেন
                   </p>
                 </div>
                 <div className="space-y-2">
@@ -596,6 +593,18 @@ export function CheckoutForm({ cart, user }: CheckoutFormProps) {
               </div>
             </div>
           )}
+
+          {/* ✅ Customer Notes — moved here from nowhere, was missing */}
+          <div className="space-y-2">
+            <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground ml-1">
+              অতিরিক্ত নোট (ঐচ্ছিক)
+            </Label>
+            <Textarea
+              {...register("customerNotes")}
+              placeholder="ডেলিভারি সম্পর্কে বিশেষ কোনো নির্দেশনা..."
+              className="min-h-20 rounded-xl bg-background/50 resize-none text-base"
+            />
+          </div>
         </div>
 
         {/* Right Side: Order Summary */}
@@ -686,46 +695,7 @@ export function CheckoutForm({ cart, user }: CheckoutFormProps) {
             </div>
           </div>
         </div>
-      </form> 
-
-      {/* Success Modal — closing redirects to /products since cart is empty */}
-      <Dialog
-        open={showSuccessModal}
-        onOpenChange={(open) => {
-          if (!open) router.push("/products");
-        }}
-      >
-        <DialogContent className="max-w-[90vw] sm:max-w-105 rounded-[2.5rem] p-10 text-center space-y-6">
-          <div className="size-20 rounded-full bg-primary/10 text-primary flex items-center justify-center mx-auto mb-2 animate-in zoom-in duration-500 shadow-inner">
-            <PackageCheck className="size-10" />
-          </div>
-          <div className="space-y-3">
-            <DialogTitle className="text-3xl font-black tracking-tight">
-              অর্ডার সফল হয়েছে!
-            </DialogTitle>
-            <DialogDescription className="text-sm font-medium leading-relaxed">
-              অর্ডার আইডি:{" "}
-              <span className="text-primary font-bold">#{orderId}</span>. <br />{" "}
-              খুব শীঘ্রই আমাদের প্রতিনিধি আপনাকে কল করবেন।
-            </DialogDescription>
-          </div>
-          <div className="grid grid-cols-1 gap-4 pt-2">
-            <Link href="/products" className="block w-full">
-              <Button className="w-full h-12 rounded-xl text-base font-bold bg-primary shadow-lg shadow-primary/20">
-                কেনাকাটা চালিয়ে যান
-              </Button>
-            </Link>
-            <Link href="/dashboard/my-orders" className="block w-full">
-              <Button
-                variant="outline"
-                className="w-full h-12 rounded-xl text-base font-bold border-border/60"
-              >
-                অর্ডার স্ট্যাটাস দেখুন
-              </Button>
-            </Link>
-          </div>
-        </DialogContent>
-      </Dialog>
+      </form>
     </div>
   );
 }

@@ -1,4 +1,5 @@
-import { DefaultSession } from "next-auth";
+// src/types/next-auth.d.ts
+import { DefaultSession, DefaultUser } from "next-auth";
 
 declare module "next-auth" {
   interface Session {
@@ -9,7 +10,8 @@ declare module "next-auth" {
     } & DefaultSession["user"];
   }
 
-  interface User {
+  // ✅ DefaultUser extend করো — এটাই "role does not exist" ফিক্স করে
+  interface User extends DefaultUser {
     role: "user" | "admin";
   }
 }
