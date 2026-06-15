@@ -1,20 +1,20 @@
-// src/app/admin/orders/[id]/page.tsx
+// src/app/(admin)/admin/orders/[id]/invoice/page.tsx
 import { notFound, redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { dbConnect } from "@/lib/db";
 import Order from "@/models/Order";
-import { OrderDetailsClient } from "./OrderDetailsClient";
-import type { IOrderSerializable } from "@/types/order";
+import { InvoiceClient } from "./InvoiceClient";
+import type { IOrderSerializable } from "@/types/order";  // ✅ Serializable
 
 interface PageProps {
   params: Promise<{ id: string }>;
 }
 
 export const metadata = {
-  title: "Order Details",
+  title: "Invoice",
 };
 
-export default async function AdminOrderDetailsPage({ params }: PageProps) {
+export default async function InvoicePage({ params }: PageProps) {
   const session = await auth();
   if (!session?.user || session.user.role !== "admin") {
     redirect("/login");
@@ -29,7 +29,8 @@ export default async function AdminOrderDetailsPage({ params }: PageProps) {
     notFound();
   }
 
+  // ✅ JSON.parse(JSON.stringify(...)) → ObjectId → string, তাই IOrderSerializable
   const order = JSON.parse(JSON.stringify(orderDoc)) as IOrderSerializable;
 
-  return <OrderDetailsClient order={order} />;
+  return <InvoiceClient order={order} />;
 }
