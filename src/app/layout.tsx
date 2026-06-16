@@ -1,15 +1,26 @@
 import type { Metadata, Viewport } from "next";
-import { Noto_Serif_Bengali } from "next/font/google";
+import { Geist, Geist_Mono, Noto_Sans_Bengali} from "next/font/google";
 import "@/styles/globals.css";
 
 import { Providers } from "@/components/providers/Providers";
 import { ToastProvider } from "@/components/ui/toast-provider";
 
-const notoSerifBengali = Noto_Serif_Bengali({
+const notoSansfBengali = Noto_Sans_Bengali({
   weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"],
   subsets: ["latin", "bengali"],
-  variable: "--font-noto-serif-bengali",
+  variable: "--font-noto-sans-bengali",
   display: "swap",
+});
+
+
+const geistSans = Geist({
+  variable: "--font-geist-sans",
+  subsets: ["latin"],
+});
+
+const geistMono = Geist_Mono({
+  variable: "--font-geist-mono",
+  subsets: ["latin"],
 });
 
 const APP_NAME = "Gadget Collections";
@@ -148,7 +159,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`h-full antialiased ${notoSerifBengali.variable} font-sans`}
+      className={`h-full antialiased ${notoSansfBengali.variable} ${geistSans.variable} ${geistMono.variable}`}
       suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col">
