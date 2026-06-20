@@ -22,7 +22,7 @@ export function InvoiceQR({ value, size = 76 }: InvoiceQRProps) {
       size={size}
       level="H"
       bgColor="#ffffff"
-      fgColor="#002060"
+  fgColor="#000000"
       marginSize={2}
     />
   );

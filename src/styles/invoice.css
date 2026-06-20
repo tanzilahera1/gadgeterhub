@@ -78,7 +78,7 @@ html, body {
   font-size: 9px;
 }
 
-/* ========== QR CODE — top-right corner ========== */
+/* ========== QR CODE — top-right corner (black) ========== */
 .invoice-qr {
   position: absolute;
   top: 2mm;
@@ -103,7 +103,7 @@ html, body {
 .invoice-qr-label {
   font-size: 7px;
   font-weight: 700;
-  color: #002060 !important;
+  color: #000 !important;        /* ✅ navy → black */
   text-align: center;
   letter-spacing: 0.3px;
   line-height: 1;
@@ -197,7 +197,7 @@ html, body {
     font-size: 9px !important;
   }
 
-  /* ✅ QR Code position stay */
+  /* QR Code stays */
   .invoice-qr {
     position: absolute !important;
     top: 2mm !important;
@@ -217,7 +217,7 @@ html, body {
 
   .invoice-qr-label {
     font-size: 7px !important;
-    color: #002060 !important;
+    color: #000 !important;       /* ✅ black */
     margin-top: 3px !important;
   }
 
@@ -246,14 +246,14 @@ html, body {
     print-color-adjust: exact !important;
   }
 
-  /* ✅ Brand color — solid #002060, B&W print-এও visible */
+  /* ✅ Brand name & footer thanks — pure black */
   .invoice-store-name,
   .invoice-footer-thanks {
-    color: #002060 !important;
+    color: #000 !important;
     background: none !important;
     -webkit-background-clip: unset !important;
     background-clip: unset !important;
-    -webkit-text-fill-color: #002060 !important;
+    -webkit-text-fill-color: #000 !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
   }
@@ -319,18 +319,18 @@ html, body {
   background: transparent !important;
 }
 
-/* ✅ Brand Name — solid color */
+/* ✅ Brand Name — pure black */
 .invoice-store-name {
   font-size: 22px;
   font-weight: 900;
   letter-spacing: 0.3px;
   margin: 0 0 3px;
   line-height: 1.1;
-  color: #002060 !important;
+  color: #000 !important;
 }
 
 .invoice-page .invoice-store-name {
-  color: #002060 !important;
+  color: #000 !important;
 }
 
 .invoice-store-address {
@@ -472,16 +472,16 @@ html, body {
   border-top: 1.5px solid #000;
 }
 
-/* ✅ Thank you — solid color */
+/* ✅ Thank you — pure black */
 .invoice-footer-thanks {
   font-size: 12px;
   font-weight: 800;
-  color: #002060 !important;
+  color: #000 !important;
   margin: 0 0 2px;
 }
 
 .invoice-page .invoice-footer-thanks {
-  color: #002060 !important;
+  color: #000 !important;
 }
 
 .invoice-footer-subtitle {
