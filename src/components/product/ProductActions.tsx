@@ -11,16 +11,21 @@ import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { ICartItem, IPopulatedCartItem } from "@/types/cart";
 
+import { WhatsAppOrderButton } from "./WhatsAppOrderButton"; 
+import { IProduct } from "@/types/product"; 
+
 interface ProductActionsProps {
   productId: string;
   productTitle: string;
   stock: number;
+  product: IProduct;
 }
 
 export function ProductActions({
   productId,
   productTitle,
   stock,
+  product
 }: ProductActionsProps) {
   const {
     addToCart,
@@ -117,6 +122,8 @@ export function ProductActions({
     );
   };
 
+
+
   return (
     <div className="space-y-5">
       {/* Quantity - Centralized */}
@@ -187,6 +194,9 @@ export function ProductActions({
           {isInCart ? "চেকআউট" : "কিনুন"}
         </Button>
       </div>
+
+                  {/* WhatsApp অর্ডার বাটন */}
+       <WhatsAppOrderButton product={product} quantity={displayQty} />
 
       {/* Separator */}
       <div className="flex items-center gap-4 py-2">

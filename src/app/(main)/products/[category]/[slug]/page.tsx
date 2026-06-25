@@ -186,6 +186,7 @@ export default async function ProductDetailPage({
                 productId={String(product._id)}
                 productTitle={product.title}
                 stock={product.stockQuantity}
+                product={product}
               />
             </div>
           </div>
