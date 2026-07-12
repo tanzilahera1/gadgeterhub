@@ -61,6 +61,7 @@ const FOOTER_DATA = {
       href: "https://www.youtube.com/@gadgeterhub",
       brandColor: "#FF0000",
     },
+    
     {
       label: "TikTok",
       Icon: TikTokIcon,
