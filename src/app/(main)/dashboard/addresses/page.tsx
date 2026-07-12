@@ -8,7 +8,7 @@ import { AddressManager } from "@/components/dashboard/AddressManager";
 import { MapPin } from "lucide-react";
 
 export const metadata = {
-  title: "My Addresses | GadgetCollections",
+  title: "My Addresses | GadgeterHub",
   description: "Manage your shipping and billing addresses.",
 };
 

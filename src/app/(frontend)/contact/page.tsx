@@ -49,7 +49,7 @@ export default function ContactPage() {
           </h1>
           <p className="text-slate-500 font-medium md:text-lg leading-relaxed">
             Have a question, feedback, or need help with your pending orders? We
-            are here round the clock to support your GadgetCollections
+            are here round the clock to support your GadgeterHub
             experience.
           </p>
         </div>

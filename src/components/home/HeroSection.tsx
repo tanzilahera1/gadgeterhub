@@ -104,8 +104,7 @@ export default function HeroSection({ featuredProducts }: HeroSectionProps) {
               alt={product.title}
               fill
               sizes="(max-width: 640px) 55vw, (max-width: 768px) 45vw, (max-width: 1024px) 33vw, 25vw"
-              priority={isFirst}
-              loading={isFirst ? "eager" : "lazy"}
+              priority={index < 4}
               className="object-cover group-hover:scale-105 transition-transform duration-500"
             />
             <div className="absolute inset-0 bg-linear-to-t from-black/90 via-black/20 to-transparent opacity-80 group-hover:opacity-90 transition-opacity" />

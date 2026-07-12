@@ -80,7 +80,7 @@ const OrderSchema = new Schema<IOrder>(
   { timestamps: true },
 );
 
-OrderSchema.index({ orderNumber: 1 });
+
 OrderSchema.index({ user: 1 });
 OrderSchema.index({ orderStatus: 1 });
 OrderSchema.index({ paymentStatus: 1 });

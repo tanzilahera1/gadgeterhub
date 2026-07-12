@@ -190,17 +190,17 @@ export default function NavbarClient() {
           <Link
             href="/"
             className="flex items-center gap-2 transition-transform hover:scale-105 active:scale-95 shrink-0"
-            aria-label="GadgetCollections Homepage"
+            aria-label="GadgeterHub Homepage"
           >
             <Image
               src="/logo.svg"
-              alt="GadgetCollections logo"
+              alt="GadgeterHub logo"
               width={64}
               height={64}
               priority
             />
             <span className="text-xl font-bold tracking-tight hidden sm:inline">
-              Gadget Collections
+              GadgeterHub
             </span>
           </Link>
 

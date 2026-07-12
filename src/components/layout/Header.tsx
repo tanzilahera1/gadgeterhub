@@ -14,4 +14,4 @@ export default function Header() {
       <CategoryNav />
     </header>
   );
-}
+} 

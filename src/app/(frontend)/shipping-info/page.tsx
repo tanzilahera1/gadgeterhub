@@ -1,6 +1,6 @@
 export const metadata = {
-  title: "শিপিং ও ডেলিভারি | GadgetCollections",
-  description: "GadgetCollections এর ডেলিভারি চার্জ ও শিপিং তথ্য।",
+  title: "শিপিং ও ডেলিভারি | GadgeterHub",
+  description: "GadgeterHub এর ডেলিভারি চার্জ ও শিপিং তথ্য।",
 };
 
 import { Truck, Clock, MapPin, CheckCircle } from "lucide-react";

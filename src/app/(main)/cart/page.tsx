@@ -2,7 +2,7 @@ import { Metadata } from "next";
 import CartPageClient from "./CartPageClient";
 
 export const metadata: Metadata = {
-  title: "আপনার কার্ট | GadgetCollections",
+  title: "আপনার কার্ট | GadgeterHub",
   description: "আপনার পছন্দের গ্যাজেটগুলো চেকআউট করার জন্য তৈরি করুন।",
 };
 

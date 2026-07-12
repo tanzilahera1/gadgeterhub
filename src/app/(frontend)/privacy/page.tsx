@@ -1,6 +1,6 @@
 export const metadata = {
-  title: "গোপনীয়তা নীতি | GadgetCollections",
-  description: "GadgetCollections এর ব্যক্তিগত তথ্য সুরক্ষা নীতিমালা।",
+  title: "গোপনীয়তা নীতি | GadgeterHub",
+  description: "GadgeterHub এর ব্যক্তিগত তথ্য সুরক্ষা নীতিমালা।",
 };
 
 import { ShieldCheck } from "lucide-react";

@@ -34,13 +34,13 @@ const FOOTER_DATA = {
     {
       label: "Facebook",
       Icon: FacebookIcon,
-      href: "https://www.facebook.com/gadgetcollectionsbd",
+      href: "https://www.facebook.com/gadgeterhub",
       brandColor: "#1877F2",
     },
     {
       label: "Instagram",
       Icon: InstagramIcon,
-      href: "https://www.instagram.com/gadgetcollectionsbd/",
+      href: "https://www.instagram.com/gadgeterhub/",
       brandColor: "#E4405F",
     },
     {
@@ -58,13 +58,13 @@ const FOOTER_DATA = {
     {
       label: "YouTube",
       Icon: YouTubeIcon,
-      href: "https://www.youtube.com/@gadgetcollectionsbd",
+      href: "https://www.youtube.com/@gadgeterhub",
       brandColor: "#FF0000",
     },
     {
       label: "TikTok",
       Icon: TikTokIcon,
-      href: "https://www.tiktok.com/@gadgetcollectionsbd",
+      href: "https://www.tiktok.com/@gadgeterhub",
       brandColor: "#000000",
     },
   ],
@@ -85,14 +85,14 @@ export default function Footer() {
                 <div className="relative size-10 transition-transform duration-700 group-hover:rotate-360">
                   <Image
                     src="/logo.svg"
-                    alt="GadgetCollections"
+                    alt="GadgeterHub"
                     fill
                     sizes="40px"
                     className="object-contain"
                   />
                 </div>
                 <span className="text-2xl font-black tracking-tighter uppercase italic">
-                  Gadget<span className="text-primary">Collections</span>
+                  GadgeterHub
                 </span>
               </LinkNext>
               <p className="text-sm text-muted-foreground leading-relaxed max-w-sm">
@@ -261,7 +261,7 @@ export default function Footer() {
         <div className=" mt-12 pt-8 border-t border-border/10 flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
           <p className="text-center">
             © {new Date().toLocaleString("en-US", { year: "numeric" })}{" "}
-            GadgetCollections. Developed with ❤️ in Bangladesh.
+            GadgeterHub. Developed with ❤️ in Bangladesh.
           </p>
           <div className="flex gap-12">
             <LinkNext

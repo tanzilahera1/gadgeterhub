@@ -66,7 +66,7 @@ export default function SettingsForm({ initialData }: { initialData?: any }) {
             <input
               required
               name="storeName"
-              defaultValue={initialData?.storeName || "Gadget Collections"}
+              defaultValue={initialData?.storeName || "GadgeterHub"}
               type="text"
               className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
             />

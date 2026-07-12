@@ -11,6 +11,6 @@ const BrandSchema = new Schema<IBrand & Document>(
   { timestamps: true }
 )
 
-BrandSchema.index({ slug: 1 })
+
 
 export default models.Brand || model<IBrand & Document>('Brand', BrandSchema)

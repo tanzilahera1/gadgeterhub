@@ -14,7 +14,7 @@ const CategorySchema = new Schema<ICategory & Document>(
   { timestamps: true },
 );
 
-CategorySchema.index({ slug: 1 });
+
 CategorySchema.index({ parent: 1 });
 
 export default models.Category ||

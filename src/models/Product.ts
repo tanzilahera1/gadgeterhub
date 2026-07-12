@@ -79,7 +79,7 @@ const ProductSchema = new Schema<IProduct & Document>(
   { timestamps: true },
 );
 
-ProductSchema.index({ slug: 1 });
+
 ProductSchema.index({ category: 1 });
 ProductSchema.index({ brand: 1 });
 ProductSchema.index({ status: 1 });

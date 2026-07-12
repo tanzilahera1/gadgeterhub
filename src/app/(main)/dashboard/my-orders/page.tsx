@@ -30,7 +30,7 @@ const STATUS_STEPS = [
 ];
 
 export const metadata = {
-  title: "My Orders | GadgetCollections",
+  title: "My Orders | GadgeterHub",
   description: "Track your ongoing and past orders.",
 };
 

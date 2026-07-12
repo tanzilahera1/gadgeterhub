@@ -44,8 +44,8 @@ export function InvoiceClient({ order }: Props) {
     (shipping.city ? `, ${shipping.city}` : "") +
     (shipping.postalCode ? ` - ${shipping.postalCode}` : "");
 
-  // ✅ Deterministic invoice number (remove GC prefix)
-  const invoiceNo = order.orderNumber.replace(/^GC/i, "");
+  // ✅ Deterministic invoice number (remove GC/GH prefix)
+  const invoiceNo = order.orderNumber.replace(/^G[CH]/i, "");
 
   return (
     <>
@@ -85,7 +85,7 @@ export function InvoiceClient({ order }: Props) {
 
         {/* ✅ QR Code — top-RIGHT */}
         <div className="invoice-qr">
-          <InvoiceQR value="https://gadgetcollections.vercel.app" size={76} />
+          <InvoiceQR value="https://gadgeterhub.vercel.app" size={76} />
           <div className="invoice-qr-label">Visit Us</div>
         </div>
 
@@ -111,7 +111,7 @@ export function InvoiceClient({ order }: Props) {
               height={64}
             />
             <div className="invoice-header-text">
-              <p className="invoice-store-name">Gadget Collections</p>
+              <p className="invoice-store-name">GadgeterHub</p>
               <p className="invoice-store-address">
                 5C(5th floor), 92/1, Motijheel C/A, Dhaka-1000
               </p>
@@ -246,7 +246,7 @@ export function InvoiceClient({ order }: Props) {
         {/* FOOTER */}
         <div className="invoice-footer">
           <p className="invoice-footer-thanks">
-            Thank you for shopping with Gadget Collections!
+            Thank you for shopping with GadgeterHub!
           </p>
           <p className="invoice-footer-subtitle">
             আপনার আস্থার জন্য আমরা কৃতজ্ঞ।🎉
@@ -254,12 +254,12 @@ export function InvoiceClient({ order }: Props) {
 
           <div className="invoice-footer-links">
             <span className="invoice-footer-link">
-              🌐 www.gadgetcollections.com
+              🌐 www.gadgeterhub.com
             </span>
             <span className="invoice-footer-divider">|</span>
             <span className="invoice-footer-link">
               <FacebookIcon />
-              www.facebook.com/gadgetcollectionsbd
+              www.facebook.com/gadgeterhub
             </span>
           </div>
         </div>

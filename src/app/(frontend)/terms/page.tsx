@@ -1,6 +1,6 @@
 export const metadata = {
-  title: "ব্যবহারের শর্তাবলী | GadgetCollections",
-  description: "GadgetCollections এর সেবা ব্যবহারের নিয়ম ও শর্তাবলী।",
+  title: "ব্যবহারের শর্তাবলী | GadgeterHub",
+  description: "GadgeterHub এর সেবা ব্যবহারের নিয়ম ও শর্তাবলী।",
 };
 
 import { FileText } from "lucide-react";
@@ -9,7 +9,7 @@ export default function TermsPage() {
   const sections = [
     {
       title: "সেবা গ্রহণের শর্ত",
-      content: "GadgetCollections এর সেবা ব্যবহার করে আপনি স্বয়ংক্রিয়ভাবে এই শর্তাবলীতে সম্মত হচ্ছেন। ১৮ বছরের কম বয়সীদের অভিভাবকের সম্মতিতে অর্ডার করতে হবে।",
+      content: "GadgeterHub এর সেবা ব্যবহার করে আপনি স্বয়ংক্রিয়ভাবে এই শর্তাবলীতে সম্মত হচ্ছেন। ১৮ বছরের কম বয়সীদের অভিভাবকের সম্মতিতে অর্ডার করতে হবে।",
     },
     {
       title: "পণ্য ও মূল্য",
@@ -21,7 +21,7 @@ export default function TermsPage() {
     },
     {
       title: "দায়বদ্ধতার সীমা",
-      content: "GadgetCollections শুধুমাত্র পণ্যের মূল মূল্য পর্যন্ত দায়বদ্ধ। কোনো পরোক্ষ ক্ষতি, ব্যবসায়িক ক্ষতি বা ডেটা ক্ষতির জন্য আমরা দায়ী নই।",
+      content: "GadgeterHub শুধুমাত্র পণ্যের মূল মূল্য পর্যন্ত দায়বদ্ধ। কোনো পরোক্ষ ক্ষতি, ব্যবসায়িক ক্ষতি বা ডেটা ক্ষতির জন্য আমরা দায়ী নই।",
     },
     {
       title: "বিরোধ নিষ্পত্তি",

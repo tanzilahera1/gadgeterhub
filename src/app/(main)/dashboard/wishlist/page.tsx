@@ -11,7 +11,7 @@ import { formatPrice } from "@/lib/priceUtils";
 import { IProduct } from "@/types/product";
 
 export const metadata = {
-  title: "My Wishlist | GadgetCollections",
+  title: "My Wishlist | GadgeterHub",
   description: "View and manage your saved products.",
 };
 

@@ -290,7 +290,7 @@ export default function CartPageClient() {
             {/* Trust Badges */}
             <div className="rounded-2xl border border-border/40 bg-card/20 backdrop-blur-md p-5 flex flex-col gap-4 shadow-sm">
               <h4 className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em]">
-                GadgetCollections নিশ্চিত করছে
+                GadgeterHub নিশ্চিত করছে
               </h4>
               <div className="grid grid-cols-2 gap-4">
                 <div className="flex flex-col gap-2">

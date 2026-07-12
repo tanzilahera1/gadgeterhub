@@ -1,6 +1,6 @@
 export const metadata = {
-  title: "রিটার্ন পলিসি | GadgetCollections",
-  description: "GadgetCollections এর পণ্য ফেরত ও রিফান্ড নীতিমালা।",
+  title: "রিটার্ন পলিসি | GadgeterHub",
+  description: "GadgeterHub এর পণ্য ফেরত ও রিফান্ড নীতিমালা।",
 };
 
 import { RefreshCcw } from "lucide-react";

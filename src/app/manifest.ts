@@ -3,7 +3,7 @@ import { MetadataRoute } from 'next'
  
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: 'Gadget Collections',
+    name: 'GadgeterHub',
     short_name: 'Gadgets',
     description: 'Best Gadgets at the Best Prices in Bangladesh. Shop smartphones, audio, smartwatches.',
     start_url: '/',

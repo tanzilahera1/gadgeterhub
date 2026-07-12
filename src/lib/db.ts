@@ -36,7 +36,7 @@ export async function dbConnect(): Promise<Mongoose> {
       family: 4, 
       retryWrites: true,
       w: "majority" as const,
-      appName: "GadgetCollections",
+      appName: "GadgeterHub",
     };
 
     cached!.promise = mongoose.connect(MONGODB_URI, opts).then((mongoose) => {

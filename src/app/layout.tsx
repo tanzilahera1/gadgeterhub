@@ -25,10 +25,10 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-const APP_NAME = "Gadget Collections";
+const APP_NAME = "GadgeterHub";
 const APP_DEFAULT_TITLE =
-  "Gadget Collections | Best Gadgets at the Best Prices in Bangladesh";
-const APP_TITLE_TEMPLATE = "%s | Gadget Collections";
+  "GadgeterHub | Best Gadgets at the Best Prices in Bangladesh";
+const APP_TITLE_TEMPLATE = "%s | GadgeterHub";
 const APP_DESCRIPTION =
   "Buy latest smartphones, audio, smartwatches & gadgets in Bangladesh. 100% authentic products, fast delivery, COD available. Best prices guaranteed.";
 
@@ -45,19 +45,19 @@ export const metadata: Metadata = {
     "smartphone price bd",
     "airpods price",
     "smartwatch bd",
-    "gadget collections",
+    "gadgeterhub",
     "online gadget store",
     "mobile accessories",
     "tech shop dhaka",
     "best gadget price",
   ],
   authors: [
-    { name: "Gadget Collections", url: "https://gadgetcollections.com" },
+    { name: "GadgeterHub", url: "https://gadgeterhub.com" },
   ],
-  creator: "Gadget Collections",
-  publisher: "Gadget Collections",
+  creator: "GadgeterHub",
+  publisher: "GadgeterHub",
   metadataBase: new URL(
-    process.env.NEXT_PUBLIC_APP_URL || "https://gadgetcollections.com",
+    process.env.NEXT_PUBLIC_APP_URL || "https://gadgeterhub.com",
   ),
 
   alternates: {
@@ -79,7 +79,7 @@ export const metadata: Metadata = {
         url: "/logo.png", // 1200x630 রেকমেন্ডেড, আপাতত 512x512 চলবে
         width: 512,
         height: 512,
-        alt: "Gadget Collections Logo",
+        alt: "GadgeterHub Logo",
       },
     ],
     locale: "en_US",
@@ -94,7 +94,7 @@ export const metadata: Metadata = {
     },
     description: APP_DESCRIPTION,
     images: ["/logo.png"],
-    creator: "@gadgetcollections", // থাকলে দাও
+    creator: "@gadgeterhub", // থাকলে দাও
   },
 
   // Icons - সব ডিভাইসের জন্য

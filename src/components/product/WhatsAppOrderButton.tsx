@@ -16,7 +16,7 @@ export function WhatsAppOrderButton({ product, quantity }: WhatsAppOrderButtonPr
   const price = product.salePrice || product.regularPrice;
   const total = price * quantity; // ← quantity দিয়ে গুণ
   
-  const message = `*Gadget Collections Order*
+  const message = `*GadgeterHub Order*
   
 প্রোডাক্ট: ${product.title}
 দাম: ${price} টাকা/পিস

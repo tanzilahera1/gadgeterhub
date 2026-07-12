@@ -18,7 +18,7 @@ import type { ICartItem, IPopulatedCartItem } from "@/types/cart";
 import { ICategory } from "@/types/category";
 import { useState } from "react";
 
-export default function ProductCard({ product }: { product: IProduct }) {
+export default function ProductCard({ product, priority = false }: { product: IProduct; priority?: boolean }) {
   const {
     cart,
     addToCart,
@@ -131,6 +131,7 @@ export default function ProductCard({ product }: { product: IProduct }) {
             src={product.thumbnail}
             alt={product.title}
             fill
+            priority={priority}
             className="object-cover transition-transform duration-700 ease-in-out group-hover:scale-110"
             sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
           />

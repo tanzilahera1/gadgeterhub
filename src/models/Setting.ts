@@ -18,7 +18,7 @@ export interface ISetting {
 
 const SettingSchema = new Schema<ISetting & Document>(
   {
-    storeName: { type: String, required: true, default: "Gadget Collections" },
+    storeName: { type: String, required: true, default: "GadgeterHub" },
     storeEmail: { type: String },
     storePhone: { type: String },
     currency: { type: String, default: "BDT" },

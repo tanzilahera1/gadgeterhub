@@ -7,7 +7,7 @@ import { ProfileForm } from '@/components/dashboard/ProfileForm'
 import { ShieldCheck, User as UserIcon } from 'lucide-react'
 
 export const metadata = {
-  title: 'My Profile | GadgetCollections',
+  title: 'My Profile | GadgeterHub',
   description: 'Manage your account settings and personal information.',
 }
 

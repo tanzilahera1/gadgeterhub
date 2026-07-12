@@ -24,7 +24,7 @@ import {
 import Link from "next/link";
 
 export const metadata = {
-  title: "Dashboard Overview | GadgetCollections",
+  title: "Dashboard Overview | GadgeterHub",
   description: "View your account overview and recent activities.",
 };
 

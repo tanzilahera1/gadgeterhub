@@ -1,5 +1,5 @@
 export const metadata = {
-  title: "অর্ডার ট্র্যাক করুন | GadgetCollections",
+  title: "অর্ডার ট্র্যাক করুন | GadgeterHub",
   description:
     "আপনার অর্ডারের বর্তমান অবস্থান ও ডেলিভারি স্ট্যাটাস ট্র্যাক করুন।",
 };

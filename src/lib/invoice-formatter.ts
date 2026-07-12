@@ -44,7 +44,7 @@ export function buildInvoiceText(
   const isGiftOrder = order.customerPhone !== order.shipping.phone;
 
   const header =
-    `          GADGET COLLECTIONS\n` +
+    `          GADGETERHUB\n` +
     `    5C(5th floor), 92/1, Motijheel C/A\n` +
     `              Dhaka-1000\n` +
     `          Mobile: 01568390014\n` +

@@ -51,7 +51,7 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
 
         {/* Footer */}
         <footer className="p-6 text-center text-[10px] font-black text-slate-400 uppercase tracking-widest">
-          GadgetCollections Admin © 2026 • Powered by GadgetAdmin Engine
+          GadgeterHub Admin © 2026 • Powered by GadgetAdmin Engine
         </footer>
       </main>
     </div>

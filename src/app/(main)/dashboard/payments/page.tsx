@@ -16,7 +16,7 @@ import Link from "next/link";
 import { cn } from "@/lib/utils";
 
 export const metadata = {
-  title: "Payment History | GadgetCollections",
+  title: "Payment History | GadgeterHub",
   description: "View your completed and pending payments.",
 };
 
