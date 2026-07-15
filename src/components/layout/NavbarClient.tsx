@@ -221,6 +221,7 @@ export default function NavbarClient() {
                 ))}
               </div>
             }
+            
           >
             <NavLinks />
           </Suspense>
