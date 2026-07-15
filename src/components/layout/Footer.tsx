@@ -89,7 +89,7 @@ export default function Footer() {
                     alt="GadgeterHub"
                     fill
                     sizes="40px"
-                    className="object-contain"
+                    className="object-contain rounded-full"
                   />
                 </div>
                 <span className="text-2xl font-black tracking-tighter uppercase italic">

@@ -195,13 +195,14 @@ export default function NavbarClient() {
             <Image
               src="/logo.svg"
               alt="GadgeterHub logo"
-              width={64}
-              height={64}
+              width={40}
+              height={40}
               priority
-            />
+              className="rounded-full overflow-hidden"
+            /> 
             <span className="text-xl font-bold tracking-tight hidden sm:inline">
-              GadgeterHub
-            </span>
+              Gadgeter Hub
+            </span>   
           </Link>
 
           {/* Desktop Nav */}

@@ -76,16 +76,16 @@ export const metadata: Metadata = {
     url: "/",
     images: [
       {
-        url: "/logo.png", // 1200x630 রেকমেন্ডেড, আপাতত 512x512 চলবে
+        url: "/og.png", 
         width: 512,
         height: 512,
-        alt: "GadgeterHub Logo",
+        alt: "GadgeterHub OG Image",
       },
     ],
     locale: "en_US",
   },
 
-  // Twitter Card
+  // Twitter Card 
   twitter: {
     card: "summary_large_image",
     title: {
@@ -94,7 +94,7 @@ export const metadata: Metadata = {
     },
     description: APP_DESCRIPTION,
     images: ["/logo.png"],
-    creator: "@gadgeterhub", // থাকলে দাও
+    creator: "@gadgeterhub", // থাকলে দাও 
   },
 
   // Icons - সব ডিভাইসের জন্য
