@@ -25,12 +25,12 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-const APP_NAME = "GadgeterHub";
+const APP_NAME = "Gadgeter Hub";
 const APP_DEFAULT_TITLE =
-  "GadgeterHub | Best Gadgets at the Best Prices in Bangladesh";
+  "Gadgeter Hub | বাংলাদেশের সবচেয়ে বিশ্বস্ত গ্যাজেট শপ";
 const APP_TITLE_TEMPLATE = "%s | GadgeterHub";
 const APP_DESCRIPTION =
-  "Buy latest smartphones, audio, smartwatches & gadgets in Bangladesh. 100% authentic products, fast delivery, COD available. Best prices guaranteed.";
+  "১০০% অরিজিনাল স্মার্টফোন, স্মার্টওয়াচ, এয়ারবাডস এবং লেটেস্ট সব গ্যাজেট কিনুন সবচেয়ে সাশ্রয়ী মূল্যে। রয়েছে দ্রুত হোম ডেলিভারি ও ক্যাশ অন ডেলিভারি (COD) সুবিধা!";
 
 export const metadata: Metadata = {
   applicationName: APP_NAME,
@@ -100,14 +100,15 @@ export const metadata: Metadata = {
   // Icons - সব ডিভাইসের জন্য
   icons: {
     icon: [
-      { url: "/favicon.ico" }, // 48x48
       { url: "/logo.png", type: "image/png", sizes: "32x32" },
+      { url: "/logo.png", type: "image/png", sizes: "48x48" }, // For Google Search
+      { url: "/logo.png", type: "image/png", sizes: "96x96" }, // For Google Search
       { url: "/logo.png", type: "image/png", sizes: "192x192" },
     ],
     apple: [
       { url: "/logo.png", sizes: "180x180", type: "image/png" }, // iOS
     ],
-    shortcut: ["/favicon.ico"],
+    shortcut: ["/logo.png"],
   },
 
   // PWA + Mobile
