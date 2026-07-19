@@ -93,7 +93,7 @@ export default function Footer() {
                   />
                 </div>
                 <span className="text-2xl font-black tracking-tighter uppercase italic">
-                  GadgeterHub
+                  Gadgeter Hub
                 </span>
               </LinkNext>
               <p className="text-sm text-muted-foreground leading-relaxed max-w-sm">

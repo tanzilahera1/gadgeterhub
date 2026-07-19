@@ -2,13 +2,13 @@
 
 import { useState } from "react";
 import {
-  Mail,
   Phone,
   MapPin,
   Send,
   Loader2,
   MessageSquare,
 } from "lucide-react";
+import { WhatsAppIcon } from "@/socialCustomSVGIcon/SocialCustomSVGIcon";
 import { toast } from "sonner";
 import { submitContactForm } from "@/actions/contact";
 import { Button } from "@/components/ui/button";
@@ -42,7 +42,7 @@ export default function ContactPage() {
         {/* Header Section */}
         <div className="text-center space-y-4 max-w-2xl mx-auto">
           <div className="inline-flex items-center justify-center p-3 bg-primary/10 rounded-2xl mb-2">
-            <Mail className="size-8 text-primary" />
+            <MessageSquare className="size-8 text-primary" />
           </div>
           <h1 className="text-3xl md:text-5xl font-black text-slate-900 tracking-tight">
             Stay Connected
@@ -89,9 +89,9 @@ export default function ContactPage() {
               <div className="relative z-10 space-y-6">
                 <div>
                   <h3 className="text-xl font-bold text-slate-900 mb-1">
-                    Visit Us
+                    Operating Hub
                   </h3>
-                  <p className="text-slate-500 text-sm">Our Physical Store</p>
+                  <p className="text-slate-500 text-sm">Online Operations Only</p>
                 </div>
                 <div className="flex items-center gap-3">
                   <div className="size-12 bg-amber-50 text-amber-600 rounded-xl flex items-center justify-center shrink-0">
@@ -106,27 +106,32 @@ export default function ContactPage() {
               </div>
             </div>
 
-            <div className="bg-white rounded-3xl p-8 border border-slate-100 shadow-sm relative overflow-hidden group">
-              <div className="absolute top-0 right-0 p-8 opacity-5">
-                <Mail className="size-32" />
+            <a 
+              href="https://wa.me/8801568390014" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="bg-white rounded-3xl p-8 border border-slate-100 shadow-sm relative overflow-hidden group block hover:border-[#25D366]/30 hover:shadow-[#25D366]/10 transition-all cursor-pointer"
+            >
+              <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:text-[#25D366] transition-colors">
+                <WhatsAppIcon className="size-32" />
               </div>
               <div className="relative z-10 space-y-6">
                 <div>
-                  <h3 className="text-xl font-bold text-slate-900 mb-1">
-                    Email Us
+                  <h3 className="text-xl font-bold text-slate-900 mb-1 group-hover:text-[#25D366] transition-colors">
+                    WhatsApp Us
                   </h3>
-                  <p className="text-slate-500 text-sm">Support drops here.</p>
+                  <p className="text-slate-500 text-sm">Instant replies.</p>
                 </div>
                 <div className="flex items-center gap-3">
-                  <div className="size-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center shrink-0">
-                    <Mail className="size-5" />
+                  <div className="size-12 bg-[#25D366]/10 text-[#25D366] rounded-xl flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                    <WhatsAppIcon className="size-5" />
                   </div>
                   <span className="text-base font-bold text-slate-700">
-                    support@mestschool.com
+                    +880 1568390014
                   </span>
                 </div>
               </div>
-            </div>
+            </a>
           </div>
 
           {/* Right: Modern Contact Form */}
@@ -181,23 +186,7 @@ export default function ContactPage() {
                 </div>
               </div>
 
-              {/* Email */}
-              <div className="space-y-2">
-                <label
-                  htmlFor="email"
-                  className="text-sm font-bold text-slate-700 pl-1"
-                >
-                  Email Address
-                </label>
-                <input
-                  id="email"
-                  name="email"
-                  type="email"
-                  placeholder="john@example.com (Optional)"
-                  disabled={isLoading}
-                  className="w-full bg-slate-50/50 border border-slate-200 rounded-2xl px-4 py-3.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all focus:bg-white"
-                />
-              </div>
+
 
               {/* Subject */}
               <div className="space-y-2">

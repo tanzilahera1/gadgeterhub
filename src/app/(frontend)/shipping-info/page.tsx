@@ -29,7 +29,7 @@ export default function ShippingInfoPage() {
                 <p className="text-xs text-muted-foreground">Inside Dhaka</p>
               </div>
             </div>
-            <p className="text-3xl font-black text-primary">৳60</p>
+            <p className="text-3xl font-black text-primary">৳70</p>
             <div className="flex items-center gap-2 text-xs text-muted-foreground">
               <Clock className="size-3.5" />
               <span>১–২ কার্যদিবস</span>
@@ -46,7 +46,7 @@ export default function ShippingInfoPage() {
                 <p className="text-xs text-muted-foreground">Outside Dhaka</p>
               </div>
             </div>
-            <p className="text-3xl font-black">৳120</p>
+            <p className="text-3xl font-black">৳130</p>
             <div className="flex items-center gap-2 text-xs text-muted-foreground">
               <Clock className="size-3.5" />
               <span>২–৫ কার্যদিবস</span>
