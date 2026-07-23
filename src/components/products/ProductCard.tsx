@@ -129,7 +129,7 @@ export default function ProductCard({ product, priority = false }: { product: IP
         <Link href={productHref} className="absolute inset-0 z-0 block">
           <Image
             src={product.thumbnail}
-            alt={product.title}
+            alt={`${product.title} price in Bangladesh - GadgeterHub`}
             fill
             priority={priority}
             className="object-cover transition-transform duration-700 ease-in-out group-hover:scale-110"

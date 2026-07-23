@@ -44,16 +44,34 @@ export async function generateMetadata({
 }: {
   params: Promise<{ category: string; slug: string }>;
 }): Promise<Metadata> {
-  const { slug } = await params;
+  const { slug, category } = await params;
   await dbConnect();
   const product = await Product.findOne({ slug }).lean<IProduct>();
   if (!product) return { title: "Product Not Found" };
 
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://gadgeterhub.com";
+  const productUrl = `${baseUrl}/products/${category}/${slug}`;
+
   return {
     title: product.seoTitle || product.title,
     description: product.seoDesc || product.shortDesc,
+    alternates: {
+      canonical: productUrl,
+    },
     openGraph: {
-      images: [product.thumbnail],
+      title: product.seoTitle || product.title,
+      description: product.seoDesc || product.shortDesc,
+      url: productUrl,
+      siteName: "GadgeterHub",
+      images: [
+        {
+          url: product.thumbnail,
+          width: 800,
+          height: 800,
+          alt: product.title,
+        },
+      ],
+      type: "website",
     },
   };
 }
@@ -106,9 +124,54 @@ export default async function ProductDetailPage({
   const hasSpecs =
     product.specifications && product.specifications.length > 0;
 
+  // JSON-LD Generation
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://gadgeterhub.com";
+  const productUrl = `${baseUrl}/products/${params.category}/${product.slug}`;
+  
+  const brandName = typeof product.brand === "object" && product.brand && "name" in product.brand 
+    ? String((product.brand as Record<string, unknown>).name)
+    : typeof product.brand === "string" && product.brand 
+    ? product.brand 
+    : "GadgeterHub";
+
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    "name": product.title,
+    "image": [product.thumbnail, ...(product.images?.map(i => i.url) || [])],
+    "description": product.shortDesc,
+    "sku": product.sku,
+    "brand": {
+      "@type": "Brand",
+      "name": brandName
+    },
+    "offers": {
+      "@type": "Offer",
+      "url": productUrl,
+      "priceCurrency": "BDT",
+      "price": displayPrice,
+      "availability": product.stockQuantity > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+      "seller": {
+        "@type": "Organization",
+        "name": "GadgeterHub"
+      }
+    },
+    ...(product.ratings?.count && product.ratings.count > 0 ? {
+      "aggregateRating": {
+        "@type": "AggregateRating",
+        "ratingValue": product.ratings.average || 5,
+        "reviewCount": product.ratings.count
+      }
+    } : {})
+  };
+
   return (
     // ✅ overflow-x-hidden দিয়ে root level এ ক্ল্যাম্প
     <div className="w-full overflow-x-hidden">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-3 space-y-5 sm:space-y-6">
         {/* ==================== Breadcrumbs ==================== */}
         <nav className="flex items-center gap-1.5 text-[11px] sm:text-xs font-medium text-muted-foreground overflow-x-auto whitespace-nowrap scrollbar-none -mx-3 px-3 sm:mx-0 sm:px-0">

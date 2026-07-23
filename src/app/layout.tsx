@@ -1,5 +1,6 @@
 
 import { Analytics } from "@vercel/analytics/next"
+import { SpeedInsights } from "@vercel/speed-insights/next"
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono, Noto_Sans_Bengali} from "next/font/google";
 import "@/styles/globals.css";
@@ -168,7 +169,12 @@ export default function RootLayout({
           {children}
           <ToastProvider />
         </Providers>
-         <Analytics />
+         {process.env.NODE_ENV === "production" && (
+           <>
+             <Analytics />
+             <SpeedInsights />
+           </>
+         )}
       </body>
     </html>
   );
