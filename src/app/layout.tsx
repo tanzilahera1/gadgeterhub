@@ -100,10 +100,8 @@ export const metadata: Metadata = {
   // Icons - সব ডিভাইসের জন্য
   icons: {
     icon: [
-      { url: "/logo.png", type: "image/png", sizes: "32x32" },
-      { url: "/logo.png", type: "image/png", sizes: "48x48" }, // For Google Search
-      { url: "/logo.png", type: "image/png", sizes: "96x96" }, // For Google Search
-      { url: "/logo.png", type: "image/png", sizes: "192x192" },
+      { url: "/logo.png", type: "image/png", },
+
     ],
     apple: [
       { url: "/logo.png", sizes: "180x180", type: "image/png" }, // iOS
@@ -114,7 +112,7 @@ export const metadata: Metadata = {
   // PWA + Mobile
   manifest: "/manifest.webmanifest",
   appleWebApp: {
-    capable: true,
+    capable: true, 
     statusBarStyle: "default",
     title: APP_NAME,
   },
