@@ -124,8 +124,8 @@ export const metadata: Metadata = {
   classification: "E-commerce, Gadgets, Electronics, Bangladesh",
 
   // Verification - পরে Search Console থেকে কোড বসাবা
-  verification: {
-    google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION,
+ verification: {
+    google: process.env.NEXT_PUBLIC_GOOGLE_MERCHANT_CENTER_VERIFICATION,
   },
 
   // Robots
