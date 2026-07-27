@@ -101,13 +101,12 @@ export const metadata: Metadata = {
   // Icons - সব ডিভাইসের জন্য
   icons: {
     icon: [
-      { url: "/logo.png", type: "image/png", },
-
+      { url: "/favicon.png?v=1", type: "image/png" },
     ],
     apple: [
-      { url: "/logo.png", sizes: "180x180", type: "image/png" }, // iOS
+      { url: "/favicon.png?v=1", sizes: "180x180", type: "image/png" }, // iOS
     ],
-    shortcut: ["/logo.png"],
+    shortcut: ["/favicon.png?v=1"],
   },
 
   // PWA + Mobile
