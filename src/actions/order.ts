@@ -124,6 +124,9 @@ export async function createOrder(formData: FormData) {
 
     orderItems.push({
       product: product._id,
+      variant: item.variant,
+      color: item.color,
+      size: item.size,
       productTitle: product.title,
       productSlug: product.slug,
       productImage: product.thumbnail,

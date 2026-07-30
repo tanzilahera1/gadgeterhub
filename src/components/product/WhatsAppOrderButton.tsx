@@ -7,19 +7,24 @@ import { IProduct } from "@/types/product";
 
 interface WhatsAppOrderButtonProps {
   product: IProduct;
-  quantity: number; // ← এই লাইন অ্যাড
+  quantity: number;
+  color?: string;
+  size?: string;
 }
 
-export function WhatsAppOrderButton({ product, quantity }: WhatsAppOrderButtonProps) {
+export function WhatsAppOrderButton({ product, quantity, color, size }: WhatsAppOrderButtonProps) {
   const phoneNumber = "8801568390014"; 
   
   const price = product.salePrice || product.regularPrice;
-  const total = price * quantity; // ← quantity দিয়ে গুণ
+  const total = price * quantity;
   
+  const colorText = color ? `কালার: ${color}\n` : "";
+  const sizeText = size ? `সাইজ: ${size}\n` : "";
+
   const message = `*GadgeterHub Order*
   
 প্রোডাক্ট: ${product.title}
-দাম: ${price} টাকা/পিস
+${colorText}${sizeText}দাম: ${price} টাকা/পিস
 পরিমাণ: ${quantity} পিস
 মোট: ${total} টাকা
 

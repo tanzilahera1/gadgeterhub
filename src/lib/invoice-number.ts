@@ -11,8 +11,8 @@ const Counter =
   mongoose.models.Counter || mongoose.model("Counter", CounterSchema);
 
 /**
- * Generates: GH + DDMMYY + 4-digit sequence
- * Example: GH2006260001
+ * Generates: GH-YYMMDD-4digitSequence
+ * Example: GH-260730-0001
  */
 export async function generateInvoiceNumber(): Promise<string> {
   const now = new Date();
@@ -33,10 +33,10 @@ export async function generateInvoiceNumber(): Promise<string> {
     if (Order) {
       const latestOrder = await Order.findOne().sort({ createdAt: -1 });
       if (latestOrder && latestOrder.orderNumber) {
-        // Remove "GC" or "GH" (2 chars) and Date (6 chars) to get only the sequence part
-        const seqPart = latestOrder.orderNumber.slice(8);
-        if (seqPart) {
-          lastSeq = parseInt(seqPart, 10);
+        // Extract numbers from the end of orderNumber
+        const matches = latestOrder.orderNumber.match(/\d+$/);
+        if (matches && matches[0]) {
+          lastSeq = parseInt(matches[0], 10);
         }
       }
     }
@@ -52,7 +52,7 @@ export async function generateInvoiceNumber(): Promise<string> {
     { new: true, upsert: true },
   );
 
-  const seq = String(counter!.sequence).padStart(5, "0");
+  const seq = String(counter!.sequence).padStart(4, "0");
 
-  return `GH${dd}${mm}${yy}${seq}`;
+  return `GH-${yy}${mm}${dd}-${seq}`;
 }

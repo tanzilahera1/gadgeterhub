@@ -219,6 +219,20 @@ export function OrderDetailsClient({ order }: Props) {
                       <p className="text-[10px] text-muted-foreground font-mono mt-1">
                         SKU: {item.productSku}
                       </p>
+                      {(item.color || item.size) && (
+                        <div className="flex flex-wrap gap-1 mt-1">
+                          {item.color && (
+                            <span className="inline-block bg-primary/10 text-primary text-[10px] font-bold px-1.5 py-0.5 rounded">
+                              Color: {item.color}
+                            </span>
+                          )}
+                          {item.size && (
+                            <span className="inline-block bg-muted text-foreground text-[10px] font-bold px-1.5 py-0.5 rounded uppercase">
+                              Size: {item.size}
+                            </span>
+                          )}
+                        </div>
+                      )}
                       <div className="flex items-center gap-2 mt-2">
                         <span className="text-xs font-bold text-foreground">
                           {formatPrice(item.unitPrice)}

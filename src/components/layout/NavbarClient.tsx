@@ -189,20 +189,20 @@ export default function NavbarClient() {
           {/* Logo */}
           <Link
             href="/"
-            className="flex items-center gap-2 transition-transform hover:scale-105 active:scale-95 shrink-0"
+            className="flex items-center gap-1.5 transition-transform hover:scale-105 active:scale-95 shrink-0"
             aria-label="GadgeterHub Homepage"
           >
             <Image
               src="/logo.svg"
               alt="GadgeterHub logo"
-              width={40}
-              height={40}
+              width={34}
+              height={34}
               priority
-              className="rounded-full overflow-hidden"
+              className="rounded-full overflow-hidden shrink-0 size-8 sm:size-9"
             /> 
-            <span className="text-xl font-bold tracking-tight hidden sm:inline">
+            <span className="text-[13px] xs:text-sm sm:text-xl font-bold tracking-tight text-foreground whitespace-nowrap">
               Gadgeter Hub
-            </span>   
+            </span>
           </Link>
 
           {/* Desktop Nav */}
@@ -227,7 +227,7 @@ export default function NavbarClient() {
           </Suspense>
 
           {/* Actions */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1.5 sm:gap-3">
             <Button
               variant="ghost"
               size="icon"

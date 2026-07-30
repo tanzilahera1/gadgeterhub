@@ -37,28 +37,31 @@ export function useCart() {
     mutationFn: async ({
       productId,
       quantity,
+      color,
+      size,
     }: {
       productId: string;
       quantity: number;
+      color?: string;
+      size?: string;
     }) => {
       const formData = new FormData();
       formData.append("productId", productId);
       formData.append("itemQuantity", quantity.toString());
+      if (color) formData.append("color", color);
+      if (size) formData.append("size", size);
       return addToCart(formData);
     },
     onMutate: async (newItem) => {
-      // ১. অন্য কোনো ফেচ রিফ্রেশ বন্ধ করো যাতে ওভাররাইট না হয়
       await queryClient.cancelQueries({ queryKey: ["cart-count", userId] });
       await queryClient.cancelQueries({ queryKey: ["cart-details", userId] });
 
-      // ২. আগের ডেটা সেভ করে রাখো (এরর হলে রোলব্যাক করার জন্য)
       const previousCount = queryClient.getQueryData(["cart-count", userId]);
       const previousDetails = queryClient.getQueryData([
         "cart-details",
         userId,
       ]);
 
-      // ৩. ইনস্ট্যান্টলি UI আপডেট করো (Optimistic Update)
       queryClient.setQueryData(["cart-count", userId], (old: number = 0) => {
         const cart = previousDetails as
           | { items?: (ICartItem | IPopulatedCartItem)[] }
@@ -66,7 +69,11 @@ export function useCart() {
         const alreadyInCart = cart?.items?.some((item) => {
           const id =
             typeof item.product === "object" ? item.product._id : item.product;
-          return String(id) === newItem.productId;
+          return (
+            String(id) === newItem.productId &&
+            (item.color || "") === (newItem.color || "") &&
+            (item.size || "") === (newItem.size || "")
+          );
         });
         return alreadyInCart ? old : old + 1;
       });
@@ -79,7 +86,6 @@ export function useCart() {
       }
     },
     onError: (err, newItem, context) => {
-      // ৪. সমস্যা হলে আগের ডেটাতে ফিরে যাও
       if (context) {
         queryClient.setQueryData(["cart-count", userId], context.previousCount);
         queryClient.setQueryData(
@@ -90,7 +96,6 @@ export function useCart() {
       toast.error("Something went wrong");
     },
     onSettled: () => {
-      // ৫. কাজ শেষে সার্ভারের সাথে সিঙ্ক করে নাও
       queryClient.invalidateQueries({ queryKey: ["cart-count", userId] });
       queryClient.invalidateQueries({ queryKey: ["cart-details", userId] });
     },
@@ -101,13 +106,19 @@ export function useCart() {
     mutationFn: async ({
       productId,
       quantity,
+      color,
+      size,
     }: {
       productId: string;
       quantity: number;
+      color?: string;
+      size?: string;
     }) => {
       const formData = new FormData();
       formData.append("productId", productId);
       formData.append("itemQuantity", quantity.toString());
+      if (color) formData.append("color", color);
+      if (size) formData.append("size", size);
       return updateQty(formData);
     },
     onMutate: async (updatedItem) => {
@@ -122,7 +133,6 @@ export function useCart() {
         ICart & { items: (ICartItem | IPopulatedCartItem)[] }
       >(["cart-details", userId]);
 
-      // Optimistically update details and count
       if (previousDetails?.items) {
         const item = previousDetails.items.find(
           (i: ICartItem | IPopulatedCartItem) => {
@@ -130,12 +140,15 @@ export function useCart() {
               typeof i.product === "object"
                 ? String(i.product._id)
                 : String(i.product);
-            return id === updatedItem.productId;
+            return (
+              id === updatedItem.productId &&
+              (i.color || "") === (updatedItem.color || "") &&
+              (i.size || "") === (updatedItem.size || "")
+            );
           },
         );
 
         if (item) {
-          // Update details
           queryClient.setQueryData(["cart-details", userId], {
             ...previousDetails,
             items: previousDetails.items.map(
@@ -144,14 +157,14 @@ export function useCart() {
                   typeof i.product === "object"
                     ? String(i.product._id)
                     : String(i.product);
-                return id === updatedItem.productId
+                return id === updatedItem.productId &&
+                  (i.color || "") === (updatedItem.color || "") &&
+                  (i.size || "") === (updatedItem.size || "")
                   ? { ...i, itemQuantity: updatedItem.quantity }
                   : i;
               },
             ),
           });
-
-          /* Unique count logic: quantity change doesn't affect cart-count badge */
         }
       }
 
@@ -175,12 +188,22 @@ export function useCart() {
 
   // 5. Remove Item Mutation
   const removeItemMutation = useMutation({
-    mutationFn: async ({ productId }: { productId: string }) => {
+    mutationFn: async ({
+      productId,
+      color,
+      size,
+    }: {
+      productId: string;
+      color?: string;
+      size?: string;
+    }) => {
       const formData = new FormData();
       formData.append("productId", productId);
+      if (color) formData.append("color", color);
+      if (size) formData.append("size", size);
       return removeFromCart(formData);
     },
-    onMutate: async ({ productId }) => {
+    onMutate: async ({ productId, color, size }) => {
       await queryClient.cancelQueries({ queryKey: ["cart-count", userId] });
       await queryClient.cancelQueries({ queryKey: ["cart-details", userId] });
 
@@ -199,12 +222,15 @@ export function useCart() {
               typeof i.product === "object"
                 ? String(i.product._id)
                 : String(i.product);
-            return id === productId;
+            return (
+              id === productId &&
+              (i.color || "") === (color || "") &&
+              (i.size || "") === (size || "")
+            );
           },
         );
 
         if (itemToRemove) {
-          // Update details by removing item
           queryClient.setQueryData(["cart-details", userId], {
             ...previousDetails,
             items: previousDetails.items.filter(
@@ -213,12 +239,15 @@ export function useCart() {
                   typeof i.product === "object"
                     ? String(i.product._id)
                     : String(i.product);
-                return id !== productId;
+                return !(
+                  id === productId &&
+                  (i.color || "") === (color || "") &&
+                  (i.size || "") === (size || "")
+                );
               },
             ),
           });
 
-          // Update count (unique item removed)
           queryClient.setQueryData(["cart-count", userId], (old: number = 0) =>
             Math.max(0, old - 1),
           );

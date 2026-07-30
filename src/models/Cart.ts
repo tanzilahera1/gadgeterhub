@@ -5,6 +5,8 @@ const CartItemSchema = new Schema(
   {
     product: { type: Schema.Types.ObjectId, ref: "Product", required: true },
     variant: { type: Schema.Types.ObjectId },
+    color: { type: String, trim: true },
+    size: { type: String, trim: true },
     itemQuantity: { type: Number, required: true, min: 1 },
     addedAt: { type: Date, default: Date.now },
   },

@@ -29,6 +29,8 @@ type PopulatedCart = Omit<ICart, "items"> & {
     itemQuantity: number;
     addedAt: Date;
     variant?: string;
+    color?: string;
+    size?: string;
   }>;
 };
 
@@ -88,6 +90,8 @@ export async function GET() {
           itemQuantity: item.itemQuantity,
           addedAt: item.addedAt,
           variant: item.variant,
+          color: item.color,
+          size: item.size,
           subtotal: price * item.itemQuantity,
         };
       });

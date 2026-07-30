@@ -12,18 +12,24 @@ import type { ICartItem } from '@/types/cart'
 const AddToCartSchema = z.object({
   productId: z.string().min(1),
   variantId: z.string().optional(),
+  color: z.string().optional(),
+  size: z.string().optional(),
   itemQuantity: z.number().min(1).max(10)
 })
 
 const UpdateQtySchema = z.object({
   productId: z.string().min(1),
   variantId: z.string().optional(),
+  color: z.string().optional(),
+  size: z.string().optional(),
   itemQuantity: z.number().min(1).max(10)
 })
 
 const RemoveFromCartSchema = z.object({
   productId: z.string().min(1),
-  variantId: z.string().optional()
+  variantId: z.string().optional(),
+  color: z.string().optional(),
+  size: z.string().optional()
 })
 
 // --- Internal Helper ---
@@ -53,12 +59,14 @@ export async function addToCart(formData: FormData) {
   const validated = AddToCartSchema.safeParse({
     productId: formData.get('productId'),
     variantId: formData.get('variantId') || undefined,
+    color: formData.get('color') || undefined,
+    size: formData.get('size') || undefined,
     itemQuantity: Number(formData.get('itemQuantity') || 1)
   })
 
   if (!validated.success) return { success: false, error: 'Invalid data', details: validated.error.flatten() }
 
-  const { productId, variantId, itemQuantity } = validated.data
+  const { productId, variantId, color, size, itemQuantity } = validated.data
   
   // 1. Verify product exists and is in stock
   await dbConnect()
@@ -71,7 +79,11 @@ export async function addToCart(formData: FormData) {
   if (!cart) return { success: false, error: 'Could not manage cart' }
 
   const existingItemIndex = cart.items.findIndex(
-    (item: ICartItem) => item.product.toString() === productId && item.variant?.toString() === variantId
+    (item: ICartItem) => 
+      item.product.toString() === productId && 
+      item.variant?.toString() === variantId &&
+      (item.color || '') === (color || '') &&
+      (item.size || '') === (size || '')
   )
 
   if (existingItemIndex > -1) {
@@ -79,7 +91,14 @@ export async function addToCart(formData: FormData) {
     if (product.stockQuantity < newQty) return { success: false, error: 'সর্বোচ্চ স্টক লিমিট পার হয়েছে!' }
     cart.items[existingItemIndex].itemQuantity = newQty
   } else {
-    cart.items.push({ product: productId, variant: variantId, itemQuantity, addedAt: new Date() })
+    cart.items.push({ 
+      product: productId, 
+      variant: variantId, 
+      color, 
+      size, 
+      itemQuantity, 
+      addedAt: new Date() 
+    })
   }
 
   await cart.save()
@@ -90,6 +109,8 @@ export async function updateQty(formData: FormData) {
   const validated = UpdateQtySchema.safeParse({
     productId: formData.get('productId'),
     variantId: formData.get('variantId') || undefined,
+    color: formData.get('color') || undefined,
+    size: formData.get('size') || undefined,
     itemQuantity: Number(formData.get('itemQuantity'))
   })
 
@@ -98,9 +119,13 @@ export async function updateQty(formData: FormData) {
   const cart = await getCart()
   if (!cart) return { success: false, error: 'Could not find cart' }
 
-  const { productId, variantId, itemQuantity } = validated.data
+  const { productId, variantId, color, size, itemQuantity } = validated.data
   const existingItemIndex = cart.items.findIndex(
-    (item: ICartItem) => item.product.toString() === productId && item.variant?.toString() === variantId
+    (item: ICartItem) => 
+      item.product.toString() === productId && 
+      item.variant?.toString() === variantId &&
+      (item.color || '') === (color || '') &&
+      (item.size || '') === (size || '')
   )
 
   if (existingItemIndex > -1) {
@@ -113,7 +138,9 @@ export async function updateQty(formData: FormData) {
 export async function removeFromCart(formData: FormData) {
   const validated = RemoveFromCartSchema.safeParse({
     productId: formData.get('productId'),
-    variantId: formData.get('variantId') || undefined
+    variantId: formData.get('variantId') || undefined,
+    color: formData.get('color') || undefined,
+    size: formData.get('size') || undefined
   })
 
   if (!validated.success) return { error: 'Invalid data' }
@@ -121,9 +148,14 @@ export async function removeFromCart(formData: FormData) {
   const cart = await getCart()
   if (!cart) return { error: 'Could not find cart' }
 
-  const { productId, variantId } = validated.data
+  const { productId, variantId, color, size } = validated.data
   cart.items = cart.items.filter(
-    (item: ICartItem) => !(item.product.toString() === productId && item.variant?.toString() === variantId)
+    (item: ICartItem) => !(
+      item.product.toString() === productId && 
+      item.variant?.toString() === variantId &&
+      (item.color || '') === (color || '') &&
+      (item.size || '') === (size || '')
+    )
   )
 
   await cart.save()

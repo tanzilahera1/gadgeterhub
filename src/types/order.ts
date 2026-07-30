@@ -11,6 +11,8 @@ import type { ID } from "./index";
 export interface IOrderItem {
   product: ID;
   variant?: ID;
+  color?: string;
+  size?: string;
   productTitle: string;
   productSlug: string;
   productImage: string;

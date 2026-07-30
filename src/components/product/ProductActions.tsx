@@ -39,7 +39,15 @@ export function ProductActions({
   } = useCart();
   const router = useRouter();
 
-  // কার্টে আছে কিনা চেক করো
+  // Selected Options (Default to first available option as requested)
+  const [selectedColor, setSelectedColor] = useState<string>(
+    product.colors && product.colors.length > 0 ? product.colors[0] : ""
+  );
+  const [selectedSize, setSelectedSize] = useState<string>(
+    product.sizes && product.sizes.length > 0 ? product.sizes[0] : ""
+  );
+
+  // কার্টে আছে কিনা চেক করো (productId + color + size)
   const cartItem = cart?.items?.find((item: ICartItem | IPopulatedCartItem) => {
     const itemProductId =
       typeof item.product === "object" &&
@@ -47,7 +55,11 @@ export function ProductActions({
       "_id" in item.product
         ? String(item.product._id)
         : String(item.product);
-    return itemProductId === productId;
+
+    const matchesColor = (item.color || "") === (selectedColor || "");
+    const matchesSize = (item.size || "") === (selectedSize || "");
+
+    return itemProductId === productId && matchesColor && matchesSize;
   });
 
   const isInCart = !!cartItem;
@@ -63,12 +75,12 @@ export function ProductActions({
   const handleQtyChange = (newQty: number) => {
     if (isInCart) {
       if (newQty > currentQtyInCart) {
-        updateQty({ productId, quantity: newQty });
+        updateQty({ productId, quantity: newQty, color: selectedColor, size: selectedSize });
       } else if (newQty < currentQtyInCart) {
         if (newQty === 0) {
-          removeItem({ productId });
+          removeItem({ productId, color: selectedColor, size: selectedSize });
         } else {
-          updateQty({ productId, quantity: newQty });
+          updateQty({ productId, quantity: newQty, color: selectedColor, size: selectedSize });
         }
       }
     } else {
@@ -78,7 +90,7 @@ export function ProductActions({
 
   const handleAddToCart = () => {
     if (isInCart) {
-      toast.info("ইতিমধ্যে এই প্রোডাক্ট কার্টে যোগ করা হয়েছে।", {
+      toast.info("ইতিমধ্যে এই ভ্যারিয়েন্টটি কার্টে যোগ করা হয়েছে।", {
         icon: <ShoppingCart className="size-4" />,
         duration: 1500,
       });
@@ -86,7 +98,7 @@ export function ProductActions({
     }
 
     addToCart(
-      { productId, quantity: localQty },
+      { productId, quantity: localQty, color: selectedColor, size: selectedSize },
       {
         onSuccess: (data: { success?: boolean }) => {
           if (data?.success) {
@@ -111,7 +123,7 @@ export function ProductActions({
     }
 
     addToCart(
-      { productId, quantity: localQty },
+      { productId, quantity: localQty, color: selectedColor, size: selectedSize },
       {
         onSuccess: (data: { success?: boolean }) => {
           if (data?.success) {
@@ -122,10 +134,87 @@ export function ProductActions({
     );
   };
 
-
+  // Formatted Weight for UI
+  const formattedWeight = product.weight
+    ? product.weight < 1000
+      ? `${product.weight} গ্রাম`
+      : `${(product.weight / 1000).toFixed(2)} কেজি`
+    : null;
 
   return (
     <div className="space-y-5">
+      {/* Color Selection - Pill Radio Buttons */}
+      {product.colors && product.colors.length > 0 && (
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <p className="text-xs font-black uppercase tracking-widest text-muted-foreground/60">
+              কালার: <span className="text-foreground font-bold font-sans capitalize">{selectedColor}</span>
+            </p>
+            {formattedWeight && (
+              <span className="text-[11px] font-bold text-muted-foreground bg-muted/60 border border-border/40 px-2.5 py-0.5 rounded-full flex items-center gap-1">
+                ⚖️ {formattedWeight}
+              </span>
+            )}
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {product.colors.map((c) => {
+              const isSelected = selectedColor === c;
+              return (
+                <button
+                  key={c}
+                  type="button"
+                  onClick={() => setSelectedColor(c)}
+                  className={cn(
+                    "px-3.5 py-1.5 rounded-full text-xs font-bold transition-all border",
+                    isSelected
+                      ? "bg-primary text-primary-foreground border-primary shadow-sm scale-105"
+                      : "bg-muted/50 text-foreground border-border hover:bg-muted"
+                  )}
+                >
+                  {c}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Size Selection - Pill Radio Buttons */}
+      {product.sizes && product.sizes.length > 0 && (
+        <div className="space-y-2">
+          <p className="text-xs font-black uppercase tracking-widest text-muted-foreground/60">
+            সাইজ: <span className="text-foreground font-bold font-sans uppercase">{selectedSize}</span>
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {product.sizes.map((s) => {
+              const isSelected = selectedSize === s;
+              return (
+                <button
+                  key={s}
+                  type="button"
+                  onClick={() => setSelectedSize(s)}
+                  className={cn(
+                    "px-3.5 py-1.5 rounded-full text-xs font-bold transition-all border",
+                    isSelected
+                      ? "bg-primary text-primary-foreground border-primary shadow-sm scale-105"
+                      : "bg-muted/50 text-foreground border-border hover:bg-muted"
+                  )}
+                >
+                  {s}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Fallback Weight Badge if no colors */}
+      {(!product.colors || product.colors.length === 0) && formattedWeight && (
+        <div className="flex items-center justify-between text-xs font-bold text-muted-foreground bg-muted/30 p-2.5 rounded-xl border border-border/40">
+          <span>ওজন:</span>
+          <span className="text-foreground flex items-center gap-1 font-bold">⚖️ {formattedWeight}</span>
+        </div>
+      )}
       {/* Quantity - Centralized */}
       <div className="space-y-2">
         <p className="text-xs font-black uppercase tracking-widest text-muted-foreground/60">
@@ -196,7 +285,7 @@ export function ProductActions({
       </div>
 
                   {/* WhatsApp অর্ডার বাটন */}
-       <WhatsAppOrderButton product={product} quantity={displayQty} />
+       <WhatsAppOrderButton product={product} quantity={displayQty} color={selectedColor} size={selectedSize} />
 
       {/* Separator */}
       <div className="flex items-center gap-4 py-2">

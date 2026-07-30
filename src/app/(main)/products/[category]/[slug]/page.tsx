@@ -120,9 +120,21 @@ export default async function ProductDetailPage({
   const { product, relatedProducts } = data;
 
   const displayPrice = product.salePrice || product.regularPrice;
+  const formattedWeight = product.weight
+    ? product.weight < 1000
+      ? `${product.weight} গ্রাম`
+      : `${(product.weight / 1000).toFixed(2)} কেজি`
+    : null;
+
+  const displaySpecs: IProductSpecification[] = [
+    ...(product.specifications || []),
+    ...(formattedWeight && !product.specifications?.some(s => s.key.toLowerCase() === "ওজন" || s.key.toLowerCase() === "weight")
+      ? [{ key: "ওজন", value: formattedWeight }]
+      : [])
+  ];
+
   const hasFeatures = product.features && product.features.length > 0;
-  const hasSpecs =
-    product.specifications && product.specifications.length > 0;
+  const hasSpecs = displaySpecs.length > 0;
 
   // JSON-LD Generation
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://gadgeterhub.com";
@@ -330,14 +342,14 @@ export default async function ProductDetailPage({
                 </div>
 
                 <div className="rounded-2xl border border-border/50 bg-card overflow-hidden lg:sticky lg:top-20">
-                  {product.specifications.map(
+                  {displaySpecs.map(
                     (spec: IProductSpecification, idx: number) => (
                       <div
                         key={idx}
                         className={`flex flex-col gap-0.5 px-3 sm:px-4 py-2.5 sm:py-3 text-sm min-w-0 ${
                           idx % 2 === 0 ? "bg-muted/30" : "bg-transparent"
                         } ${
-                          idx !== product.specifications.length - 1
+                          idx !== displaySpecs.length - 1
                             ? "border-b border-border/30"
                             : ""
                         }`}

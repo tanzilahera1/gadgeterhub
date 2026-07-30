@@ -4,6 +4,8 @@ import type { ID, ItemQuantity } from "./index";
 export interface ICartItem {
   product: ID; // Product _id
   variant?: ID; // ProductVariant _id — ভ্যারিয়েন্ট থাকলে
+  color?: string; // সিলেক্ট করা কালার
+  size?: string; // সিলেক্ট করা সাইজ
   itemQuantity: ItemQuantity;
   addedAt: Date;
 }

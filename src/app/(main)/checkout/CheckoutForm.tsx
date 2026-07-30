@@ -617,7 +617,7 @@ export function CheckoutForm({ cart, user }: CheckoutFormProps) {
             <div className="space-y-5 max-h-87.5 overflow-y-auto pr-2 custom-scrollbar">
               {cart.items.map((item) => (
                 <div
-                  key={item.product._id}
+                  key={`${item.product._id}-${item.color || ''}-${item.size || ''}`}
                   className="flex gap-4 items-center group"
                 >
                   <div className="relative size-16 rounded-xl overflow-hidden shrink-0 border border-border/40 aspect-square shadow-sm">
@@ -636,6 +636,11 @@ export function CheckoutForm({ cart, user }: CheckoutFormProps) {
                     <h4 className="text-[13px] font-bold leading-snug line-clamp-2 uppercase tracking-tight group-hover:text-primary transition-colors">
                       {item.product.title}
                     </h4>
+                    {(item.color || item.size) && (
+                      <p className="text-[10px] text-muted-foreground font-semibold mt-0.5">
+                        {[item.color && `কালার: ${item.color}`, item.size && `সাইজ: ${item.size}`].filter(Boolean).join(" | ")}
+                      </p>
+                    )}
                     <p className="text-xs font-black text-primary mt-1">
                       {formatPrice(
                         item.product.salePrice || item.product.regularPrice,

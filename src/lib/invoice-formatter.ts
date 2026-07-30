@@ -88,7 +88,7 @@ export function buildInvoiceText(
       : "";
 
   const COL_SN = 3;
-  const COL_NAME = 26;
+  const COL_NAME = 28;
   const COL_QTY = 4;
   const COL_UNIT = 8;
   const COL_TOTAL = 8;
@@ -102,9 +102,20 @@ export function buildInvoiceText(
   const tableRows = order.items
     .map((item, index) => {
       const lineTotal = item.unitPrice * item.itemQuantity;
+      const variantInfo = [item.color, item.size].filter(Boolean).join(", ");
+      let displayTitle = item.productTitle;
+      if (variantInfo) {
+        const variantSuffix = ` (${variantInfo})`;
+        const maxTitleLen = COL_NAME - variantSuffix.length;
+        if (maxTitleLen > 3 && item.productTitle.length > maxTitleLen) {
+          displayTitle = item.productTitle.slice(0, maxTitleLen - 1) + "…" + variantSuffix;
+        } else {
+          displayTitle = item.productTitle + variantSuffix;
+        }
+      }
       return (
         `│ ${padR(String(index + 1), COL_SN)} ` +
-        `│ ${padR(item.productTitle, COL_NAME)} ` +
+        `│ ${padR(displayTitle, COL_NAME)} ` +
         `│ ${padL(String(item.itemQuantity), COL_QTY)} ` +
         `│ ${padL(String(item.unitPrice), COL_UNIT)} ` +
         `│ ${padL(String(lineTotal), COL_TOTAL)} │`

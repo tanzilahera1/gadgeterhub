@@ -201,6 +201,11 @@ export default async function UserOrderDetailsPage({
                     <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">
                       SKU: {item.productSku}
                     </p>
+                    {(item.color || item.size) && (
+                      <p className="text-xs font-semibold text-slate-600">
+                        {[item.color && `কালার: ${item.color}`, item.size && `সাইজ: ${item.size}`].filter(Boolean).join(" | ")}
+                      </p>
+                    )}
                     <div className="flex items-center gap-4 mt-2">
                       <p className="text-sm font-black text-primary">
                         {formatPrice(item.unitPrice)}

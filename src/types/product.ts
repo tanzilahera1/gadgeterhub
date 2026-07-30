@@ -53,8 +53,10 @@ export interface IProduct {
   variants: IProductVariant[]
   supplier?: string // 'গুলিস্থান', 'নিউ মার্কেট'
 
-  // Shipping — Optional
+  // Shipping & Options — Optional
   weight?: number // grams
+  colors?: string[] // e.g. ['Red', 'Blue', 'Black']
+  sizes?: string[] // e.g. ['M', 'L', 'XL']
 
   // SEO — Optional
   seoTitle?: string

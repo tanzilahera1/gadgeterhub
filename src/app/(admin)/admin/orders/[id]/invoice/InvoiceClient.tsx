@@ -185,7 +185,14 @@ export function InvoiceClient({ order }: Props) {
               {order.items.map((item, idx) => (
                 <tr key={idx}>
                   <td className="col-sn">{idx + 1}</td>
-                  <td className="col-product">{item.productTitle}</td>
+                  <td className="col-product">
+                    {item.productTitle}
+                    {(item.color || item.size) && (
+                      <span style={{ fontWeight: "normal", color: "#555", marginLeft: "4px" }}>
+                        ({[item.color, item.size].filter(Boolean).join(", ")})
+                      </span>
+                    )}
+                  </td>
                   <td className="col-qty">{item.itemQuantity}</td>
                   <td className="col-unit">{item.unitPrice}</td>
                   <td className="col-price">

@@ -63,6 +63,8 @@ const ProductSchema = new Schema<IProduct & Document>(
     variants: { type: [ProductVariantSchema], default: [] },
     supplier: { type: String, trim: true },
     weight: { type: Number, min: 0 },
+    colors: { type: [String], default: [] },
+    sizes: { type: [String], default: [] },
     seoTitle: { type: String },
     seoDesc: { type: String, maxlength: 160 },
     tags: [{ type: String, trim: true }],

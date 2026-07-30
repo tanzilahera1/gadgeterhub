@@ -82,12 +82,13 @@ export default function CartPageClient() {
           <div className="space-y-4">
             {cart.items.map((item: IPopulatedCartItem) => {
               const product = item.product;
+              const itemKey = `${product._id}-${item.color || ""}-${item.size || ""}`;
+              const productHref = `/products/${product.category?.slug || "all"}/${product.slug}`;
               const itemTotal = item.subtotal;
-              const productHref = `/products/${getCategorySlug(product)}/${product.slug}`;
 
               return (
                 <article
-                  key={product._id}
+                  key={itemKey}
                   className="group relative flex gap-3 sm:gap-4 p-3 sm:p-5 rounded-3xl border border-border/40 bg-card/40 backdrop-blur-[20px] hover:shadow-xl hover:border-border/60 transition-all duration-300 overflow-hidden"
                 >
                   <Link
@@ -128,6 +129,21 @@ export default function CartPageClient() {
                           {product.title}
                         </h3>
                       </Link>
+
+                      {(item.color || item.size) && (
+                        <div className="flex flex-wrap gap-1.5 mb-2">
+                          {item.color && (
+                            <Badge variant="outline" className="text-[10px] bg-muted/40 font-medium">
+                              কালার: {item.color}
+                            </Badge>
+                          )}
+                          {item.size && (
+                            <Badge variant="outline" className="text-[10px] bg-muted/40 font-medium uppercase">
+                              সাইজ: {item.size}
+                            </Badge>
+                          )}
+                        </div>
+                      )}
                     </div>
 
                     <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 sm:gap-4 mt-3 sm:mt-6">
@@ -152,7 +168,7 @@ export default function CartPageClient() {
                           min={1}
                           max={product.stockQuantity || 10}
                           setQuantity={(val) =>
-                            updateQty({ productId: product._id, quantity: val })
+                            updateQty({ productId: product._id, quantity: val, color: item.color, size: item.size })
                           }
                           variant="premium"
                           className="scale-[0.75] xs:scale-[0.85] sm:scale-100 origin-left"
@@ -175,7 +191,7 @@ export default function CartPageClient() {
                       variant="ghost"
                       size="icon"
                       className="size-10 rounded-full text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
-                      onClick={() => removeItem({ productId: product._id })}
+                      onClick={() => removeItem({ productId: product._id, color: item.color, size: item.size })}
                     >
                       <Trash2 className="size-5" />
                     </Button>
@@ -218,13 +234,18 @@ export default function CartPageClient() {
                 <div className="space-y-3 mb-6 max-h-55 overflow-y-auto pr-2 custom-scrollbar">
                   {cart.items.map((item: IPopulatedCartItem) => (
                     <div
-                      key={item.product._id}
+                      key={`${item.product._id}-${item.color || ""}-${item.size || ""}`}
                       className="flex justify-between items-start gap-3 text-sm px-1"
                     >
                       <div className="flex-1 min-w-0">
                         <p className="text-foreground font-semibold line-clamp-1 leading-tight">
                           {item.product.title}
                         </p>
+                        {(item.color || item.size) && (
+                          <p className="text-[10px] text-muted-foreground font-medium mt-0.5">
+                            {[item.color && `কালার: ${item.color}`, item.size && `সাইজ: ${item.size}`].filter(Boolean).join(" | ")}
+                          </p>
+                        )}
                         <p className="text-[11px] text-muted-foreground font-black uppercase tracking-widest mt-1">
                           {formatPrice(
                             item.product.salePrice || item.product.regularPrice,
