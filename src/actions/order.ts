@@ -146,6 +146,8 @@ export async function createOrder(formData: FormData) {
     data.isGift && data.receiverName ? data.receiverName : data.name;
   const shippingPhone =
     data.isGift && data.receiverPhone ? data.receiverPhone : data.phone;
+  const deliveryZone =
+    data.deliveryArea === "dhaka" ? "ISD (Inside Dhaka)" : "OSD (Outside Dhaka)";
 
   const order = await Order.create({
     orderNumber,
@@ -160,6 +162,7 @@ export async function createOrder(formData: FormData) {
       city: data.city,
       district: data.district,
       postalCode: data.postalCode,
+      deliveryZone,
     },
     subtotal,
     shippingCost,

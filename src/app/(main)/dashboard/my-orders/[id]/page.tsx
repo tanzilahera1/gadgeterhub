@@ -288,8 +288,22 @@ export default async function UserOrderDetailsPage({
                   ADDRESS
                 </p>
                 <p className="text-sm font-bold text-slate-700 leading-relaxed italic">
-                  {order.shipping.addressLine1}, <br />
-                  {order.shipping.district}, {order.shipping.city}
+                  {[
+                    order.shipping.addressLine1,
+                    order.shipping.addressLine2,
+                    order.shipping.district,
+                    order.shipping.city,
+                  ]
+                    .filter((p): p is string => Boolean(p) && !/outside dhaka|inside dhaka|^dhaka$/i.test(p!.trim()))
+                    .join(", ") || order.shipping.addressLine1}
+                </p>
+              </div>
+              <div className="space-y-1">
+                <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest">
+                  DELIVERY ZONE
+                </p>
+                <p className="text-sm font-black text-primary">
+                  {order.shipping.deliveryZone || (order.shippingCost > 80 ? "OSD (Outside Dhaka)" : "ISD (Inside Dhaka)")}
                 </p>
               </div>
             </div>

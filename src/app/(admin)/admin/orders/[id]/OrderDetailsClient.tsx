@@ -24,6 +24,7 @@ import {
   Copy,
   Check,
   ExternalLink,
+  Truck,
 } from "lucide-react";
 import { formatPrice } from "@/lib/priceUtils";
 import { StatusUpdater } from "./StatusUpdater";
@@ -334,21 +335,30 @@ export function OrderDetailsClient({ order }: Props) {
                   icon={<MapPin className="size-3.5" />}
                   label="Address"
                   value={
-                    <>
-                      {order.shipping.addressLine1}
-                      {order.shipping.addressLine2 && (
-                        <>, {order.shipping.addressLine2}</>
-                      )}
-                      {order.shipping.district && (
+                    (() => {
+                      const parts = [
+                        order.shipping.addressLine1,
+                        order.shipping.addressLine2,
+                        order.shipping.district,
+                        order.shipping.city,
+                      ].filter((p): p is string => Boolean(p) && !/outside dhaka|inside dhaka|^dhaka$/i.test(p!.trim()));
+
+                      return (
                         <>
-                          <br />
-                          {order.shipping.district}
-                          {order.shipping.city && `, ${order.shipping.city}`}
-                          {order.shipping.postalCode &&
-                            ` - ${order.shipping.postalCode}`}
+                          {parts.join(", ")}
+                          {order.shipping.postalCode && ` - ${order.shipping.postalCode}`}
                         </>
-                      )}
-                    </>
+                      );
+                    })()
+                  }
+                />
+                <InfoRow
+                  icon={<Truck className="size-3.5" />}
+                  label="Zone"
+                  value={
+                    <span className="font-bold text-foreground">
+                      {order.shipping.deliveryZone || (order.shippingCost > 80 ? "OSD (Outside Dhaka)" : "ISD (Inside Dhaka)")}
+                    </span>
                   }
                 />
               </div>

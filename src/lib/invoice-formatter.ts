@@ -67,17 +67,33 @@ export function buildInvoiceText(
 
   const addr = order.shipping;
 
+  const rawAddrParts = [
+    addr.addressLine1,
+    addr.addressLine2,
+    addr.district,
+    addr.city,
+  ].filter(Boolean) as string[];
+
+  const isOutside =
+    rawAddrParts.some((p) => /outside dhaka/i.test(p)) || order.shippingCost > 80;
+  const zoneLabel =
+    addr.deliveryZone || (isOutside ? "OSD (Outside Dhaka)" : "ISD (Inside Dhaka)");
+
+  const cleanAddrParts = rawAddrParts.filter(
+    (p) => !/outside dhaka|inside dhaka|^dhaka$/i.test(p.trim())
+  );
+  const cleanAddrStr =
+    (cleanAddrParts.length > 0 ? cleanAddrParts.join(", ") : addr.addressLine1) +
+    (addr.postalCode ? ` - ${addr.postalCode}` : "");
+
   const deliveryAddress =
     `🚚 DELIVERY ADDRESS` +
     (isGiftOrder ? ` (🎁 Gift Order)` : ``) +
     `\n` +
     `Name    : ${addr.name}\n` +
     `Phone   : ${addr.phone}\n` +
-    `Address : ${addr.addressLine1}` +
-    (addr.addressLine2 ? `\n          ${addr.addressLine2}` : "") +
-    (addr.district ? `\n          ${addr.district}` : "") +
-    (addr.city ? `, ${addr.city}` : "") +
-    (addr.postalCode ? ` - ${addr.postalCode}` : "");
+    `Address : ${cleanAddrStr}\n` +
+    `Zone    : ${zoneLabel}`;
 
   const paymentInfo =
     order.paymentMethod === "mobile"

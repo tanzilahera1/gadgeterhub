@@ -26,6 +26,7 @@ const OrderShippingSchema = new Schema(
     city: { type: String },
     district: { type: String },
     postalCode: { type: String },
+    deliveryZone: { type: String },
   },
   { _id: false },
 );

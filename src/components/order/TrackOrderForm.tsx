@@ -39,15 +39,8 @@ type TrackedOrder = Pick<
   | "discount"
   | "couponCode"
   | "createdAt"
-> & {
-  shipping: {
-    name: string;
-    address: string;
-    city: string;
-    district: string;
-    phone: string;
-  };
-};
+  | "shipping"
+>;
 
 export function TrackOrderForm() {
   const [orderId, setOrderId] = useState<string>("");
@@ -251,10 +244,17 @@ export function TrackOrderForm() {
               </h4>
               <div className="space-y-1">
                 <p className="font-bold text-slate-900">
-                  {order.shipping.address}
+                  {[
+                    order.shipping.addressLine1,
+                    order.shipping.addressLine2,
+                    order.shipping.district,
+                    order.shipping.city,
+                  ]
+                    .filter((p): p is string => Boolean(p) && !/outside dhaka|inside dhaka|^dhaka$/i.test(p!.trim()))
+                    .join(", ") || order.shipping.addressLine1}
                 </p>
-                <p className="text-sm font-medium text-slate-500">
-                  {order.shipping.city}, {order.shipping.district}
+                <p className="text-xs font-bold text-primary">
+                  জোন: {order.shipping.deliveryZone || (order.shippingCost > 80 ? "OSD (Outside Dhaka)" : "ISD (Inside Dhaka)")}
                 </p>
               </div>
             </div>

@@ -37,15 +37,31 @@ export function InvoiceClient({ order }: Props) {
 
   const shipping = order.shipping;
 
-  const fullAddress =
-    shipping.addressLine1 +
-    (shipping.addressLine2 ? `, ${shipping.addressLine2}` : "") +
-    (shipping.district ? `, ${shipping.district}` : "") +
-    (shipping.city ? `, ${shipping.city}` : "") +
+  const rawParts = [
+    shipping.addressLine1,
+    shipping.addressLine2,
+    shipping.district,
+    shipping.city,
+  ].filter(Boolean) as string[];
+
+  // Determine Zone Code and Full Name
+  const isOutside = rawParts.some((p) => /outside dhaka/i.test(p)) || order.shippingCost > 80;
+  const storedZone = shipping.deliveryZone || (isOutside ? "OSD (Outside Dhaka)" : "ISD (Inside Dhaka)");
+  const isOSD = /outside|osd/i.test(storedZone);
+  const zoneCode = isOSD ? "OSD" : "ISD";
+  const zoneFullName = isOSD ? "Outside Dhaka" : "Inside Dhaka";
+
+  // Clean address (remove Outside Dhaka / Inside Dhaka from address text)
+  const cleanAddressParts = rawParts.filter(
+    (p) => !/outside dhaka|inside dhaka/i.test(p)
+  );
+
+  const streetAddress =
+    cleanAddressParts.join(", ") +
     (shipping.postalCode ? ` - ${shipping.postalCode}` : "");
 
-  // ✅ Deterministic invoice number (remove GC/GH prefix)
-  const invoiceNo = order.orderNumber.replace(/^G[CH]/i, "");
+  // ✅ Deterministic invoice number (remove GC/GH and leading dash)
+  const invoiceNo = order.orderNumber.replace(/^G[CH]-?/i, "");
 
   return (
     <>
@@ -161,7 +177,11 @@ export function InvoiceClient({ order }: Props) {
               </div>
               <div className="invoice-info-row">
                 <span className="invoice-label">Address:</span>{" "}
-                <span className="highlight-yellow">{fullAddress}</span>
+                <span className="highlight-yellow">{streetAddress}</span>
+              </div>
+              <div className="invoice-info-row">
+                <span className="invoice-label">Zone:</span>{" "}
+                <span className="highlight-yellow">{zoneCode}</span> ({zoneFullName})
               </div>
               <div className="invoice-info-row">
                 <span className="invoice-label">Phone:</span>{" "}

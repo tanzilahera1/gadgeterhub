@@ -29,6 +29,7 @@ export interface IOrderShipping {
   city?: string;
   district?: string;
   postalCode?: string;
+  deliveryZone?: string;
 }
 
 export interface IOrderBase {
