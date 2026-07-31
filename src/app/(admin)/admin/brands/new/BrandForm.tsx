@@ -1,27 +1,48 @@
+// src/app/(admin)/admin/brands/new/BrandForm.tsx
 "use client";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { createBrand, updateBrand } from "@/actions/adminBrands";
 import { toast } from "sonner";
-import { Loader2, Info, Image as ImageIcon, Save } from "lucide-react";
+import {
+  Card,
+  Form,
+  Input,
+  Button,
+  Row,
+  Col,
+  Breadcrumb,
+  Typography,
+  Flex,
+} from "antd";
+import {
+  InfoCircleOutlined,
+  PictureOutlined,
+  SaveOutlined,
+  ArrowLeftOutlined,
+  LoadingOutlined,
+} from "@ant-design/icons";
+
+const { Title, Text } = Typography;
+const { TextArea } = Input;
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export default function BrandForm({ initialData }: { initialData?: any }) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
-  const isEditing = !!initialData;
+  const [form] = Form.useForm();
+  const isEditing = Boolean(initialData);
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const onFinish = async (values: any) => {
     setIsLoading(true);
-
-    const formData = new FormData(e.currentTarget);
     const data = {
-      name: formData.get("name") as string,
-      slug: formData.get("slug") as string,
-      description: formData.get("description") as string,
-      logo: formData.get("logo") as string,
+      name: values.name,
+      slug: values.slug || "",
+      description: values.description || "",
+      logo: values.logo || "",
     };
 
     try {
@@ -30,16 +51,11 @@ export default function BrandForm({ initialData }: { initialData?: any }) {
         : await createBrand(data);
 
       if (res.success) {
-        toast.success(
-          isEditing
-            ? "Brand updated successfully!"
-            : "Brand created successfully!",
-        );
+        toast.success(isEditing ? "Brand updated successfully!" : "Brand created successfully!");
         router.push("/admin/brands");
       } else {
-        toast.error(res.error || "Failed to process brand");
+        toast.error(res.error || "Failed to save brand");
       }
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       toast.error(err.message || "An unexpected error occurred");
     } finally {
@@ -48,100 +64,121 @@ export default function BrandForm({ initialData }: { initialData?: any }) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-10">
-      {/* 1. Basic Info */}
-      <section className="space-y-6">
-        <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
-          <Info className="size-5 text-slate-400" />
-          <h2 className="text-xl font-black text-slate-900">Brand Identity</h2>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-          <div className="space-y-2">
-            <label className="text-sm font-bold text-slate-700">
-              Brand Name *
-            </label>
-            <input
-              required
-              name="name"
-              defaultValue={initialData?.name}
-              type="text"
-              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
-              placeholder="E.g. Apple"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <label className="text-sm font-bold text-slate-700">
-              Slug URL (Optional)
-            </label>
-            <input
-              name="slug"
-              defaultValue={initialData?.slug}
-              type="text"
-              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
-              placeholder="e.g. apple (auto-generated if empty)"
-            />
-          </div>
-
-          <div className="space-y-2 sm:col-span-2">
-            <label className="text-sm font-bold text-slate-700">
-              Description
-            </label>
-            <textarea
-              name="description"
-              defaultValue={initialData?.description}
-              rows={4}
-              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all resize-y"
-              placeholder="Brief history or description of the brand."
-            />
-          </div>
-        </div>
-      </section>
-
-      {/* 2. Media */}
-      <section className="space-y-6">
-        <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
-          <ImageIcon className="size-5 text-slate-400" />
-          <h2 className="text-xl font-black text-slate-900">Media Assets</h2>
-        </div>
-
-        <div className="space-y-2">
-          <label className="text-sm font-bold text-slate-700">
-            Brand Logo URL
-          </label>
-          <input
-            name="logo"
-            defaultValue={initialData?.logo}
-            type="url"
-            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
-            placeholder="https://example.com/logo.png"
-          />
-        </div>
-      </section>
-
-      {/* Action Buttons */}
-      <div className="pt-6 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-end gap-4">
-        <button
-          type="button"
-          onClick={() => router.back()}
-          className="w-full sm:w-auto px-8 py-3.5 rounded-xl font-black text-slate-600 hover:bg-slate-100 transition-colors"
-        >
-          Cancel
-        </button>
-        <button
-          disabled={isLoading}
-          type="submit"
-          className="w-full sm:w-auto flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-white px-10 py-3.5 rounded-xl font-black tracking-tight shadow-lg shadow-primary/20 hover:shadow-xl hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50 disabled:pointer-events-none"
-        >
-          {isLoading ? (
-            <Loader2 className="size-5 animate-spin" />
-          ) : (
-            <Save className="size-5" />
-          )}
-          {isEditing ? "Save Changes" : "Create Brand"}
-        </button>
+    <div className="space-y-5">
+      <div>
+        <Breadcrumb
+          items={[
+            { title: <Link href="/admin">Dashboard</Link> },
+            { title: <Link href="/admin/brands">Brands</Link> },
+            { title: isEditing ? "Edit Brand" : "Create Brand" },
+          ]}
+          style={{ marginBottom: 8 }}
+        />
+        <Title level={3} style={{ margin: 0, fontWeight: 900 }}>
+          {isEditing ? "Edit Brand" : "Create New Brand"}
+        </Title>
+        <Text type="secondary" style={{ fontSize: "13px" }}>
+          {isEditing
+            ? `Updating details for: ${initialData?.name || ""}`
+            : "Add a new brand to organize your product catalog."}
+        </Text>
       </div>
-    </form>
+
+      <Form
+        form={form}
+        layout="vertical"
+        onFinish={onFinish}
+        initialValues={{
+          name: initialData?.name || "",
+          slug: initialData?.slug || "",
+          description: initialData?.description || "",
+          logo: initialData?.logo || "",
+        }}
+        className="space-y-6"
+      >
+        {/* Section 1: Brand Identity */}
+        <Card
+          title={
+            <Text strong style={{ fontSize: "15px" }}>
+              <InfoCircleOutlined style={{ color: "#1677ff", marginRight: 8 }} />
+              Brand Identity
+            </Text>
+          }
+          style={{ borderRadius: 16 }}
+          styles={{ body: { padding: 20 } }}
+        >
+          <Row gutter={[16, 16]}>
+            <Col xs={24} sm={12}>
+              <Form.Item
+                name="name"
+                label={<Text strong>Brand Name</Text>}
+                rules={[{ required: true, message: "Please enter brand name" }]}
+              >
+                <Input size="large" placeholder="e.g. Apple, Samsung, Anker" style={{ borderRadius: 10 }} />
+              </Form.Item>
+            </Col>
+
+            <Col xs={24} sm={12}>
+              <Form.Item
+                name="slug"
+                label={<Text strong>Custom Slug URL (Optional)</Text>}
+                extra="Auto-generated from name if left empty."
+              >
+                <Input size="large" placeholder="e.g. apple" style={{ borderRadius: 10 }} />
+              </Form.Item>
+            </Col>
+
+            <Col xs={24}>
+              <Form.Item name="description" label={<Text strong>Brand Description</Text>}>
+                <TextArea
+                  rows={4}
+                  placeholder="Brief history or description of the brand and its product line..."
+                  style={{ borderRadius: 10 }}
+                />
+              </Form.Item>
+            </Col>
+          </Row>
+        </Card>
+
+        {/* Section 2: Media */}
+        <Card
+          title={
+            <Text strong style={{ fontSize: "15px" }}>
+              <PictureOutlined style={{ color: "#1677ff", marginRight: 8 }} />
+              Media Assets
+            </Text>
+          }
+          style={{ borderRadius: 16 }}
+          styles={{ body: { padding: 20 } }}
+        >
+          <Form.Item
+            name="logo"
+            label={<Text strong>Brand Logo URL (Optional)</Text>}
+            extra="Use a transparent PNG or SVG for best results."
+          >
+            <Input size="large" placeholder="https://example.com/brand-logo.png" style={{ borderRadius: 10 }} />
+          </Form.Item>
+        </Card>
+
+        {/* Action Footer */}
+        <Card style={{ borderRadius: 16 }} styles={{ body: { padding: 16 } }}>
+          <Flex justify="space-between" align="center" wrap="wrap" gap={12}>
+            <Button icon={<ArrowLeftOutlined />} onClick={() => router.back()} style={{ fontWeight: 600 }}>
+              Cancel
+            </Button>
+            <Button
+              type="primary"
+              htmlType="submit"
+              size="large"
+              loading={isLoading}
+              icon={isLoading ? <LoadingOutlined /> : <SaveOutlined />}
+              style={{ fontWeight: 800, paddingLeft: 24, paddingRight: 24 }}
+            >
+              {isEditing ? "Save Brand Changes" : "Create Brand"}
+            </Button>
+          </Flex>
+        </Card>
+      </Form>
+    </div>
   );
 }

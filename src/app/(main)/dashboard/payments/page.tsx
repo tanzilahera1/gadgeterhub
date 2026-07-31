@@ -75,7 +75,7 @@ export default async function PaymentsPage() {
                     <div className="space-y-1.5">
                       <div className="flex items-center gap-3">
                         <h4 className="text-sm font-black text-slate-900 uppercase tracking-widest leading-none">
-                          ORDER #{payment.orderNumber}
+                          ORDER {payment.orderNumber}
                         </h4>
                         <span
                           className={cn(

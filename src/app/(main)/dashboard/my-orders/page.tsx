@@ -17,6 +17,7 @@ import {
   ShoppingBag,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { CHANNEL_LABELS } from "@/types/order";
 import Link from "next/link";
 import Image from "next/image";
 import { redirect } from "next/navigation";
@@ -46,6 +47,7 @@ interface OrderItemData {
 interface OrderData {
   _id: string;
   orderNumber: string;
+  channelSource?: string;
   orderStatus:
     | "pending"
     | "confirmed"
@@ -149,7 +151,7 @@ export default async function UserOrdersPage() {
                       ORDER NUMBER
                     </p>
                     <p className="text-lg font-black text-slate-900 tracking-tight">
-                      #{order.orderNumber}
+                      {order.orderNumber}
                     </p>
                   </div>
                 </div>

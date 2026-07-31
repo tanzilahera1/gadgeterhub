@@ -1,11 +1,21 @@
 "use client";
 
+import { AntdRegistry } from "@ant-design/nextjs-registry";
+import { ConfigProvider } from "antd";
 import { AdminSidebar } from "@/components/layout/AdminSidebar";
 import UserMenuButton from "@/components/layout/UserMenuButton";
 import { SidebarProvider, useSidebar } from "@/hooks/use-sidebar";
 import { cn } from "@/lib/utils";
 import { Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
+
+const customAntdTheme = {
+  token: {
+    colorPrimary: "#1677ff", // Antd Iconic Default Blue
+    borderRadius: 10,
+    fontSize: 14,
+  },
+};
 
 function AdminLayoutContent({ children }: { children: React.ReactNode }) {
   const { isCollapsed, setMobileOpen } = useSidebar();
@@ -15,27 +25,27 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
       <AdminSidebar />
 
       {/* Main Content Area */}
-      <main 
+      <main
         className={cn(
-          "flex-1 flex flex-col min-h-screen relative transition-all duration-300",
-          isCollapsed ? "lg:ml-20" : "lg:ml-72"
+          "flex-1 flex flex-col min-h-screen relative transition-all duration-300 w-full overflow-x-hidden",
+          isCollapsed ? "lg:ml-20" : "lg:ml-[260px]",
         )}
       >
         {/* Background Pattern */}
         <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-[0.03] pointer-events-none" />
 
         {/* Top Header */}
-        <header className="sticky top-0 z-30 h-16 border-b border-slate-200 bg-white/70 backdrop-blur-md px-6 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Button 
-              variant="ghost" 
-              size="icon" 
+        <header className="sticky top-0 z-30 h-16 border-b border-slate-200 bg-white/80 backdrop-blur-md px-3 sm:px-6 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Button
+              variant="ghost"
+              size="icon"
               className="lg:hidden h-9 w-9 rounded-xl hover:bg-slate-100"
               onClick={() => setMobileOpen(true)}
             >
               <Menu className="size-5" />
             </Button>
-            <h1 className="text-sm font-black uppercase tracking-[0.2em] text-slate-400 hidden sm:block">
+            <h1 className="text-xs sm:text-sm font-black uppercase tracking-[0.2em] text-slate-400">
               Management System
             </h1>
           </div>
@@ -45,24 +55,33 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
           </div>
         </header>
 
-
-        {/* Content */}
-        <div className="flex-1 p-6 lg:p-8 relative">{children}</div>
+        {/* Content Area — Strict p-1 inner padding for maximum screen utilization */}
+        <div className="flex-1 p-1 relative max-w-full overflow-x-hidden">
+          {children}
+        </div>
 
         {/* Footer */}
-        <footer className="p-6 text-center text-[10px] font-black text-slate-400 uppercase tracking-widest">
-          GadgeterHub Admin © 2026 • Powered by GadgetAdmin Engine
+        <footer className="p-4 sm:p-6 text-center text-[10px] font-black text-slate-400 uppercase tracking-widest">
+          GadgeterHub Admin © 2026 • Powered by AntD Engine
         </footer>
       </main>
     </div>
   );
 }
 
-export default function AdminLayout({ children }: { children: React.ReactNode }) {
+export default function AdminLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
-    <SidebarProvider>
-      <AdminLayoutContent>{children}</AdminLayoutContent>
-    </SidebarProvider>
+    <AntdRegistry>
+      <ConfigProvider theme={customAntdTheme}>
+        <SidebarProvider>
+          <AdminLayoutContent>{children}</AdminLayoutContent>
+        </SidebarProvider>
+      </ConfigProvider>
+    </AntdRegistry>
   );
 }
 

@@ -1,5 +1,5 @@
-// src/lib/invoice-number.ts
 import mongoose from "mongoose";
+import { ChannelSource, CHANNEL_PREFIXES } from "@/types/order";
 
 // Counter Schema — global sequence track
 const CounterSchema = new mongoose.Schema({
@@ -11,15 +11,19 @@ const Counter =
   mongoose.models.Counter || mongoose.model("Counter", CounterSchema);
 
 /**
- * Generates: GH-YYMMDD-4digitSequence
- * Example: GH-260730-0001
+ * Generates: [BRAND]-[CHANNEL]-[YYMMDD]-[SEQ]
+ * Example: GH-WEB-260731-0001, GH-FBP-260731-0002
  */
-export async function generateInvoiceNumber(): Promise<string> {
+export async function generateInvoiceNumber(
+  channelSource: ChannelSource = "web",
+  brandCode: string = "GH"
+): Promise<string> {
   const now = new Date();
   const dd = String(now.getDate()).padStart(2, "0");
   const mm = String(now.getMonth() + 1).padStart(2, "0");
   const yy = String(now.getFullYear()).slice(-2);
 
+  const channelPrefix = CHANNEL_PREFIXES[channelSource] || "WEB";
   const counterKey = "global_invoice_seq";
 
   // Check if global counter exists
@@ -54,5 +58,5 @@ export async function generateInvoiceNumber(): Promise<string> {
 
   const seq = String(counter!.sequence).padStart(4, "0");
 
-  return `GH-${yy}${mm}${dd}-${seq}`;
+  return `${brandCode}-${channelPrefix}-${yy}${mm}${dd}-${seq}`;
 }

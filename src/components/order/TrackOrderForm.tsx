@@ -9,7 +9,10 @@ import {
   CheckCircle2,
   Clock,
   MapPin,
-  Info,
+  Sparkles,
+  Phone,
+  Hash,
+  HelpCircle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -26,10 +29,10 @@ const STAGES = [
   { id: "delivered", label: "Delivered", icon: MapPin },
 ];
 
-// Track এর জন্য শুধু যা দরকার তা Pick করা
 type TrackedOrder = Pick<
   IOrder,
   | "orderNumber"
+  | "channelSource"
   | "orderStatus"
   | "paymentMethod"
   | "total"
@@ -48,18 +51,16 @@ export function TrackOrderForm() {
   const [loading, setLoading] = useState<boolean>(false);
   const resultRef = useRef<HTMLDivElement>(null);
 
-  const handleTrack = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-
-    if (!orderId.trim()) {
-      toast.error("আপনার Order ID দিন");
+  const fetchTrackStatus = async (searchQuery: string) => {
+    if (!searchQuery.trim()) {
+      toast.error("আপনার Order ID বা ফোন নম্বর দিন");
       return;
     }
 
     setLoading(true);
     try {
       const res = await fetch(
-        `/api/order/track?orderId=${encodeURIComponent(orderId.trim())}`,
+        `/api/order/track?orderId=${encodeURIComponent(searchQuery.trim())}`,
       );
       const data = (await res.json()) as {
         success: boolean;
@@ -69,18 +70,14 @@ export function TrackOrderForm() {
 
       if (data.success && data.order) {
         setOrder(data.order);
-        // Smooth scroll to center in viewport with proper offset
         setTimeout(() => {
           const element = resultRef.current;
           if (element) {
             const elementRect = element.getBoundingClientRect();
-            const headerOffset = 40; // Space for header
+            const headerOffset = 40;
             const viewportCenter = window.innerHeight / 2;
             const scrollTarget =
-              elementRect.top +
-              window.scrollY -
-              headerOffset -
-              viewportCenter / 2;
+              elementRect.top + window.scrollY - headerOffset - viewportCenter / 2;
 
             window.scrollTo({
               top: scrollTarget,
@@ -99,6 +96,11 @@ export function TrackOrderForm() {
     }
   };
 
+  const handleTrack = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    fetchTrackStatus(orderId);
+  };
+
   const getStatusIndex = (status: string): number => {
     return STAGES.findIndex((s) => s.id === status);
   };
@@ -108,35 +110,58 @@ export function TrackOrderForm() {
       {/* Search Section */}
       <form
         onSubmit={handleTrack}
-        className="max-w-xl mx-auto space-y-6 bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-2xl shadow-primary/5"
+        className="max-w-xl mx-auto space-y-6 bg-white p-6 sm:p-8 rounded-[2.5rem] border border-slate-200/80 shadow-2xl shadow-slate-200/50"
       >
         <div className="space-y-2 text-center mb-4">
-          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-primary">
-            পাবলিক পোর্টাল
-          </p>
-          <h2 className="text-2xl font-black text-slate-900 tracking-tight">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-[11px] font-black uppercase tracking-widest">
+            <Sparkles className="size-3.5" /> স্মার্ট অর্ডারি ট্র্যাকিং
+          </div>
+          <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
             আপনার শিপমেন্ট ট্র্যাক করুন
           </h2>
+          <p className="text-xs text-slate-500 font-medium">
+            অর্ডার আইডি বা মোবাইল নম্বর যেকোনো স্টাইলে ইনপুট দিয়ে লাইভ স্ট্যাটাস দেখুন
+          </p>
         </div>
 
         <div className="space-y-4">
-          <div className="space-y-3">
-            <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">
-              Order ID
+          <div className="space-y-2">
+            <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest ml-1 flex items-center gap-1.5">
+              <Hash className="size-3.5 text-primary" /> Order ID বা ফোন নম্বর
             </label>
             <Input
-              placeholder="আপনার Order ID লিখুন (যেমন: ORD-2024-5432 বা 202451215432)"
-              className="h-14 rounded-2xl bg-slate-50 border-2 border-slate-200 font-bold text-lg focus-visible:ring-primary/20 focus-visible:border-primary transition-all px-6"
+              placeholder="যেমন: GH-FBP-260731-0005 বা 01754154374"
+              className="h-14 rounded-2xl bg-slate-50 border-2 border-slate-200 font-bold text-base sm:text-lg focus-visible:ring-primary/20 focus-visible:border-primary transition-all px-5"
               value={orderId}
               onChange={(e) => setOrderId(e.target.value)}
             />
-            <div className="flex items-start gap-2 px-4 py-3 bg-blue-50 rounded-xl border border-blue-100">
-              <Info className="size-4 text-blue-600 shrink-0 mt-0.5" />
-              <p className="text-[10px] font-medium text-blue-700">
-                আপনার Order ID এর সাথে বা ছাড়া &quot;ORD-&quot; prefix এবং
-                ড্যাশ দিয়ে লিখতে পারবেন। সব format এ কাজ করবে!
-              </p>
+          </div>
+
+          {/* Super UX Helper Box */}
+          <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200/80 space-y-2">
+            <div className="flex items-center gap-2 text-slate-800 text-xs font-black">
+              <HelpCircle className="size-4 text-primary shrink-0" />
+              <span>সার্চ করার ৩টি সহজ উপায়:</span>
             </div>
+            <ul className="text-[11px] font-medium text-slate-600 space-y-1.5 pl-6 list-disc">
+              <li>
+                <strong className="text-slate-900">ইনভয়েস ID দিয়ে:</strong> যেমন{" "}
+                <code className="bg-white px-1.5 py-0.5 rounded border text-primary font-bold">
+                  GH-FBP-260731-0005
+                </code>
+              </li>
+              <li>
+                <strong className="text-slate-900">সংক্ষিপ্ত নম্বর দিয়ে:</strong> ড্যাশ, স্পেস বা স্মল লেটারেও লিখতে পারেন (যেমন:{" "}
+                <code className="bg-white px-1.5 py-0.5 rounded border text-slate-800 font-bold">
+                  260731-0005
+                </code>
+                )
+              </li>
+              <li>
+                <strong className="text-slate-900">ফোন নম্বর দিয়ে:</strong> অর্ডার করার সময় ব্যবহৃত আপনার{" "}
+                <strong className="text-primary">১১ ডিজিটের মোবাইল নম্বর</strong> দিলেই চলবে।
+              </li>
+            </ul>
           </div>
         </div>
 
@@ -171,7 +196,7 @@ export function TrackOrderForm() {
                   বর্তমান অগ্রগতি
                 </p>
                 <h3 className="text-3xl font-black tracking-tight">
-                  Order #{order.orderNumber}
+                  Order {order.orderNumber}
                 </h3>
                 <p className="text-slate-400 font-bold text-sm">
                   নাম: {order.shipping.name}
@@ -247,8 +272,8 @@ export function TrackOrderForm() {
                   {[
                     order.shipping.addressLine1,
                     order.shipping.addressLine2,
-                    order.shipping.district,
                     order.shipping.city,
+                    order.shipping.district,
                   ]
                     .filter((p): p is string => Boolean(p) && !/outside dhaka|inside dhaka|^dhaka$/i.test(p!.trim()))
                     .join(", ") || order.shipping.addressLine1}

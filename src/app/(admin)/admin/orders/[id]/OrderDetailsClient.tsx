@@ -6,590 +6,567 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
-import { Badge } from "@/components/ui/badge";
 import {
-  ArrowLeft,
-  Printer,
-  Phone,
-  MapPin,
-  Package,
-  CreditCard,
-  User,
-  Gift,
-  Calendar,
-  Hash,
-  FileText,
-  Copy,
-  Check,
-  ExternalLink,
-  Truck,
-} from "lucide-react";
+  Card,
+  Row,
+  Col,
+  Steps,
+  Tag,
+  Button,
+  Typography,
+  Flex,
+  Space,
+  Descriptions,
+  Timeline,
+  Alert,
+  Divider,
+} from "antd";
+import {
+  ArrowLeftOutlined,
+  PrinterOutlined,
+  PhoneOutlined,
+  EnvironmentOutlined,
+  ShoppingOutlined,
+  CreditCardOutlined,
+  UserOutlined,
+  GiftOutlined,
+  CalendarOutlined,
+  CopyOutlined,
+  CheckOutlined,
+  ExportOutlined,
+  TruckOutlined,
+  ClockCircleOutlined,
+  SyncOutlined,
+  CheckCircleOutlined,
+  CloseCircleOutlined,
+} from "@ant-design/icons";
 import { formatPrice } from "@/lib/priceUtils";
-import { StatusUpdater } from "./StatusUpdater";
+import { StatusUpdater } from "@/components/admin/StatusUpdater";
 import type { IOrderSerializable } from "@/types/order";
-import { cn } from "@/lib/utils";
+import { CHANNEL_LABELS } from "@/types/order";
+import { format } from "date-fns";
+
+const { Title, Text } = Typography;
 
 interface Props {
   order: IOrderSerializable;
 }
 
-const ORDER_STATUS_STYLES: Record<string, string> = {
-  pending: "bg-amber-100 text-amber-800 border-amber-200",
-  confirmed: "bg-blue-100 text-blue-800 border-blue-200",
-  processing: "bg-indigo-100 text-indigo-800 border-indigo-200",
-  shipped: "bg-purple-100 text-purple-800 border-purple-200",
-  delivered: "bg-green-100 text-green-800 border-green-200",
-  cancelled: "bg-red-100 text-red-800 border-red-200",
-  returned: "bg-gray-100 text-gray-800 border-gray-200",
-};
-
-const PAYMENT_STATUS_STYLES: Record<string, string> = {
-  pending: "bg-amber-100 text-amber-800 border-amber-200",
-  paid: "bg-green-100 text-green-800 border-green-200",
-  failed: "bg-red-100 text-red-800 border-red-200",
-  refunded: "bg-gray-100 text-gray-800 border-gray-200",
-};
+const STAGE_STEPS = [
+  { title: "Pending", key: "pending", icon: <ClockCircleOutlined /> },
+  { title: "Confirmed", key: "confirmed", icon: <CheckCircleOutlined /> },
+  { title: "Processing", key: "processing", icon: <SyncOutlined spin /> },
+  { title: "Shipped", key: "shipped", icon: <TruckOutlined /> },
+  { title: "Delivered", key: "delivered", icon: <CheckCircleOutlined /> },
+];
 
 export function OrderDetailsClient({ order }: Props) {
   const router = useRouter();
   const [copiedField, setCopiedField] = useState<string | null>(null);
 
-  const isGiftOrder = order.customerPhone !== order.shipping.phone;
+  const isGiftOrder = Boolean(
+    order.customerPhone && order.customerPhone !== order.shipping.phone,
+  );
 
-  const dateStr = new Date(order.createdAt).toLocaleString("en-GB", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: true,
-  });
+  const dateStr = format(new Date(order.createdAt), "dd MMM, yyyy - hh:mm a");
 
   const totalItems = order.items.reduce(
     (sum, item) => sum + item.itemQuantity,
     0,
   );
 
+  const channelKey = order.channelSource || "web";
+  const channelLabel = CHANNEL_LABELS[channelKey] || "Website";
+
+  // Calculate step index
+  let currentStep = STAGE_STEPS.findIndex((s) => s.key === order.orderStatus);
+  if (currentStep === -1) currentStep = 0;
+
+  const isCancelled = order.orderStatus === "cancelled";
+  const isReturned = order.orderStatus === "returned";
+
   const handleCopy = (text: string, field: string) => {
     navigator.clipboard.writeText(text);
     setCopiedField(field);
-    toast.success("Copied!");
+    toast.success("Copied to clipboard!");
     setTimeout(() => setCopiedField(null), 2000);
   };
 
+  // Structured address string
+  const addressParts = [
+    order.shipping.addressLine1,
+    order.shipping.addressLine2,
+    order.shipping.city,
+    order.shipping.district,
+  ]
+    .filter((p): p is string => Boolean(p) && !/outside dhaka|inside dhaka|^dhaka$/i.test(p!.trim()));
+
+  const fullAddressStr = addressParts.join(", ") || order.shipping.addressLine1;
+
   return (
-    <div className="min-h-screen bg-muted/30 pb-32 lg:pb-12">
-      {/* ============ Sticky Header ============ */}
-      <header className="sticky top-0 z-30 bg-background/80 backdrop-blur-xl border-b border-border/40">
-        <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
-          <div className="flex items-center gap-3 min-w-0">
+    <div style={{ padding: 0 }} className="space-y-5">
+      {/* Top Header Card */}
+      <Card style={{ borderRadius: 16 }} styles={{ body: { padding: 16 } }}>
+        <Flex align="center" justify="space-between" wrap="wrap" gap={12}>
+          <Flex align="center" gap={12}>
             <Button
-              variant="ghost"
-              size="icon"
+              shape="circle"
+              icon={<ArrowLeftOutlined />}
               onClick={() => router.back()}
-              className="shrink-0 size-9"
+            />
+            <div>
+              <Flex align="center" gap={8} wrap="wrap">
+                <Title level={4} style={{ margin: 0, fontWeight: 900 }}>
+                  Order {order.orderNumber}
+                </Title>
+                <Tag color="blue" style={{ fontWeight: 700, borderRadius: 6 }}>
+                  {channelLabel}
+                </Tag>
+              </Flex>
+              <Text type="secondary" style={{ fontSize: "12px" }}>
+                <CalendarOutlined style={{ marginRight: 4 }} />
+                Placed on {dateStr}
+              </Text>
+            </div>
+          </Flex>
+
+          <Space wrap>
+            <a href={`tel:${order.shipping.phone}`}>
+              <Button icon={<PhoneOutlined />} style={{ fontWeight: 700 }}>
+                Call Customer
+              </Button>
+            </a>
+            <Link
+              href={`/admin/orders/${order._id}/invoice`}
+              target="_blank"
+              rel="noopener"
             >
-              <ArrowLeft className="size-5" />
-            </Button>
-            <div className="min-w-0">
-              <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-                Order Details
-              </p>
-              <h1 className="text-sm sm:text-base font-black truncate">
-                {order.orderNumber}
-              </h1>
+              <Button type="primary" icon={<PrinterOutlined />} style={{ fontWeight: 700 }}>
+                Print Invoice
+              </Button>
+            </Link>
+          </Space>
+        </Flex>
+      </Card>
+
+      {/* Progress Steps Tracker Card */}
+      <Card style={{ borderRadius: 16 }} styles={{ body: { padding: 20 } }}>
+        <Flex align="center" justify="space-between" wrap="wrap" gap={16} style={{ marginBottom: 20 }}>
+          <Flex align="center" gap={12}>
+            <div
+              style={{
+                width: 44,
+                height: 44,
+                borderRadius: 12,
+                background: "#e6f4ff",
+                color: "#1677ff",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: 20,
+              }}
+            >
+              <ShoppingOutlined />
             </div>
-          </div>
+            <div>
+              <Text type="secondary" style={{ fontSize: "11px", fontWeight: 700, display: "block" }}>
+                Order Status
+              </Text>
+              <Flex align="center" gap={8}>
+                <Tag
+                  color={
+                    isCancelled
+                      ? "red"
+                      : isReturned
+                      ? "default"
+                      : order.orderStatus === "delivered"
+                      ? "green"
+                      : "gold"
+                  }
+                  style={{ fontWeight: 800, fontSize: "13px", padding: "2px 10px", margin: 0 }}
+                >
+                  {order.orderStatus?.toUpperCase()}
+                </Tag>
 
-          <Link
-            href={`/admin/orders/${order._id}/invoice`}
-            target="_blank"
-            rel="noopener"
-            className="hidden sm:block"
-          >
-            <Button size="sm" className="gap-2 font-bold">
-              <Printer className="size-4" />
-              Print Invoice
-            </Button>
-          </Link>
-        </div>
-      </header>
-
-      <div className="max-w-6xl mx-auto px-3 sm:px-4 py-4 sm:py-6 space-y-4 sm:space-y-6">
-        {/* ============ Status Hero Card ============ */}
-        <div className="bg-card rounded-2xl border border-border/40 p-4 sm:p-6 shadow-sm">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div className="flex items-center gap-4">
-              <div className="size-14 rounded-2xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
-                <Package className="size-7" />
-              </div>
-              <div className="min-w-0 flex-1">
-                <div className="flex flex-wrap items-center gap-2 mb-1">
-                  <Badge
-                    className={cn(
-                      "uppercase text-[10px] font-black tracking-wider border",
-                      ORDER_STATUS_STYLES[order.orderStatus],
-                    )}
-                  >
-                    {order.orderStatus}
-                  </Badge>
-                  <Badge
-                    className={cn(
-                      "uppercase text-[10px] font-black tracking-wider border",
-                      PAYMENT_STATUS_STYLES[order.paymentStatus],
-                    )}
-                  >
-                    Payment: {order.paymentStatus}
-                  </Badge>
-                  {isGiftOrder && (
-                    <Badge className="uppercase text-[10px] font-black tracking-wider bg-pink-100 text-pink-800 border-pink-200 border">
-                      <Gift className="size-3 mr-1" />
-                      Gift
-                    </Badge>
-                  )}
-                </div>
-                <p className="text-xs text-muted-foreground flex items-center gap-1.5">
-                  <Calendar className="size-3.5" />
-                  {dateStr}
-                </p>
-              </div>
-            </div>
-
-            <div className="text-left sm:text-right shrink-0">
-              <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-                Total Amount
-              </p>
-              <p className="text-2xl sm:text-3xl font-black text-primary leading-none">
-                {formatPrice(order.total)}
-              </p>
-            </div>
-          </div>
-
-          <Separator className="my-4" />
-          <StatusUpdater
-            orderId={order._id}
-            currentStatus={order.orderStatus}
-          />
-        </div>
-
-        {/* ============ Main Grid ============ */}
-        <div className="grid lg:grid-cols-3 gap-4 sm:gap-6">
-          {/* ============ Left: Items + Notes ============ */}
-          <div className="lg:col-span-2 space-y-4 sm:space-y-6">
-            {/* Items Card */}
-            <div className="bg-card rounded-2xl border border-border/40 overflow-hidden shadow-sm">
-              <div className="flex items-center justify-between px-4 sm:px-6 py-4 border-b border-border/40">
-                <div className="flex items-center gap-2">
-                  <Package className="size-4 text-primary" />
-                  <h2 className="text-sm font-black uppercase tracking-widest">
-                    Items ({order.items.length})
-                  </h2>
-                </div>
-                <span className="text-xs font-bold text-muted-foreground">
-                  Qty: {totalItems}
-                </span>
-              </div>
-
-              <div className="divide-y divide-border/40">
-                {order.items.map((item, i) => (
-                  <div
-                    key={i}
-                    className="p-3 sm:p-4 flex gap-3 hover:bg-muted/30 transition-colors"
-                  >
-                    <div className="relative size-16 sm:size-20 rounded-xl overflow-hidden bg-muted shrink-0 border border-border/40">
-                      <Image
-                        src={item.productImage}
-                        alt={item.productTitle}
-                        fill
-                        sizes="80px"
-                        className="object-cover"
-                      />
-                    </div>
-
-                    <div className="flex-1 min-w-0">
-                      <Link
-                        href={`/products/${item.productSlug}`}
-                        target="_blank"
-                        className="text-sm font-bold leading-snug hover:text-primary transition-colors line-clamp-2 inline-flex items-start gap-1"
-                      >
-                        {item.productTitle}
-                        <ExternalLink className="size-3 shrink-0 mt-0.5 opacity-60" />
-                      </Link>
-                      <p className="text-[10px] text-muted-foreground font-mono mt-1">
-                        SKU: {item.productSku}
-                      </p>
-                      {(item.color || item.size) && (
-                        <div className="flex flex-wrap gap-1 mt-1">
-                          {item.color && (
-                            <span className="inline-block bg-primary/10 text-primary text-[10px] font-bold px-1.5 py-0.5 rounded">
-                              Color: {item.color}
-                            </span>
-                          )}
-                          {item.size && (
-                            <span className="inline-block bg-muted text-foreground text-[10px] font-bold px-1.5 py-0.5 rounded uppercase">
-                              Size: {item.size}
-                            </span>
-                          )}
-                        </div>
-                      )}
-                      <div className="flex items-center gap-2 mt-2">
-                        <span className="text-xs font-bold text-foreground">
-                          {formatPrice(item.unitPrice)}
-                        </span>
-                        <span className="text-xs text-muted-foreground">
-                          × {item.itemQuantity}
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="text-right shrink-0">
-                      <p className="text-sm sm:text-base font-black text-primary">
-                        {formatPrice(item.unitPrice * item.itemQuantity)}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              {/* Summary */}
-              <div className="px-4 sm:px-6 py-4 bg-muted/30 border-t border-border/40 space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Subtotal</span>
-                  <span className="font-bold">
-                    {formatPrice(order.subtotal)}
-                  </span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Shipping</span>
-                  <span className="font-bold">
-                    {formatPrice(order.shippingCost)}
-                  </span>
-                </div>
-                {order.discount > 0 && (
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Discount</span>
-                    <span className="font-bold text-green-600">
-                      -{formatPrice(order.discount)}
-                    </span>
-                  </div>
+                {isGiftOrder && (
+                  <Tag color="magenta" icon={<GiftOutlined />} style={{ fontWeight: 700, margin: 0 }}>
+                    GIFT ORDER
+                  </Tag>
                 )}
-                <Separator />
-                <div className="flex justify-between items-end pt-1">
-                  <span className="text-xs font-black uppercase tracking-widest text-muted-foreground">
-                    Customer Payable
-                  </span>
-                  <span className="text-2xl font-black text-primary">
-                    {formatPrice(order.total)}
-                  </span>
-                </div>
-              </div>
+              </Flex>
             </div>
+          </Flex>
 
-            {/* Customer Notes */}
-            {order.customerNotes && (
-              <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 sm:p-5">
-                <div className="flex items-center gap-2 mb-2">
-                  <FileText className="size-4 text-amber-700" />
-                  <h3 className="text-xs font-black uppercase tracking-widest text-amber-900">
-                    Customer Note
-                  </h3>
-                </div>
-                <p className="text-sm text-amber-900 leading-relaxed">
-                  {order.customerNotes}
-                </p>
-              </div>
-            )}
-          </div>
+          <Flex align="center" gap={12}>
+            <Text strong style={{ fontSize: "13px" }}>
+              Update Status:
+            </Text>
+            <StatusUpdater
+              orderId={order._id}
+              currentStatus={order.orderStatus}
+            />
+          </Flex>
+        </Flex>
 
-          {/* ============ Right: Customer & Payment ============ */}
-          <div className="space-y-4 sm:space-y-6">
-            {/* Customer / Shipping */}
-            <div className="bg-card rounded-2xl border border-border/40 shadow-sm overflow-hidden">
-              <div className="px-4 sm:px-5 py-4 border-b border-border/40 flex items-center gap-2">
-                <User className="size-4 text-primary" />
-                <h2 className="text-sm font-black uppercase tracking-widest">
-                  {isGiftOrder ? "Delivery To" : "Customer"}
-                </h2>
-              </div>
+        {!isCancelled && !isReturned ? (
+          <Steps
+            current={currentStep}
+            size="small"
+            items={STAGE_STEPS.map((step) => ({
+              title: step.title,
+              icon: step.icon,
+            }))}
+          />
+        ) : (
+          <Alert
+            type="error"
+            showIcon
+            icon={<CloseCircleOutlined />}
+            title={isCancelled ? "Order Cancelled" : "Order Returned"}
+            style={{ borderRadius: 10 }}
+          />
+        )}
+      </Card>
 
-              <div className="p-4 sm:p-5 space-y-3">
-                <InfoRow
-                  icon={<User className="size-3.5" />}
-                  label="Name"
-                  value={order.shipping.name}
-                />
-                <InfoRow
-                  icon={<Phone className="size-3.5" />}
-                  label="Phone"
-                  value={order.shipping.phone}
-                  copyable
-                  onCopy={() =>
-                    handleCopy(order.shipping.phone, "ship-phone")
-                  }
-                  copied={copiedField === "ship-phone"}
-                  href={`tel:${order.shipping.phone}`}
-                />
-                <InfoRow
-                  icon={<MapPin className="size-3.5" />}
-                  label="Address"
-                  value={
-                    (() => {
-                      const parts = [
-                        order.shipping.addressLine1,
-                        order.shipping.addressLine2,
-                        order.shipping.district,
-                        order.shipping.city,
-                      ].filter((p): p is string => Boolean(p) && !/outside dhaka|inside dhaka|^dhaka$/i.test(p!.trim()));
-
-                      return (
-                        <>
-                          {parts.join(", ")}
-                          {order.shipping.postalCode && ` - ${order.shipping.postalCode}`}
-                        </>
-                      );
-                    })()
-                  }
-                />
-                <InfoRow
-                  icon={<Truck className="size-3.5" />}
-                  label="Zone"
-                  value={
-                    <span className="font-bold text-foreground">
-                      {order.shipping.deliveryZone || (order.shippingCost > 80 ? "OSD (Outside Dhaka)" : "ISD (Inside Dhaka)")}
-                    </span>
-                  }
-                />
-              </div>
-
-              {isGiftOrder && (
-                <>
-                  <div className="px-4 sm:px-5 py-3 border-y border-border/40 bg-pink-50 flex items-center gap-2">
-                    <Gift className="size-4 text-pink-700" />
-                    <h2 className="text-sm font-black uppercase tracking-widest text-pink-900">
-                      Order Placed By
-                    </h2>
-                  </div>
-                  <div className="p-4 sm:p-5 space-y-3">
-                    <InfoRow
-                      icon={<Phone className="size-3.5" />}
-                      label="Customer Phone"
-                      value={order.customerPhone}
-                      copyable
-                      onCopy={() =>
-                        handleCopy(order.customerPhone, "cust-phone")
-                      }
-                      copied={copiedField === "cust-phone"}
-                      href={`tel:${order.customerPhone}`}
+      {/* Main Grid: Left Items List, Right Customer & Payment Details */}
+      <Row gutter={[16, 16]}>
+        {/* LEFT COLUMN: Products Table & Payable Summary */}
+        <Col xs={24} lg={15} className="space-y-4">
+          <Card
+            title={
+              <Flex align="center" justify="space-between">
+                <Text strong style={{ fontSize: "14px" }}>
+                  <ShoppingOutlined style={{ color: "#1677ff", marginRight: 6 }} />
+                  Ordered Items ({order.items.length})
+                </Text>
+                <Text type="secondary" style={{ fontSize: "12px" }}>
+                  Total Qty: {totalItems}
+                </Text>
+              </Flex>
+            }
+            style={{ borderRadius: 16 }}
+            styles={{ body: { padding: 0 } }}
+          >
+            <div className="divide-y divide-slate-100">
+              {order.items.map((item, idx) => (
+                <div key={idx} className="p-4 flex gap-3 sm:gap-4 items-center">
+                  <div
+                    style={{
+                      width: 64,
+                      height: 64,
+                      borderRadius: 10,
+                      overflow: "hidden",
+                      background: "#f1f5f9",
+                      position: "relative",
+                      flexShrink: 0,
+                    }}
+                  >
+                    <Image
+                      src={item.productImage}
+                      alt={item.productTitle}
+                      fill
+                      sizes="64px"
+                      className="object-cover"
                     />
                   </div>
+
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <Link
+                      href={`/products/${item.productSlug}`}
+                      target="_blank"
+                      style={{ fontWeight: 800, color: "#0f172a" }}
+                      className="hover:text-blue-600 transition-colors line-clamp-1 flex items-center gap-1"
+                    >
+                      {item.productTitle}
+                      <ExportOutlined style={{ fontSize: 11, color: "#94a3b8" }} />
+                    </Link>
+
+                    <Text type="secondary" style={{ fontSize: "11px", display: "block" }}>
+                      SKU: {item.productSku}
+                    </Text>
+
+                    <Flex gap={4} wrap="wrap" style={{ marginTop: 4 }}>
+                      {item.color && (
+                        <Tag color="blue" style={{ fontSize: "10px", margin: 0, fontWeight: 700 }}>
+                          Color: {item.color}
+                        </Tag>
+                      )}
+                      {item.size && (
+                        <Tag style={{ fontSize: "10px", margin: 0, fontWeight: 700 }}>
+                          Size: {item.size}
+                        </Tag>
+                      )}
+                    </Flex>
+                  </div>
+
+                  <div style={{ textAlign: "right", flexShrink: 0 }}>
+                    <Text type="secondary" style={{ fontSize: "11px", display: "block" }}>
+                      {formatPrice(item.unitPrice)} × {item.itemQuantity}
+                    </Text>
+                    <Text strong style={{ fontSize: "15px", color: "#1677ff" }}>
+                      {formatPrice(item.unitPrice * item.itemQuantity)}
+                    </Text>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Financial Summary Card Box */}
+            <div style={{ background: "#f8fafc", padding: 16, borderTop: "1px solid #f1f5f9" }}>
+              <div className="space-y-2 max-w-sm ml-auto">
+                <Flex justify="space-between">
+                  <Text type="secondary">Subtotal:</Text>
+                  <Text strong>{formatPrice(order.subtotal)}</Text>
+                </Flex>
+                <Flex justify="space-between">
+                  <Text type="secondary">Shipping Fee:</Text>
+                  <Text strong>{formatPrice(order.shippingCost)}</Text>
+                </Flex>
+
+                {order.discount > 0 && (
+                  <Flex justify="space-between">
+                    <Text type="secondary">Discount:</Text>
+                    <Text strong style={{ color: "#52c41a" }}>
+                      -{formatPrice(order.discount)}
+                    </Text>
+                  </Flex>
+                )}
+
+                <Divider style={{ margin: "8px 0" }} />
+
+                <Card style={{ background: "#0f172a", borderRadius: 12 }} styles={{ body: { padding: 12 } }}>
+                  <Flex justify="space-between" align="center">
+                    <Text style={{ color: "#94a3b8", fontSize: "11px", fontWeight: 700 }}>
+                      Customer Payable Total:
+                    </Text>
+                    <Title level={4} style={{ color: "#ffffff", margin: 0, fontWeight: 900 }}>
+                      {formatPrice(order.total)}
+                    </Title>
+                  </Flex>
+                </Card>
+              </div>
+            </div>
+          </Card>
+
+          {/* Customer Note Alert */}
+          {order.customerNotes && (
+            <Alert
+              type="warning"
+              showIcon
+              title={<Text strong style={{ color: "#78350f" }}>Customer Special Note</Text>}
+              description={<Text style={{ color: "#92400e" }}>{order.customerNotes}</Text>}
+              style={{ borderRadius: 14, background: "#fffbeb", borderColor: "#fef3c7" }}
+            />
+          )}
+        </Col>
+
+        {/* RIGHT COLUMN: Customer Details, Payment & Activity Timeline */}
+        <Col xs={24} lg={9} className="space-y-4">
+          {/* Customer & Shipping Card */}
+          <Card
+            title={
+              <Text strong style={{ fontSize: "14px" }}>
+                <UserOutlined style={{ color: "#1677ff", marginRight: 6 }} />
+                {isGiftOrder ? "Delivery Recipient Details" : "Customer & Shipping Info"}
+              </Text>
+            }
+            style={{ borderRadius: 16 }}
+            styles={{ body: { padding: 16 } }}
+          >
+            <Descriptions column={1} size="small" layout="horizontal">
+              <Descriptions.Item label={<Text type="secondary"><UserOutlined /> Name</Text>}>
+                <Text strong>{order.shipping.name}</Text>
+              </Descriptions.Item>
+
+              <Descriptions.Item label={<Text type="secondary"><PhoneOutlined /> Phone</Text>}>
+                <Flex align="center" gap={6}>
+                  <a href={`tel:${order.shipping.phone}`} style={{ fontWeight: 800, color: "#1677ff" }}>
+                    {order.shipping.phone}
+                  </a>
+                  <Button
+                    size="small"
+                    type="text"
+                    icon={copiedField === "ship-phone" ? <CheckOutlined style={{ color: "#52c41a" }} /> : <CopyOutlined />}
+                    onClick={() => handleCopy(order.shipping.phone, "ship-phone")}
+                  />
+                </Flex>
+              </Descriptions.Item>
+
+              <Descriptions.Item label={<Text type="secondary"><EnvironmentOutlined /> Address</Text>}>
+                <Text strong style={{ display: "block", fontSize: "12px" }}>
+                  {fullAddressStr}
+                </Text>
+              </Descriptions.Item>
+
+              <Descriptions.Item label={<Text type="secondary"><TruckOutlined /> Delivery Zone</Text>}>
+                <Tag color="purple" style={{ fontWeight: 700, borderRadius: 6 }}>
+                  {order.shipping.deliveryZone || (order.shippingCost > 80 ? "OSD (Outside Dhaka)" : "ISD (Inside Dhaka)")}
+                </Tag>
+              </Descriptions.Item>
+            </Descriptions>
+
+            {isGiftOrder && (
+              <div style={{ marginTop: 12, paddingTop: 12, borderTop: "1px solid #f1f5f9" }}>
+                <Text type="secondary" style={{ fontSize: "11px", fontWeight: 700, display: "block", marginBottom: 6 }}>
+                  <GiftOutlined style={{ color: "#eb2f96" }} /> Gift Sender Phone:
+                </Text>
+                <Flex align="center" gap={6}>
+                  <Text strong>{order.customerPhone}</Text>
+                  <Button
+                    size="small"
+                    type="text"
+                    icon={copiedField === "cust-phone" ? <CheckOutlined style={{ color: "#52c41a" }} /> : <CopyOutlined />}
+                    onClick={() => handleCopy(order.customerPhone, "cust-phone")}
+                  />
+                </Flex>
+              </div>
+            )}
+          </Card>
+
+          {/* Payment Details Card */}
+          <Card
+            title={
+              <Text strong style={{ fontSize: "14px" }}>
+                <CreditCardOutlined style={{ color: "#1677ff", marginRight: 6 }} />
+                Payment Details
+              </Text>
+            }
+            style={{ borderRadius: 16 }}
+            styles={{ body: { padding: 16 } }}
+          >
+            <Descriptions column={1} size="small" layout="horizontal">
+              <Descriptions.Item label={<Text type="secondary">Payment Method</Text>}>
+                <Tag color={order.paymentMethod === "cod" ? "default" : "magenta"} style={{ fontWeight: 800 }}>
+                  {order.paymentMethod === "cod"
+                    ? "CASH ON DELIVERY (COD)"
+                    : order.paymentProvider?.toUpperCase() || "MOBILE BANKING"}
+                </Tag>
+              </Descriptions.Item>
+
+              <Descriptions.Item label={<Text type="secondary">Payment Status</Text>}>
+                <Tag color={order.paymentStatus === "paid" ? "green" : "gold"} style={{ fontWeight: 800 }}>
+                  {order.paymentStatus?.toUpperCase()}
+                </Tag>
+              </Descriptions.Item>
+
+              {order.paymentMethod === "mobile" && (
+                <>
+                  {order.senderNumber && (
+                    <Descriptions.Item label={<Text type="secondary">Sender Phone</Text>}>
+                      <Text strong>{order.senderNumber}</Text>
+                    </Descriptions.Item>
+                  )}
+                  {order.transactionId && (
+                    <Descriptions.Item label={<Text type="secondary">TrxID</Text>}>
+                      <Flex align="center" gap={6}>
+                        <Text code style={{ fontWeight: 800 }}>
+                          {order.transactionId}
+                        </Text>
+                        <Button
+                          size="small"
+                          type="text"
+                          icon={copiedField === "trx" ? <CheckOutlined style={{ color: "#52c41a" }} /> : <CopyOutlined />}
+                          onClick={() => handleCopy(order.transactionId!, "trx")}
+                        />
+                      </Flex>
+                    </Descriptions.Item>
+                  )}
                 </>
               )}
-            </div>
+            </Descriptions>
+          </Card>
 
-            {/* Payment Info */}
-            <div className="bg-card rounded-2xl border border-border/40 shadow-sm overflow-hidden">
-              <div className="px-4 sm:px-5 py-4 border-b border-border/40 flex items-center gap-2">
-                <CreditCard className="size-4 text-primary" />
-                <h2 className="text-sm font-black uppercase tracking-widest">
-                  Payment
-                </h2>
-              </div>
-
-              <div className="p-4 sm:p-5 space-y-3">
-                <InfoRow
-                  icon={<Hash className="size-3.5" />}
-                  label="Method"
-                  value={
-                    order.paymentMethod === "cod"
-                      ? "Cash on Delivery"
-                      : order.paymentProvider?.toUpperCase() || "Mobile"
-                  }
-                />
-
-                {order.paymentMethod === "mobile" && (
-                  <>
-                    {order.senderNumber && (
-                      <InfoRow
-                        icon={<Phone className="size-3.5" />}
-                        label="Sender"
-                        value={order.senderNumber}
-                        copyable
-                        onCopy={() =>
-                          handleCopy(order.senderNumber!, "sender")
-                        }
-                        copied={copiedField === "sender"}
-                      />
-                    )}
-                    {order.transactionId && (
-                      <InfoRow
-                        icon={<Hash className="size-3.5" />}
-                        label="TrxID"
-                        value={
-                          <span className="font-mono">
-                            {order.transactionId}
-                          </span>
-                        }
-                        copyable
-                        onCopy={() =>
-                          handleCopy(order.transactionId!, "trx")
-                        }
-                        copied={copiedField === "trx"}
-                      />
-                    )}
-                  </>
-                )}
-              </div>
-            </div>
-
-            {/* Timeline */}
-            <div className="bg-card rounded-2xl border border-border/40 shadow-sm overflow-hidden">
-              <div className="px-4 sm:px-5 py-4 border-b border-border/40 flex items-center gap-2">
-                <Calendar className="size-4 text-primary" />
-                <h2 className="text-sm font-black uppercase tracking-widest">
-                  Timeline
-                </h2>
-              </div>
-              <div className="p-4 sm:p-5 space-y-2.5 text-xs">
-                <TimelineRow label="Order Placed" date={order.createdAt} />
-                {order.paidAt && (
-                  <TimelineRow label="Payment Received" date={order.paidAt} />
-                )}
-                {order.shippedAt && (
-                  <TimelineRow label="Shipped" date={order.shippedAt} />
-                )}
-                {order.deliveredAt && (
-                  <TimelineRow label="Delivered" date={order.deliveredAt} />
-                )}
-                {order.cancelledAt && (
-                  <TimelineRow
-                    label="Cancelled"
-                    date={order.cancelledAt}
-                    danger
-                  />
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* ============ Mobile Sticky Bottom Bar ============ */}
-      <div className="fixed bottom-0 left-0 right-0 z-30 bg-background/95 backdrop-blur-xl border-t border-border/40 p-3 sm:hidden">
-        <div className="flex gap-2">
-          <a href={`tel:${order.shipping.phone}`} className="flex-1">
-            <Button variant="outline" className="w-full h-12 gap-2 font-bold">
-              <Phone className="size-4" />
-              Call
-            </Button>
-          </a>
-          <Link
-            href={`/admin/orders/${order._id}/invoice`}
-            target="_blank"
-            rel="noopener"
-            className="flex-1"
+          {/* Activity Timeline Card */}
+          <Card
+            title={
+              <Text strong style={{ fontSize: "14px" }}>
+                <CalendarOutlined style={{ color: "#1677ff", marginRight: 6 }} />
+                Activity Timeline
+              </Text>
+            }
+            style={{ borderRadius: 16 }}
+            styles={{ body: { padding: 16 } }}
           >
-            <Button className="w-full h-12 gap-2 font-bold">
-              <Printer className="size-4" />
-              Print Invoice
-            </Button>
-          </Link>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/* ============ Sub Components ============ */
-
-interface InfoRowProps {
-  icon: React.ReactNode;
-  label: string;
-  value: React.ReactNode;
-  copyable?: boolean;
-  onCopy?: () => void;
-  copied?: boolean;
-  href?: string;
-}
-
-function InfoRow({
-  icon,
-  label,
-  value,
-  copyable,
-  onCopy,
-  copied,
-  href,
-}: InfoRowProps) {
-  return (
-    <div className="flex items-start gap-3">
-      <div className="size-7 rounded-lg bg-muted flex items-center justify-center text-muted-foreground shrink-0 mt-0.5">
-        {icon}
-      </div>
-      <div className="flex-1 min-w-0">
-        <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-0.5">
-          {label}
-        </p>
-        <div className="text-sm leading-snug break-words">
-          {href ? (
-            <a
-              href={href}
-              className="text-foreground font-bold hover:text-primary transition-colors"
-            >
-              {value}
-            </a>
-          ) : (
-            <span className="text-foreground font-bold">{value}</span>
-          )}
-        </div>
-      </div>
-      {copyable && onCopy && (
-        <button
-          onClick={onCopy}
-          className="size-7 rounded-lg hover:bg-muted flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors shrink-0"
-          aria-label="Copy"
-        >
-          {copied ? (
-            <Check className="size-3.5 text-green-600" />
-          ) : (
-            <Copy className="size-3.5" />
-          )}
-        </button>
-      )}
-    </div>
-  );
-}
-
-interface TimelineRowProps {
-  label: string;
-  date: string | Date;
-  danger?: boolean;
-}
-
-function TimelineRow({ label, date, danger }: TimelineRowProps) {
-  const d = new Date(date).toLocaleString("en-GB", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: true,
-  });
-
-  return (
-    <div className="flex items-center justify-between gap-3">
-      <span
-        className={cn(
-          "font-bold",
-          danger ? "text-red-600" : "text-muted-foreground",
-        )}
-      >
-        {label}
-      </span>
-      <span className="text-foreground font-medium font-mono text-[11px]">
-        {d}
-      </span>
+            <Timeline
+              items={[
+                {
+                  color: "green",
+                  content: (
+                    <div>
+                      <Text strong style={{ fontSize: "12px", display: "block" }}>
+                        Order Placed
+                      </Text>
+                      <Text type="secondary" style={{ fontSize: "11px" }}>
+                        {dateStr}
+                      </Text>
+                    </div>
+                  ),
+                },
+                order.paidAt
+                  ? {
+                      color: "blue",
+                      content: (
+                        <div>
+                          <Text strong style={{ fontSize: "12px", display: "block" }}>
+                            Payment Received
+                          </Text>
+                          <Text type="secondary" style={{ fontSize: "11px" }}>
+                            {format(new Date(order.paidAt), "dd MMM, yyyy - hh:mm a")}
+                          </Text>
+                        </div>
+                      ),
+                    }
+                  : null,
+                order.shippedAt
+                  ? {
+                      color: "purple",
+                      content: (
+                        <div>
+                          <Text strong style={{ fontSize: "12px", display: "block" }}>
+                            Order Shipped
+                          </Text>
+                          <Text type="secondary" style={{ fontSize: "11px" }}>
+                            {format(new Date(order.shippedAt), "dd MMM, yyyy - hh:mm a")}
+                          </Text>
+                        </div>
+                      ),
+                    }
+                  : null,
+                order.deliveredAt
+                  ? {
+                      color: "green",
+                      content: (
+                        <div>
+                          <Text strong style={{ fontSize: "12px", display: "block" }}>
+                            Order Delivered
+                          </Text>
+                          <Text type="secondary" style={{ fontSize: "11px" }}>
+                            {format(new Date(order.deliveredAt), "dd MMM, yyyy - hh:mm a")}
+                          </Text>
+                        </div>
+                      ),
+                    }
+                  : null,
+                order.cancelledAt
+                  ? {
+                      color: "red",
+                      content: (
+                        <div>
+                          <Text strong style={{ fontSize: "12px", display: "block" }}>
+                            Order Cancelled
+                          </Text>
+                          <Text type="secondary" style={{ fontSize: "11px" }}>
+                            {format(new Date(order.cancelledAt), "dd MMM, yyyy - hh:mm a")}
+                          </Text>
+                        </div>
+                      ),
+                    }
+                  : null,
+              ].filter(Boolean) as any}
+            />
+          </Card>
+        </Col>
+      </Row>
     </div>
   );
 }

@@ -1,61 +1,57 @@
+// src/components/admin/StatusUpdater.tsx
 "use client";
 
 import { useState } from "react";
 import { updateOrderStatus } from "@/actions/order";
 import { toast } from "sonner";
+import { Select, Tag } from "antd";
 import {
-  Loader2,
-  CheckCircle2,
-  Clock,
-  Truck,
-  XCircle,
-  AlertCircle,
-  ChevronDown,
-} from "lucide-react";
-import { cn } from "@/lib/utils";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Button } from "@/components/ui/button";
+  ClockCircleOutlined,
+  CheckCircleOutlined,
+  SyncOutlined,
+  CarOutlined,
+  CloseCircleOutlined,
+  WarningOutlined,
+} from "@ant-design/icons";
 
-const STATUS_CONFIG = {
+const STATUS_CONFIG: Record<
+  string,
+  { label: string; color: string; icon: React.ReactNode }
+> = {
   pending: {
     label: "Pending",
-    icon: Clock,
-    color: "text-amber-600 bg-amber-50 border-amber-200",
+    color: "gold",
+    icon: <ClockCircleOutlined />,
   },
   confirmed: {
     label: "Confirmed",
-    icon: CheckCircle2,
-    color: "text-blue-600 bg-blue-50 border-blue-200",
+    color: "cyan",
+    icon: <CheckCircleOutlined />,
   },
   processing: {
     label: "Processing",
-    icon: Clock,
-    color: "text-sky-600 bg-sky-50 border-sky-200",
+    color: "blue",
+    icon: <SyncOutlined spin />,
   },
   shipped: {
     label: "Shipped",
-    icon: Truck,
-    color: "text-indigo-600 bg-indigo-50 border-indigo-200",
+    color: "purple",
+    icon: <CarOutlined />,
   },
   delivered: {
     label: "Delivered",
-    icon: CheckCircle2,
-    color: "text-emerald-600 bg-emerald-50 border-emerald-200",
+    color: "green",
+    icon: <CheckCircleOutlined />,
   },
   cancelled: {
     label: "Cancelled",
-    icon: XCircle,
-    color: "text-rose-600 bg-rose-50 border-rose-200",
+    color: "red",
+    icon: <CloseCircleOutlined />,
   },
   returned: {
     label: "Returned",
-    icon: AlertCircle,
-    color: "text-slate-600 bg-slate-50 border-slate-200",
+    color: "default",
+    icon: <WarningOutlined />,
   },
 };
 
@@ -66,9 +62,7 @@ export function StatusUpdater({
   orderId: string;
   currentStatus: string;
 }) {
-  const [status, setStatus] = useState(
-    currentStatus as keyof typeof STATUS_CONFIG,
-  );
+  const [status, setStatus] = useState<string>(currentStatus || "pending");
   const [isUpdating, setIsUpdating] = useState(false);
 
   const handleUpdate = async (newStatus: string) => {
@@ -77,7 +71,7 @@ export function StatusUpdater({
     try {
       const res = await updateOrderStatus(orderId, newStatus);
       if (res.success) {
-        setStatus(newStatus as keyof typeof STATUS_CONFIG);
+        setStatus(newStatus);
         toast.success(`Order status updated to ${newStatus}`);
       } else {
         toast.error(res.error || "Failed to update status");
@@ -89,58 +83,21 @@ export function StatusUpdater({
     }
   };
 
-  const config = STATUS_CONFIG[status] || STATUS_CONFIG.pending;
-
   return (
-    <div className="flex items-center gap-3">
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button
-            disabled={isUpdating}
-            variant="outline"
-            className={cn(
-              "h-12 rounded-xl border-2 font-black uppercase tracking-widest text-[10px] gap-2 px-6 shadow-sm transition-all",
-              config.color,
-            )}
-          >
-            {isUpdating ? (
-              <Loader2 className="size-4 animate-spin" />
-            ) : (
-              <config.icon className="size-4" />
-            )}
-            {config.label}
-            <ChevronDown className="size-3 opacity-50 ml-1" />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent
-          align="end"
-          className="w-56 rounded-2xl p-2 shadow-2xl border-slate-200"
-        >
-          {(
-            Object.keys(STATUS_CONFIG) as Array<keyof typeof STATUS_CONFIG>
-          ).map((s) => {
-            const sc = STATUS_CONFIG[s];
-            return (
-              <DropdownMenuItem
-                key={s}
-                onClick={() => handleUpdate(s)}
-                className={cn(
-                  "rounded-xl p-3 flex items-center gap-3 cursor-pointer",
-                  status === s ? "bg-slate-100 font-bold" : "hover:bg-slate-50",
-                )}
-              >
-                <sc.icon className={cn("size-4", sc.color.split(" ")[0])} />
-                <span className="text-xs font-bold text-slate-700">
-                  {sc.label}
-                </span>
-                {status === s && (
-                  <CheckCircle2 className="size-3.5 ml-auto text-primary" />
-                )}
-              </DropdownMenuItem>
-            );
-          })}
-        </DropdownMenuContent>
-      </DropdownMenu>
-    </div>
+    <Select
+      value={status}
+      onChange={handleUpdate}
+      loading={isUpdating}
+      disabled={isUpdating}
+      style={{ width: 140 }}
+      options={Object.entries(STATUS_CONFIG).map(([key, cfg]) => ({
+        value: key,
+        label: (
+          <Tag color={cfg.color} icon={cfg.icon} style={{ margin: 0, fontWeight: 700 }}>
+            {cfg.label}
+          </Tag>
+        ),
+      }))}
+    />
   );
 }

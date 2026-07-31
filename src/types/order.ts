@@ -32,8 +32,45 @@ export interface IOrderShipping {
   deliveryZone?: string;
 }
 
+export type ChannelSource =
+  | "web"
+  | "facebook_page"
+  | "facebook_marketplace"
+  | "instagram"
+  | "whatsapp"
+  | "threads"
+  | "google"
+  | "offline"
+  | "quora";
+
+export const CHANNEL_PREFIXES: Record<ChannelSource, string> = {
+  web: "WEB",
+  facebook_page: "FBP",
+  facebook_marketplace: "FBM",
+  instagram: "IG",
+  whatsapp: "WA",
+  threads: "TH",
+  google: "GOOG",
+  offline: "OFF",
+  quora: "QR",
+};
+
+export const CHANNEL_LABELS: Record<ChannelSource, string> = {
+  web: "Website",
+  facebook_page: "Facebook Page",
+  facebook_marketplace: "FB Marketplace",
+  instagram: "Instagram",
+  whatsapp: "WhatsApp",
+  threads: "Threads",
+  google: "Google",
+  offline: "Off Line",
+  quora: "Quora",
+};
+
 export interface IOrderBase {
   orderNumber: string;
+  brandCode?: string;
+  channelSource?: ChannelSource;
   user?: ID;
   customerPhone: string; // The primary contact number for the order
   items: IOrderItem[];

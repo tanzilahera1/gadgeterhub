@@ -18,6 +18,7 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { CHANNEL_LABELS } from "@/types/order";
 import Link from "next/link";
 import Image from "next/image";
 import { redirect, notFound } from "next/navigation";
@@ -291,8 +292,8 @@ export default async function UserOrderDetailsPage({
                   {[
                     order.shipping.addressLine1,
                     order.shipping.addressLine2,
-                    order.shipping.district,
                     order.shipping.city,
+                    order.shipping.district,
                   ]
                     .filter((p): p is string => Boolean(p) && !/outside dhaka|inside dhaka|^dhaka$/i.test(p!.trim()))
                     .join(", ") || order.shipping.addressLine1}

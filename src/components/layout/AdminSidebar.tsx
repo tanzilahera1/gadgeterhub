@@ -1,174 +1,162 @@
+// src/components/layout/AdminSidebar.tsx
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { cn } from "@/lib/utils";
+import { usePathname, useRouter } from "next/navigation";
+import { Layout, Menu, Button, Drawer, Typography, Flex, Tooltip } from "antd";
 import {
-  LayoutDashboard,
-  ShoppingCart,
-  Package,
-  Layers,
-  Tags,
-  Settings,
-  LogOut,
-  X,
-  ChevronRight,
-  PanelLeftClose,
-  PanelLeft,
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
+  DashboardOutlined,
+  ShoppingCartOutlined,
+  AppstoreOutlined,
+  TagsOutlined,
+  SettingOutlined,
+  LogoutOutlined,
+  MenuFoldOutlined,
+  MenuUnfoldOutlined,
+  ArrowLeftOutlined,
+  CloseOutlined,
+  ShoppingOutlined,
+} from "@ant-design/icons";
 import { useSidebar } from "@/hooks/use-sidebar";
 
+const { Sider } = Layout;
+const { Text, Title } = Typography;
+
 const NAV_ITEMS = [
-  { label: "Dashboard", href: "/admin", icon: LayoutDashboard },
-  { label: "Orders", href: "/admin/orders", icon: ShoppingCart },
-  { label: "Products", href: "/admin/products", icon: Package },
-  { label: "Categories", href: "/admin/categories", icon: Layers },
-  { label: "Brands", href: "/admin/brands", icon: Tags },
-  { label: "Settings", href: "/admin/settings", icon: Settings },
+  { key: "/admin", label: "Dashboard", icon: <DashboardOutlined /> },
+  { key: "/admin/orders", label: "Orders", icon: <ShoppingCartOutlined /> },
+  { key: "/admin/products", label: "Products", icon: <ShoppingOutlined /> },
+  { key: "/admin/categories", label: "Categories", icon: <AppstoreOutlined /> },
+  { key: "/admin/brands", label: "Brands", icon: <TagsOutlined /> },
+  { key: "/admin/settings", label: "Settings", icon: <SettingOutlined /> },
 ];
 
 export function AdminSidebar() {
   const pathname = usePathname();
+  const router = useRouter();
   const { isCollapsed, toggleCollapsed, isMobileOpen, setMobileOpen } =
     useSidebar();
 
-  return (
-    <>
-      {/* Overlay for mobile */}
-      {isMobileOpen && (
-        <div
-          className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40 lg:hidden"
-          onClick={() => setMobileOpen(false)}
-        />
-      )}
+  // Find selected key
+  const selectedKey =
+    NAV_ITEMS.find(
+      (item) =>
+        pathname === item.key ||
+        (item.key !== "/admin" && pathname.startsWith(item.key)),
+    )?.key || "/admin";
 
-      {/* Sidebar Container */}
-      <aside
-        className={cn(
-          "fixed top-0 left-0 h-full z-50 transition-all duration-300 flex flex-col",
-          "bg-background/80 backdrop-blur-2xl border-r border-border/50 shadow-2xl shadow-black/5",
-          isCollapsed ? "w-20" : "w-72",
-          isMobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0",
-        )}
+  const handleMenuClick = ({ key }: { key: string }) => {
+    router.push(key);
+    setMobileOpen(false);
+  };
+
+  const sidebarContent = (
+    <Flex vertical style={{ height: "100%" }}>
+      {/* Sidebar Header */}
+      <div
+        style={{
+          padding: isCollapsed ? "16px 8px" : "16px",
+          borderBottom: "1px solid #f1f5f9",
+          textAlign: isCollapsed ? "center" : "left",
+        }}
       >
-        {/* Subtle gradient overlay for premium feel */}
-        <div className="absolute inset-0 bg-gradient-to-b from-primary/3 via-transparent to-transparent pointer-events-none" />
-
-        {/* Sidebar Header */}
-        <div
-          className={cn(
-            "relative h-16 flex items-center border-b border-border/40 px-4",
-            isCollapsed ? "justify-center" : "justify-between",
-          )}
-        >
-          {!isCollapsed && (
-            <div className="flex flex-col ml-1 overflow-hidden whitespace-nowrap">
-              <span className="text-sm font-black text-foreground tracking-tight leading-none">
+        {!isCollapsed ? (
+          <Flex align="center" justify="space-between">
+            <div>
+              <Title level={5} style={{ margin: 0, fontWeight: 900 }}>
                 Admin Panel
-              </span>
-              <Link
-                href="/"
-                className="text-[10px] font-semibold text-muted-foreground hover:text-primary transition-colors mt-0.5 tracking-wide"
-              >
+              </Title>
+              <Link href="/" style={{ fontSize: "11px", color: "#64748b", fontWeight: 600 }}>
                 ← Back to Store
               </Link>
             </div>
-          )}
 
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={toggleCollapsed}
-            className="hidden lg:flex rounded-xl text-muted-foreground hover:text-foreground hover:bg-accent/60 h-8 w-8"
-          >
-            {isCollapsed ? (
-              <PanelLeft className="size-4" />
-            ) : (
-              <PanelLeftClose className="size-4" />
-            )}
-          </Button>
+            <Button
+              type="text"
+              icon={isCollapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
+              onClick={toggleCollapsed}
+              className="hidden lg:flex"
+            />
+          </Flex>
+        ) : (
+          <Tooltip title="Expand Sidebar" placement="right">
+            <Button
+              type="text"
+              icon={<MenuUnfoldOutlined />}
+              onClick={toggleCollapsed}
+              className="hidden lg:flex mx-auto"
+            />
+          </Tooltip>
+        )}
+      </div>
 
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setMobileOpen(false)}
-            className="lg:hidden rounded-xl text-muted-foreground hover:text-foreground"
-          >
-            <X className="size-5" />
-          </Button>
-        </div>
+      {/* Navigation Menu */}
+      <div style={{ flex: 1, padding: "8px 0", overflowY: "auto" }}>
+        <Menu
+          mode="inline"
+          selectedKeys={[selectedKey]}
+          items={NAV_ITEMS}
+          onClick={handleMenuClick}
+          style={{ borderRight: 0, fontWeight: 600 }}
+        />
+      </div>
 
-        {/* Sidebar Navigation */}
-        <nav className="relative flex-1 p-3 space-y-1 overflow-y-auto custom-scrollbar mt-2">
-          {NAV_ITEMS.map((item) => {
-            const isActive =
-              pathname === item.href ||
-              (item.href !== "/admin" && pathname.startsWith(item.href));
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                onClick={() => setMobileOpen(false)}
-                title={isCollapsed ? item.label : ""}
-                className={cn(
-                  "flex items-center rounded-xl transition-all duration-200 group relative",
-                  isCollapsed ? "justify-center h-12 w-full" : "px-4 py-3 gap-3",
-                  isActive
-                    ? "bg-primary text-primary-foreground shadow-lg shadow-primary/25"
-                    : "text-foreground hover:bg-accent/60",
-                )}
-              >
-                <item.icon
-                  className={cn(
-                    "size-5 shrink-0 transition-all",
-                    isActive
-                      ? "text-primary-foreground"
-                      : "text-foreground/70 group-hover:text-foreground",
-                  )}
-                />
-
-                {!isCollapsed && (
-                  <>
-                    <span className="font-semibold text-sm tracking-tight whitespace-nowrap">
-                      {item.label}
-                    </span>
-                    {isActive && (
-                      <ChevronRight className="size-3.5 ml-auto opacity-60" />
-                    )}
-                  </>
-                )}
-
-                {/* Collapsed active indicator */}
-                {isCollapsed && isActive && (
-                  <div className="absolute left-0 top-1/4 bottom-1/4 w-0.5 bg-primary rounded-r-full" />
-                )}
-              </Link>
-            );
-          })}
-        </nav>
-
-        {/* Sidebar Footer */}
-        <div
-          className={cn(
-            "relative p-3 border-t border-border/40",
-            isCollapsed ? "flex justify-center" : "",
-          )}
+      {/* Sidebar Footer Logout */}
+      <div style={{ padding: "12px", borderTop: "1px solid #f1f5f9" }}>
+        <Button
+          type="text"
+          danger
+          block={!isCollapsed}
+          icon={<LogoutOutlined />}
+          style={{
+            fontWeight: 700,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: isCollapsed ? "center" : "flex-start",
+          }}
         >
-          <Button
-            variant="ghost"
-            className={cn(
-              "text-muted-foreground hover:text-rose-500 hover:bg-rose-500/10 rounded-xl transition-all duration-200",
-              isCollapsed
-                ? "size-12 p-0"
-                : "w-full flex items-center justify-start gap-3 px-4 h-11",
-            )}
-          >
-            <LogOut className="size-4 shrink-0" />
-            {!isCollapsed && <span className="font-semibold text-sm">Logout</span>}
-          </Button>
-        </div>
-      </aside>
+          {!isCollapsed && "Logout"}
+        </Button>
+      </div>
+    </Flex>
+  );
+
+  return (
+    <>
+      {/* Desktop Antd Sider */}
+      <Sider
+        collapsible
+        collapsed={isCollapsed}
+        onCollapse={toggleCollapsed}
+        trigger={null}
+        width={260}
+        collapsedWidth={80}
+        style={{
+          background: "#ffffff",
+          borderRight: "1px solid #e2e8f0",
+          height: "100vh",
+          position: "fixed",
+          left: 0,
+          top: 0,
+          zIndex: 40,
+        }}
+        className="hidden lg:block"
+      >
+        {sidebarContent}
+      </Sider>
+
+      {/* Mobile Antd Drawer */}
+      <Drawer
+        placement="left"
+        onClose={() => setMobileOpen(false)}
+        open={isMobileOpen}
+        size={260 as any}
+        styles={{ body: { padding: 0 } }}
+        closeIcon={<CloseOutlined />}
+        className="lg:hidden"
+      >
+        {sidebarContent}
+      </Drawer>
     </>
   );
 }

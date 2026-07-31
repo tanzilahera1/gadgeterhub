@@ -34,6 +34,8 @@ const OrderShippingSchema = new Schema(
 const OrderSchema = new Schema<IOrder>(
   {
     orderNumber: { type: String, required: true, unique: true },
+    brandCode: { type: String, default: "GH" },
+    channelSource: { type: String, default: "web" },
     user: { type: Schema.Types.ObjectId, ref: "User" },
     customerPhone: { type: String, required: true, trim: true },
     items: { type: [OrderItemSchema], required: true },

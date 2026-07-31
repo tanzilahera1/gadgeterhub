@@ -1,45 +1,67 @@
+// src/app/(admin)/admin/settings/SettingsForm.tsx
 "use client";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { updateSettings } from "@/actions/adminSettings";
 import { toast } from "sonner";
-import { Loader2, Save, Store, Truck, Share2, ShieldAlert } from "lucide-react";
+import {
+  Card,
+  Form,
+  Input,
+  InputNumber,
+  Switch,
+  Button,
+  Row,
+  Col,
+  Breadcrumb,
+  Typography,
+  Flex,
+  Alert,
+  Divider,
+} from "antd";
+import {
+  ShopOutlined,
+  CarOutlined,
+  ShareAltOutlined,
+  WarningOutlined,
+  SaveOutlined,
+  LoadingOutlined,
+} from "@ant-design/icons";
+
+const { Title, Text } = Typography;
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export default function SettingsForm({ initialData }: { initialData?: any }) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
+  const [form] = Form.useForm();
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const onFinish = async (values: any) => {
     setIsLoading(true);
-
-    const formData = new FormData(e.currentTarget);
     const data = {
-      storeName: formData.get("storeName") as string,
-      storeEmail: formData.get("storeEmail") as string,
-      storePhone: formData.get("storePhone") as string,
-      currency: formData.get("currency") as string,
-      deliveryChargeInside: Number(formData.get("deliveryChargeInside")) || 60,
-      deliveryChargeOutside:
-        Number(formData.get("deliveryChargeOutside")) || 120,
-      freeShippingThreshold: Number(formData.get("freeShippingThreshold")) || 0,
-      facebookURL: formData.get("facebookURL") as string,
-      instagramURL: formData.get("instagramURL") as string,
-      maintenanceMode: formData.get("maintenanceMode") === "on",
+      storeName: values.storeName,
+      storeEmail: values.storeEmail || "",
+      storePhone: values.storePhone || "",
+      currency: values.currency,
+      deliveryChargeInside: Number(values.deliveryChargeInside) || 60,
+      deliveryChargeOutside: Number(values.deliveryChargeOutside) || 120,
+      freeShippingThreshold: Number(values.freeShippingThreshold) || 0,
+      facebookURL: values.facebookURL || "",
+      instagramURL: values.instagramURL || "",
+      maintenanceMode: values.maintenanceMode || false,
     };
 
     try {
       const res = await updateSettings(data);
-
       if (res.success) {
         toast.success("Settings updated successfully!");
         router.refresh();
       } else {
         toast.error(res.error || "Failed to update settings");
       }
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       toast.error(err.message || "An unexpected error occurred");
     } finally {
@@ -48,226 +70,221 @@ export default function SettingsForm({ initialData }: { initialData?: any }) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-12">
-      {/* 1. Global Store Info */}
-      <section className="space-y-6">
-        <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
-          <Store className="size-5 text-slate-400" />
-          <h2 className="text-xl font-black text-slate-900">
-            General Information
-          </h2>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-          <div className="space-y-2">
-            <label className="text-sm font-bold text-slate-700">
-              Store Name *
-            </label>
-            <input
-              required
-              name="storeName"
-              defaultValue={initialData?.storeName || "GadgeterHub"}
-              type="text"
-              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <label className="text-sm font-bold text-slate-700">
-              Currency Symbol
-            </label>
-            <input
-              required
-              name="currency"
-              defaultValue={initialData?.currency || "BDT"}
-              type="text"
-              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <label className="text-sm font-bold text-slate-700">
-              Contact Email
-            </label>
-            <input
-              name="storeEmail"
-              defaultValue={initialData?.storeEmail}
-              type="email"
-              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
-              placeholder="support@store.com"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <label className="text-sm font-bold text-slate-700">
-              Customer Support Phone
-            </label>
-            <input
-              name="storePhone"
-              defaultValue={initialData?.storePhone}
-              type="text"
-              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
-              placeholder="+880 1XXX XXXXXX"
-            />
-          </div>
-        </div>
-      </section>
-
-      {/* 2. Logistics & Delivery */}
-      <section className="space-y-6">
-        <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
-          <Truck className="size-5 text-slate-400" />
-          <h2 className="text-xl font-black text-slate-900">
-            Logistics & Constraints
-          </h2>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-          <div className="space-y-2">
-            <label className="text-sm font-bold text-slate-700">
-              Delivery Charge (Inside Dhaka)
-            </label>
-            <div className="relative">
-              <span className="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-slate-400">
-                ৳
-              </span>
-              <input
-                name="deliveryChargeInside"
-                defaultValue={initialData?.deliveryChargeInside ?? 60}
-                type="number"
-                min="0"
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 pl-8 pr-4 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
-              />
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <label className="text-sm font-bold text-slate-700">
-              Delivery Charge (Outside Dhaka)
-            </label>
-            <div className="relative">
-              <span className="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-slate-400">
-                ৳
-              </span>
-              <input
-                name="deliveryChargeOutside"
-                defaultValue={initialData?.deliveryChargeOutside ?? 120}
-                type="number"
-                min="0"
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 pl-8 pr-4 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
-              />
-            </div>
-          </div>
-
-          <div className="space-y-2 sm:col-span-2">
-            <label className="text-sm font-bold text-slate-700">
-              Free Shipping Threshold
-            </label>
-            <div className="relative">
-              <span className="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-slate-400">
-                ৳
-              </span>
-              <input
-                name="freeShippingThreshold"
-                defaultValue={initialData?.freeShippingThreshold ?? 0}
-                type="number"
-                min="0"
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 pl-8 pr-4 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
-              />
-            </div>
-            <p className="text-xs text-slate-500 font-medium mt-1.5">
-              Value 0 disables the free shipping feature.
-            </p>
-          </div>
-        </div>
-      </section>
-
-      {/* 3. Socials */}
-      <section className="space-y-6">
-        <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
-          <Share2 className="size-5 text-slate-400" />
-          <h2 className="text-xl font-black text-slate-900">
-            Social Connections
-          </h2>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-          <div className="space-y-2">
-            <label className="text-sm font-bold text-slate-700">
-              Facebook URL
-            </label>
-            <input
-              name="facebookURL"
-              defaultValue={initialData?.facebookURL}
-              type="url"
-              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
-              placeholder="https://facebook.com/..."
-            />
-          </div>
-
-          <div className="space-y-2">
-            <label className="text-sm font-bold text-slate-700">
-              Instagram URL
-            </label>
-            <input
-              name="instagramURL"
-              defaultValue={initialData?.instagramURL}
-              type="url"
-              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
-              placeholder="https://instagram.com/..."
-            />
-          </div>
-        </div>
-      </section>
-
-      {/* 4. Danger Zone */}
-      <section className="space-y-6">
-        <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
-          <ShieldAlert className="size-5 text-rose-500" />
-          <h2 className="text-xl font-black text-rose-600">Danger Zone</h2>
-        </div>
-
-        <div className="bg-rose-50 border border-rose-100 rounded-2xl p-6 flex items-start gap-4">
-          <div className="mt-1">
-            <input
-              type="checkbox"
-              name="maintenanceMode"
-              id="maintenanceMode"
-              defaultChecked={initialData?.maintenanceMode}
-              className="size-5 rounded border-gray-300 text-rose-600 focus:ring-rose-600"
-            />
-          </div>
-          <div className="flex flex-col">
-            <label
-              htmlFor="maintenanceMode"
-              className="text-base font-black text-rose-900 leading-none"
-            >
-              Enable Maintenance Mode
-            </label>
-            <p className="text-sm text-rose-700/80 mt-1.5 font-medium leading-relaxed">
-              Checking this instantly disables consumer access to the main
-              storefront. Only administrators will be able to log in and test
-              routing paths. This is a highly destructive state switch.
-            </p>
-          </div>
-        </div>
-      </section>
-
-      {/* Action Buttons */}
-      <div className="pt-6 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-end gap-4">
-        <button
-          disabled={isLoading}
-          type="submit"
-          className="w-full sm:w-auto flex items-center justify-center gap-2 bg-slate-900 hover:bg-slate-800 text-white px-10 py-3.5 rounded-xl font-black tracking-tight shadow-md hover:shadow-lg hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50 disabled:pointer-events-none"
-        >
-          {isLoading ? (
-            <Loader2 className="size-5 animate-spin" />
-          ) : (
-            <Save className="size-5" />
-          )}
-          Save Global Settings
-        </button>
+    <div className="space-y-5">
+      <div>
+        <Breadcrumb
+          items={[
+            { title: <Link href="/admin">Dashboard</Link> },
+            { title: "Settings" },
+          ]}
+          style={{ marginBottom: 8 }}
+        />
+        <Title level={3} style={{ margin: 0, fontWeight: 900 }}>
+          Store Settings
+        </Title>
+        <Text type="secondary" style={{ fontSize: "13px" }}>
+          Configure global e-commerce variables, logistics, and system preferences.
+        </Text>
       </div>
-    </form>
+
+      <Form
+        form={form}
+        layout="vertical"
+        onFinish={onFinish}
+        initialValues={{
+          storeName: initialData?.storeName || "GadgeterHub",
+          currency: initialData?.currency || "BDT",
+          storeEmail: initialData?.storeEmail || "",
+          storePhone: initialData?.storePhone || "",
+          deliveryChargeInside: initialData?.deliveryChargeInside ?? 60,
+          deliveryChargeOutside: initialData?.deliveryChargeOutside ?? 120,
+          freeShippingThreshold: initialData?.freeShippingThreshold ?? 0,
+          facebookURL: initialData?.facebookURL || "",
+          instagramURL: initialData?.instagramURL || "",
+          maintenanceMode: initialData?.maintenanceMode || false,
+        }}
+        className="space-y-6"
+      >
+        {/* Section 1: General Store Info */}
+        <Card
+          title={
+            <Text strong style={{ fontSize: "15px" }}>
+              <ShopOutlined style={{ color: "#1677ff", marginRight: 8 }} />
+              General Information
+            </Text>
+          }
+          style={{ borderRadius: 16 }}
+          styles={{ body: { padding: 20 } }}
+        >
+          <Row gutter={[16, 16]}>
+            <Col xs={24} sm={12}>
+              <Form.Item
+                name="storeName"
+                label={<Text strong>Store Name</Text>}
+                rules={[{ required: true, message: "Please enter store name" }]}
+              >
+                <Input size="large" placeholder="GadgeterHub" style={{ borderRadius: 10 }} />
+              </Form.Item>
+            </Col>
+
+            <Col xs={24} sm={12}>
+              <Form.Item
+                name="currency"
+                label={<Text strong>Currency Symbol</Text>}
+                rules={[{ required: true, message: "Please enter currency" }]}
+              >
+                <Input size="large" placeholder="BDT" style={{ borderRadius: 10 }} />
+              </Form.Item>
+            </Col>
+
+            <Col xs={24} sm={12}>
+              <Form.Item name="storeEmail" label={<Text strong>Contact Email</Text>}>
+                <Input size="large" type="email" placeholder="support@store.com" style={{ borderRadius: 10 }} />
+              </Form.Item>
+            </Col>
+
+            <Col xs={24} sm={12}>
+              <Form.Item name="storePhone" label={<Text strong>Customer Support Phone</Text>}>
+                <Input size="large" placeholder="+880 1XXX XXXXXX" style={{ borderRadius: 10 }} />
+              </Form.Item>
+            </Col>
+          </Row>
+        </Card>
+
+        {/* Section 2: Logistics */}
+        <Card
+          title={
+            <Text strong style={{ fontSize: "15px" }}>
+              <CarOutlined style={{ color: "#1677ff", marginRight: 8 }} />
+              Logistics & Delivery Constraints
+            </Text>
+          }
+          style={{ borderRadius: 16 }}
+          styles={{ body: { padding: 20 } }}
+        >
+          <Row gutter={[16, 16]}>
+            <Col xs={24} sm={12}>
+              <Form.Item
+                name="deliveryChargeInside"
+                label={<Text strong>Delivery Charge — Inside Dhaka (৳)</Text>}
+              >
+                <InputNumber
+                  size="large"
+                  min={0}
+                  style={{ width: "100%", borderRadius: 10 }}
+                  placeholder="60"
+                />
+              </Form.Item>
+            </Col>
+
+            <Col xs={24} sm={12}>
+              <Form.Item
+                name="deliveryChargeOutside"
+                label={<Text strong>Delivery Charge — Outside Dhaka (৳)</Text>}
+              >
+                <InputNumber
+                  size="large"
+                  min={0}
+                  style={{ width: "100%", borderRadius: 10 }}
+                  placeholder="120"
+                />
+              </Form.Item>
+            </Col>
+
+            <Col xs={24}>
+              <Form.Item
+                name="freeShippingThreshold"
+                label={<Text strong>Free Shipping Threshold (৳)</Text>}
+                extra="Set to 0 to disable the free shipping feature."
+              >
+                <InputNumber
+                  size="large"
+                  min={0}
+                  style={{ width: "100%", borderRadius: 10 }}
+                  placeholder="0"
+                />
+              </Form.Item>
+            </Col>
+          </Row>
+        </Card>
+
+        {/* Section 3: Social Connections */}
+        <Card
+          title={
+            <Text strong style={{ fontSize: "15px" }}>
+              <ShareAltOutlined style={{ color: "#1677ff", marginRight: 8 }} />
+              Social Connections
+            </Text>
+          }
+          style={{ borderRadius: 16 }}
+          styles={{ body: { padding: 20 } }}
+        >
+          <Row gutter={[16, 16]}>
+            <Col xs={24} sm={12}>
+              <Form.Item name="facebookURL" label={<Text strong>Facebook Page URL</Text>}>
+                <Input size="large" placeholder="https://facebook.com/..." style={{ borderRadius: 10 }} />
+              </Form.Item>
+            </Col>
+
+            <Col xs={24} sm={12}>
+              <Form.Item name="instagramURL" label={<Text strong>Instagram Profile URL</Text>}>
+                <Input size="large" placeholder="https://instagram.com/..." style={{ borderRadius: 10 }} />
+              </Form.Item>
+            </Col>
+          </Row>
+        </Card>
+
+        {/* Section 4: Danger Zone */}
+        <Card
+          title={
+            <Text strong style={{ fontSize: "15px", color: "#cf1322" }}>
+              <WarningOutlined style={{ color: "#cf1322", marginRight: 8 }} />
+              Danger Zone
+            </Text>
+          }
+          style={{ borderRadius: 16, borderColor: "#ffa39e" }}
+          styles={{ body: { padding: 20 } }}
+        >
+          <Alert
+            type="error"
+            title="Maintenance Mode"
+            description="Enabling maintenance mode instantly disables consumer access to the main storefront. Only administrators will be able to log in. This is a highly destructive state switch — use with caution."
+            style={{ borderRadius: 12, marginBottom: 16 }}
+          />
+
+          <Divider style={{ margin: "12px 0" }} />
+
+          <Form.Item name="maintenanceMode" valuePropName="checked" noStyle>
+            <Flex align="center" gap={12}>
+              <Switch />
+              <div>
+                <Text strong style={{ display: "block", color: "#cf1322" }}>
+                  Enable Maintenance Mode
+                </Text>
+                <Text type="secondary" style={{ fontSize: "12px" }}>
+                  Storefront will be inaccessible to all non-admin users.
+                </Text>
+              </div>
+            </Flex>
+          </Form.Item>
+        </Card>
+
+        {/* Action Footer */}
+        <Card style={{ borderRadius: 16 }} styles={{ body: { padding: 16 } }}>
+          <Flex justify="end" align="center">
+            <Button
+              type="primary"
+              htmlType="submit"
+              size="large"
+              loading={isLoading}
+              icon={isLoading ? <LoadingOutlined /> : <SaveOutlined />}
+              style={{ fontWeight: 800, paddingLeft: 28, paddingRight: 28 }}
+            >
+              Save Global Settings
+            </Button>
+          </Flex>
+        </Card>
+      </Form>
+    </div>
   );
 }

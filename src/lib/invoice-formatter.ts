@@ -70,8 +70,8 @@ export function buildInvoiceText(
   const rawAddrParts = [
     addr.addressLine1,
     addr.addressLine2,
-    addr.district,
     addr.city,
+    addr.district,
   ].filter(Boolean) as string[];
 
   const isOutside =

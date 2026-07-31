@@ -18,6 +18,7 @@ import { DELIVERY_CHARGES } from "@/lib/delivery-charges";
 import { buildInvoiceText } from "@/lib/invoice-formatter";
 
 import { generateInvoiceNumber } from "@/lib/invoice-number";
+import { ChannelSource, CHANNEL_LABELS } from "@/types/order";
 
 const CreateOrderSchema = z
   .object({
@@ -140,7 +141,11 @@ export async function createOrder(formData: FormData) {
   const shippingCost = DELIVERY_CHARGES[data.deliveryArea];
   const total = subtotal + shippingCost;
 
-  const orderNumber = await generateInvoiceNumber();
+  // Channel source & brand code
+  const channelSource = (formData.get("channelSource") as ChannelSource) || "web";
+  const brandCode = (formData.get("brandCode") as string) || "GH";
+
+  const orderNumber = await generateInvoiceNumber(channelSource, brandCode);
 
   const shippingName =
     data.isGift && data.receiverName ? data.receiverName : data.name;
@@ -151,6 +156,8 @@ export async function createOrder(formData: FormData) {
 
   const order = await Order.create({
     orderNumber,
+    brandCode,
+    channelSource,
     user: userId || undefined,
     customerPhone: data.phone,
     items: orderItems,
@@ -264,4 +271,128 @@ export async function updateOrderStatus(orderId: string, status: string) {
   revalidatePath("/dashboard");
 
   return { success: true };
+}
+
+export interface AdminManualOrderItemInput {
+  productId: string;
+  color?: string;
+  size?: string;
+  quantity: number;
+}
+
+export interface AdminManualOrderInput {
+  name: string;
+  phone: string;
+  isGift?: boolean;
+  receiverName?: string;
+  receiverPhone?: string;
+  addressLine1: string;
+  addressLine2?: string;
+  city?: string;
+  district?: string;
+  deliveryArea: "dhaka" | "outside";
+  paymentMethod: "cod" | "mobile";
+  paymentProvider?: "bkash" | "nagad" | "rocket";
+  senderNumber?: string;
+  transactionId?: string;
+  customerNotes?: string;
+  channelSource: ChannelSource;
+  items: AdminManualOrderItemInput[];
+}
+
+export async function createAdminManualOrder(data: AdminManualOrderInput) {
+  const session = await auth();
+  if (session?.user?.role !== "admin") {
+    return { error: "Unauthorized" };
+  }
+  await dbConnect();
+
+  if (!data.items || data.items.length === 0) {
+    return { error: "কমপক্ষে একটি প্রোডাক্ট সিলেক্ট করুন" };
+  }
+
+  let subtotal = 0;
+  const orderItems = [];
+
+  for (const item of data.items) {
+    const product = await Product.findById(item.productId);
+    if (!product) {
+      return { error: "প্রোডাক্ট পাওয়া যায়নি" };
+    }
+
+    const unitPrice = product.salePrice || product.regularPrice;
+    subtotal += unitPrice * item.quantity;
+
+    orderItems.push({
+      product: product._id,
+      color: item.color || undefined,
+      size: item.size || undefined,
+      productTitle: product.title,
+      productSlug: product.slug,
+      productImage: product.thumbnail,
+      unitPrice,
+      itemQuantity: item.quantity,
+      productSku: product.sku,
+    });
+  }
+
+  const shippingCost =
+    DELIVERY_CHARGES[data.deliveryArea] || (data.deliveryArea === "dhaka" ? 70 : 130);
+  const total = subtotal + shippingCost;
+  const deliveryZone =
+    data.deliveryArea === "dhaka" ? "ISD (Inside Dhaka)" : "OSD (Outside Dhaka)";
+
+  const channelSource = data.channelSource || "web";
+  const brandCode = "GH";
+  const orderNumber = await generateInvoiceNumber(channelSource, brandCode);
+
+  const shippingName =
+    data.isGift && data.receiverName ? data.receiverName : data.name;
+  const shippingPhone =
+    data.isGift && data.receiverPhone ? data.receiverPhone : data.phone;
+
+  const order = await Order.create({
+    orderNumber,
+    brandCode,
+    channelSource,
+    customerPhone: data.phone,
+    items: orderItems,
+    shipping: {
+      name: shippingName,
+      phone: shippingPhone,
+      addressLine1: data.addressLine1,
+      addressLine2: data.addressLine2,
+      city: data.city,
+      district:
+        data.district || (data.deliveryArea === "dhaka" ? "Dhaka" : "Outside Dhaka"),
+      deliveryZone,
+    },
+    subtotal,
+    shippingCost,
+    discount: 0,
+    total,
+    paymentMethod: data.paymentMethod,
+    paymentStatus: data.paymentMethod === "mobile" ? "paid" : "pending",
+    paymentProvider: data.paymentProvider || undefined,
+    senderNumber: data.senderNumber || undefined,
+    transactionId: data.transactionId || undefined,
+    orderStatus: "pending",
+    customerNotes: data.customerNotes,
+  });
+
+  try {
+    await sendDiscordOrder(order, data.name);
+    const invoiceText = buildInvoiceText(order, { customerName: data.name });
+    await sendTelegramMessage(
+      `🛍️ *নতুন ম্যানুয়াল অর্ডার এসেছে (${CHANNEL_LABELS[channelSource] || channelSource})!*\n` +
+        "```\n" +
+        invoiceText +
+        "\n```",
+    );
+  } catch (err) {
+    console.error("Error sending order notifications:", err);
+  }
+
+  revalidatePath("/admin/orders");
+  return { success: true, orderNumber: order.orderNumber };
 }

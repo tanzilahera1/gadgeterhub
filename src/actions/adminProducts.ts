@@ -78,3 +78,23 @@ export async function updateProduct(id: string, data: Record<string, unknown>) {
     return { success: false, error: error instanceof Error ? error.message : "Failed to update product" };
   }
 }
+
+export async function deleteProduct(id: string) {
+  const session = await auth();
+  if (!session?.user || session.user.role !== "admin") {
+    return { success: false, error: "Unauthorized" };
+  }
+
+  try {
+    await dbConnect();
+    await Product.findByIdAndDelete(id);
+
+    revalidatePath("/admin/products");
+    revalidatePath("/");
+
+    return { success: true };
+  } catch (error) {
+    console.error("Failed to delete product:", error);
+    return { success: false, error: error instanceof Error ? error.message : "Failed to delete product" };
+  }
+}

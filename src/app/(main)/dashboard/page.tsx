@@ -265,7 +265,7 @@ export default async function DashboardOverview() {
                         </div>
                         <div>
                           <p className="font-black text-sm text-slate-900 tracking-tight group-hover:text-primary transition-colors">
-                            #{order.orderNumber}
+                            {order.orderNumber}
                           </p>
                           <p className="text-xs font-bold text-slate-400">
                             {format(new Date(order.createdAt), "MMM dd, yyyy")}

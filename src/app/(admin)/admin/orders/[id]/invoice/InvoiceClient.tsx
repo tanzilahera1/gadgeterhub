@@ -40,8 +40,8 @@ export function InvoiceClient({ order }: Props) {
   const rawParts = [
     shipping.addressLine1,
     shipping.addressLine2,
-    shipping.district,
     shipping.city,
+    shipping.district,
   ].filter(Boolean) as string[];
 
   // Determine Zone Code and Full Name
@@ -60,8 +60,8 @@ export function InvoiceClient({ order }: Props) {
     cleanAddressParts.join(", ") +
     (shipping.postalCode ? ` - ${shipping.postalCode}` : "");
 
-  // ✅ Deterministic invoice number (remove GC/GH and leading dash)
-  const invoiceNo = order.orderNumber.replace(/^G[CH]-?/i, "");
+  // ✅ Option 1: Full Unique Order ID as Invoice Number (e.g. GH-FBP-260731-0002)
+  const invoiceNo = order.orderNumber;
 
   return (
     <>
