@@ -47,7 +47,8 @@ export default function SettingsForm({ initialData }: { initialData?: any }) {
       storePhone: values.storePhone || "",
       currency: values.currency,
       deliveryChargeInside: Number(values.deliveryChargeInside) || 60,
-      deliveryChargeOutside: Number(values.deliveryChargeOutside) || 120,
+      deliveryChargeSuburbs: Number(values.deliveryChargeSuburbs) || 80,
+      deliveryChargeOutside: Number(values.deliveryChargeOutside) || 110,
       freeShippingThreshold: Number(values.freeShippingThreshold) || 0,
       facebookURL: values.facebookURL || "",
       instagramURL: values.instagramURL || "",
@@ -97,7 +98,8 @@ export default function SettingsForm({ initialData }: { initialData?: any }) {
           storeEmail: initialData?.storeEmail || "",
           storePhone: initialData?.storePhone || "",
           deliveryChargeInside: initialData?.deliveryChargeInside ?? 60,
-          deliveryChargeOutside: initialData?.deliveryChargeOutside ?? 120,
+          deliveryChargeSuburbs: initialData?.deliveryChargeSuburbs ?? 80,
+          deliveryChargeOutside: initialData?.deliveryChargeOutside ?? 110,
           freeShippingThreshold: initialData?.freeShippingThreshold ?? 0,
           facebookURL: initialData?.facebookURL || "",
           instagramURL: initialData?.instagramURL || "",
@@ -156,17 +158,17 @@ export default function SettingsForm({ initialData }: { initialData?: any }) {
           title={
             <Text strong style={{ fontSize: "15px" }}>
               <CarOutlined style={{ color: "#1677ff", marginRight: 8 }} />
-              Logistics & Delivery Constraints
+              Logistics & Delivery Constraints (Base 0-500g Tier)
             </Text>
           }
           style={{ borderRadius: 16 }}
           styles={{ body: { padding: 20 } }}
         >
           <Row gutter={[16, 16]}>
-            <Col xs={24} sm={12}>
+            <Col xs={24} sm={8}>
               <Form.Item
                 name="deliveryChargeInside"
-                label={<Text strong>Delivery Charge — Inside Dhaka (৳)</Text>}
+                label={<Text strong>Inside Dhaka (ISD) (৳)</Text>}
               >
                 <InputNumber
                   size="large"
@@ -177,16 +179,31 @@ export default function SettingsForm({ initialData }: { initialData?: any }) {
               </Form.Item>
             </Col>
 
-            <Col xs={24} sm={12}>
+            <Col xs={24} sm={8}>
               <Form.Item
-                name="deliveryChargeOutside"
-                label={<Text strong>Delivery Charge — Outside Dhaka (৳)</Text>}
+                name="deliveryChargeSuburbs"
+                label={<Text strong>Suburbs (SUB) (৳)</Text>}
+                extra="গাজীপুর, সাভার, নারায়নগঞ্জ, কেরানীগঞ্জ"
               >
                 <InputNumber
                   size="large"
                   min={0}
                   style={{ width: "100%", borderRadius: 10 }}
-                  placeholder="120"
+                  placeholder="80"
+                />
+              </Form.Item>
+            </Col>
+
+            <Col xs={24} sm={8}>
+              <Form.Item
+                name="deliveryChargeOutside"
+                label={<Text strong>Outside Dhaka (OSD) (৳)</Text>}
+              >
+                <InputNumber
+                  size="large"
+                  min={0}
+                  style={{ width: "100%", borderRadius: 10 }}
+                  placeholder="110"
                 />
               </Form.Item>
             </Col>

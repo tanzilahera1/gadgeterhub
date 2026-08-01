@@ -11,6 +11,7 @@ import { Phone } from "lucide-react";
 
 import "@/styles/invoice.css";
 import { InvoiceQR } from "@/components/admin/InvoiceQR";
+import { getZoneBadgeInfo } from "@/lib/shipping";
 
 interface Props {
   order: IOrderSerializable;
@@ -44,16 +45,14 @@ export function InvoiceClient({ order }: Props) {
     shipping.district,
   ].filter(Boolean) as string[];
 
-  // Determine Zone Code and Full Name
-  const isOutside = rawParts.some((p) => /outside dhaka/i.test(p)) || order.shippingCost > 80;
-  const storedZone = shipping.deliveryZone || (isOutside ? "OSD (Outside Dhaka)" : "ISD (Inside Dhaka)");
-  const isOSD = /outside|osd/i.test(storedZone);
-  const zoneCode = isOSD ? "OSD" : "ISD";
-  const zoneFullName = isOSD ? "Outside Dhaka" : "Inside Dhaka";
+  // Determine Zone Code and Full Name from 3-Zone Engine
+  const zoneBadge = getZoneBadgeInfo(shipping, order.shippingCost);
+  const zoneCode = zoneBadge.label.split(" ")[0]; // "ISD", "SUB", "OSD"
+  const zoneFullName = zoneBadge.label.replace(/^[A-Z]+\s*\((.*)\)$/, "$1"); // "Inside Dhaka", "Suburbs", "Outside Dhaka"
 
-  // Clean address (remove Outside Dhaka / Inside Dhaka from address text)
+  // Clean address (remove zone names from address text)
   const cleanAddressParts = rawParts.filter(
-    (p) => !/outside dhaka|inside dhaka/i.test(p)
+    (p) => !/suburbs|suburb|outside dhaka|inside dhaka|^dhaka$/i.test(p.trim())
   );
 
   const streetAddress =

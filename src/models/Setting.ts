@@ -7,6 +7,7 @@ export interface ISetting {
   storePhone?: string;
   currency: string;
   deliveryChargeInside: number;
+  deliveryChargeSuburbs?: number;
   deliveryChargeOutside: number;
   freeShippingThreshold?: number;
   facebookURL?: string;
@@ -23,7 +24,8 @@ const SettingSchema = new Schema<ISetting & Document>(
     storePhone: { type: String },
     currency: { type: String, default: "BDT" },
     deliveryChargeInside: { type: Number, default: 60 },
-    deliveryChargeOutside: { type: Number, default: 120 },
+    deliveryChargeSuburbs: { type: Number, default: 80 },
+    deliveryChargeOutside: { type: Number, default: 110 },
     freeShippingThreshold: { type: Number, default: 0 },
     facebookURL: { type: String },
     instagramURL: { type: String },

@@ -14,7 +14,11 @@ import type { Document } from "mongoose";
 import { dbConnect } from "@/lib/db";
 import { sendDiscordOrder } from "@/lib/discord";
 import { sendTelegramMessage } from "@/lib/telegram";
-import { DELIVERY_CHARGES } from "@/lib/delivery-charges";
+import {
+  calculateShippingCost,
+  DELIVERY_ZONES,
+  DeliveryZone,
+} from "@/lib/shipping";
 import { buildInvoiceText } from "@/lib/invoice-formatter";
 
 import { generateInvoiceNumber } from "@/lib/invoice-number";
@@ -30,9 +34,9 @@ const CreateOrderSchema = z
     addressLine1: z.string().min(5, "ঠিকানা কমপক্ষে 5 অক্ষর"),
     addressLine2: z.string().optional(),
     city: z.string().optional(),
-    district: z.string().min(2),
+    district: z.string().optional(),
     postalCode: z.string().optional(),
-    deliveryArea: z.enum(["dhaka", "outside"]),
+    deliveryArea: z.enum(["dhaka", "suburbs", "outside"]),
     paymentMethod: z.enum(["cod", "mobile"]),
     paymentProvider: z.enum(["bkash", "nagad", "rocket"]).optional(),
     senderNumber: z.string().optional(),
@@ -69,7 +73,7 @@ export async function createOrder(formData: FormData) {
     addressLine1: formData.get("addressLine1"),
     addressLine2: formData.get("addressLine2") || undefined,
     city: formData.get("city") || undefined,
-    district: formData.get("district"),
+    district: (formData.get("district") as string) || undefined,
     postalCode: formData.get("postalCode") || undefined,
     deliveryArea: formData.get("deliveryArea"),
     paymentMethod: formData.get("paymentMethod"),
@@ -80,7 +84,8 @@ export async function createOrder(formData: FormData) {
   });
 
   if (!validated.success) {
-    return { error: validated.error.flatten().fieldErrors };
+    console.error("Order Validation Error:", validated.error.flatten().fieldErrors);
+    return { error: "দয়া করে ফর্মের সব তথ্য সঠিকভাবে পূরণ করুন।" };
   }
 
   const data = validated.data;
@@ -100,6 +105,7 @@ export async function createOrder(formData: FormData) {
   let subtotal = 0;
   const orderItems = [];
 
+  let totalWeightGrams = 0;
   for (const item of cart.items) {
     const product = item.product as IProduct & Document;
     if (!product || product.status !== "published") {
@@ -122,6 +128,7 @@ export async function createOrder(formData: FormData) {
 
     const unitPrice = product.salePrice || product.regularPrice;
     subtotal += unitPrice * item.itemQuantity;
+    totalWeightGrams += (product.weight || 500) * item.itemQuantity;
 
     orderItems.push({
       product: product._id,
@@ -137,8 +144,10 @@ export async function createOrder(formData: FormData) {
     });
   }
 
-  // ✅ Single source of truth — DELIVERY_CHARGES
-  const shippingCost = DELIVERY_CHARGES[data.deliveryArea];
+  const shippingCost = calculateShippingCost(
+    data.deliveryArea as DeliveryZone,
+    totalWeightGrams,
+  );
   const total = subtotal + shippingCost;
 
   // Channel source & brand code
@@ -151,8 +160,7 @@ export async function createOrder(formData: FormData) {
     data.isGift && data.receiverName ? data.receiverName : data.name;
   const shippingPhone =
     data.isGift && data.receiverPhone ? data.receiverPhone : data.phone;
-  const deliveryZone =
-    data.deliveryArea === "dhaka" ? "ISD (Inside Dhaka)" : "OSD (Outside Dhaka)";
+  const deliveryZone = DELIVERY_ZONES[data.deliveryArea as DeliveryZone]?.badgeLabel || "ISD (Inside Dhaka)";
 
   const order = await Order.create({
     orderNumber,
@@ -170,9 +178,11 @@ export async function createOrder(formData: FormData) {
       district: data.district,
       postalCode: data.postalCode,
       deliveryZone,
+      deliveryArea: data.deliveryArea,
     },
     subtotal,
     shippingCost,
+    totalWeightGrams,
     discount: 0,
     total,
     paymentMethod: data.paymentMethod,
@@ -290,7 +300,7 @@ export interface AdminManualOrderInput {
   addressLine2?: string;
   city?: string;
   district?: string;
-  deliveryArea: "dhaka" | "outside";
+  deliveryArea: DeliveryZone;
   paymentMethod: "cod" | "mobile";
   paymentProvider?: "bkash" | "nagad" | "rocket";
   senderNumber?: string;
@@ -312,6 +322,7 @@ export async function createAdminManualOrder(data: AdminManualOrderInput) {
   }
 
   let subtotal = 0;
+  let totalWeightGrams = 0;
   const orderItems = [];
 
   for (const item of data.items) {
@@ -322,6 +333,7 @@ export async function createAdminManualOrder(data: AdminManualOrderInput) {
 
     const unitPrice = product.salePrice || product.regularPrice;
     subtotal += unitPrice * item.quantity;
+    totalWeightGrams += (product.weight || 500) * item.quantity;
 
     orderItems.push({
       product: product._id,
@@ -336,11 +348,9 @@ export async function createAdminManualOrder(data: AdminManualOrderInput) {
     });
   }
 
-  const shippingCost =
-    DELIVERY_CHARGES[data.deliveryArea] || (data.deliveryArea === "dhaka" ? 70 : 130);
+  const shippingCost = calculateShippingCost(data.deliveryArea, totalWeightGrams);
   const total = subtotal + shippingCost;
-  const deliveryZone =
-    data.deliveryArea === "dhaka" ? "ISD (Inside Dhaka)" : "OSD (Outside Dhaka)";
+  const deliveryZone = DELIVERY_ZONES[data.deliveryArea]?.badgeLabel || "ISD (Inside Dhaka)";
 
   const channelSource = data.channelSource || "web";
   const brandCode = "GH";
@@ -363,12 +373,13 @@ export async function createAdminManualOrder(data: AdminManualOrderInput) {
       addressLine1: data.addressLine1,
       addressLine2: data.addressLine2,
       city: data.city,
-      district:
-        data.district || (data.deliveryArea === "dhaka" ? "Dhaka" : "Outside Dhaka"),
+      district: data.district,
       deliveryZone,
+      deliveryArea: data.deliveryArea,
     },
     subtotal,
     shippingCost,
+    totalWeightGrams,
     discount: 0,
     total,
     paymentMethod: data.paymentMethod,

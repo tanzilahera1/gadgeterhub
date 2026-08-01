@@ -9,6 +9,7 @@ import { SearchOutlined, EyeOutlined, ShoppingCartOutlined, AlertOutlined } from
 import { IOrder, CHANNEL_LABELS } from "@/types/order";
 import { formatPrice } from "@/lib/priceUtils";
 import { format } from "date-fns";
+import { getZoneBadgeInfo } from "@/lib/shipping";
 import { StatusUpdater } from "@/components/admin/StatusUpdater";
 import { CreateOrderModal } from "@/components/admin/CreateOrderModal";
 
@@ -145,7 +146,7 @@ export function AdminOrdersAntdClient({
     <div style={{ padding: 0 }} className="space-y-4">
       {/* Header Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-4 sm:p-6 rounded-2xl border border-slate-200 shadow-sm">
-        <div>
+        <div style={{ textAlign: "center" }}>
           <Title level={3} style={{ margin: 0, fontWeight: 900 }}>
             Orders Management
           </Title>
@@ -255,14 +256,17 @@ export function AdminOrdersAntdClient({
                 styles={{ body: { padding: 14 } }}
               >
                 <div className="space-y-3">
-                  {/* Top Bar: Order ID & Minimal Channel Text + Top-aligned StatusUpdater */}
+                  {/* Top Bar: Order ID & Channel + Status */}
                   <Flex align="start" justify="space-between" gap={8}>
                     <div>
-                      <Text code style={{ fontWeight: 800, fontSize: "12px", display: "inline-block", margin: 0 }}>
+                      <Text code style={{ fontWeight: 900, fontSize: "14px", display: "inline-block", margin: 0, letterSpacing: "0.5px" }}>
                         {order.orderNumber}
                       </Text>
-                      <div style={{ marginTop: 3 }}>
-                        <Tag color="blue" style={{ fontSize: "10px", margin: 0, borderRadius: 6 }}>
+                      <div style={{ marginTop: 4 }}>
+                        <Tag
+                          color="blue"
+                          style={{ fontSize: "10px", margin: 0, borderRadius: 6, padding: "0 5px", lineHeight: "18px" }}
+                        >
                           {channelLabel}
                         </Tag>
                       </div>
@@ -295,13 +299,28 @@ export function AdminOrdersAntdClient({
                     </Flex>
                   </div>
 
-                  {/* Bottom Footer: Date/Time + Payment Method Badge */}
+                  {/* Bottom Footer: Date | Delivery Zone | Payment */}
                   <div className="flex items-center justify-between pt-1 border-t border-slate-100">
                     <Text type="secondary" style={{ fontSize: "11px" }}>
                       {format(new Date(order.createdAt!), "dd MMM, hh:mm a")}
                     </Text>
 
-                    <Tag color={order.paymentMethod === "cod" ? "default" : "magenta"} style={{ margin: 0, fontWeight: 700, borderRadius: 6 }}>
+                    {(() => {
+                      const zoneBadge = getZoneBadgeInfo(order.shipping, order.shippingCost);
+                      return (
+                        <Tag
+                          color={zoneBadge.color}
+                          style={{ margin: 0, fontSize: "10px", padding: "0 5px", lineHeight: "18px", borderRadius: 6, fontWeight: 700 }}
+                        >
+                          {zoneBadge.label}
+                        </Tag>
+                      );
+                    })()}
+
+                    <Tag
+                      color={order.paymentMethod === "cod" ? "default" : "magenta"}
+                      style={{ margin: 0, fontWeight: 700, borderRadius: 6, fontSize: "10px", padding: "0 5px", lineHeight: "18px" }}
+                    >
                       {order.paymentMethod ? order.paymentMethod.toUpperCase() : "COD"}
                     </Tag>
                   </div>

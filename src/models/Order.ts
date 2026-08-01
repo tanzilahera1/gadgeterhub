@@ -27,6 +27,7 @@ const OrderShippingSchema = new Schema(
     district: { type: String },
     postalCode: { type: String },
     deliveryZone: { type: String },
+    deliveryArea: { type: String, enum: ["dhaka", "suburbs", "outside"] },
   },
   { _id: false },
 );
@@ -42,6 +43,7 @@ const OrderSchema = new Schema<IOrder>(
     shipping: { type: OrderShippingSchema, required: true },
     subtotal: { type: Number, required: true, min: 0 },
     shippingCost: { type: Number, required: true, min: 0, default: 0 },
+    totalWeightGrams: { type: Number, default: 500 },
     discount: { type: Number, required: true, min: 0, default: 0 },
     total: { type: Number, required: true, min: 0 },
     paymentMethod: {

@@ -90,6 +90,7 @@ export default function ProductForm({ categories, initialData }: { categories: C
       stockQuantity: values.stockQuantity,
       regularPrice: values.regularPrice,
       salePrice: values.salePrice || 0,
+      weight: Number(values.weight) || 500,
       status: values.status,
       isDraft: values.status === "draft",
       featured: values.featured || false,
@@ -149,6 +150,7 @@ export default function ProductForm({ categories, initialData }: { categories: C
           category: initialData?.category || undefined,
           brand: initialData?.brand || "",
         stockQuantity: initialData?.stockQuantity ?? 0,
+        weight: initialData?.weight ?? 500,
         regularPrice: initialData?.regularPrice ?? undefined,
         salePrice: initialData?.salePrice ?? undefined,
         status: initialData?.status || "published",
@@ -224,6 +226,23 @@ export default function ProductForm({ categories, initialData }: { categories: C
                 min={0}
                 style={{ width: "100%", borderRadius: 10 }}
                 placeholder="0"
+              />
+            </Form.Item>
+          </Col>
+
+          <Col xs={24} sm={12}>
+            <Form.Item
+              name="weight"
+              label={<Text strong>Product Weight (Grams)</Text>}
+              extra="Defaults to 500g (0-500g bracket) if left empty."
+            >
+              <InputNumber
+                size="large"
+                min={1}
+                step={50}
+                addonAfter="grams"
+                style={{ width: "100%", borderRadius: 10 }}
+                placeholder="500"
               />
             </Form.Item>
           </Col>

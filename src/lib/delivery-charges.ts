@@ -1,7 +1,11 @@
-// src\lib\delivery-charges.ts
-export const DELIVERY_CHARGES = {
-  dhaka: 70,
-  outside: 130,
-} as const;
+// src/lib/delivery-charges.ts
+import { DeliveryZone, calculateShippingCost } from "./shipping";
 
-export type DeliveryArea = keyof typeof DELIVERY_CHARGES;
+export const DELIVERY_CHARGES: Record<DeliveryZone, number> = {
+  dhaka: 60,
+  suburbs: 80,
+  outside: 110,
+};
+
+export type DeliveryArea = DeliveryZone;
+export { calculateShippingCost };

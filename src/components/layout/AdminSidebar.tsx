@@ -50,17 +50,17 @@ export function AdminSidebar() {
     setMobileOpen(false);
   };
 
-  const sidebarContent = (
+  const renderSidebarContent = (collapsed: boolean, isMobileDrawer = false) => (
     <Flex vertical style={{ height: "100%" }}>
       {/* Sidebar Header */}
       <div
         style={{
-          padding: isCollapsed ? "16px 8px" : "16px",
+          padding: collapsed ? "16px 8px" : "16px",
           borderBottom: "1px solid #f1f5f9",
-          textAlign: isCollapsed ? "center" : "left",
+          textAlign: collapsed ? "center" : "left",
         }}
       >
-        {!isCollapsed ? (
+        {!collapsed ? (
           <Flex align="center" justify="space-between">
             <div>
               <Title level={5} style={{ margin: 0, fontWeight: 900 }}>
@@ -71,12 +71,21 @@ export function AdminSidebar() {
               </Link>
             </div>
 
-            <Button
-              type="text"
-              icon={isCollapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
-              onClick={toggleCollapsed}
-              className="hidden lg:flex"
-            />
+            {!isMobileDrawer ? (
+              <Button
+                type="text"
+                icon={<MenuFoldOutlined />}
+                onClick={toggleCollapsed}
+              />
+            ) : (
+              <Button
+                type="text"
+                shape="circle"
+                icon={<CloseOutlined style={{ fontSize: 16 }} />}
+                onClick={() => setMobileOpen(false)}
+                className="flex items-center justify-center bg-slate-100 text-slate-600 hover:bg-slate-200"
+              />
+            )}
           </Flex>
         ) : (
           <Tooltip title="Expand Sidebar" placement="right">
@@ -84,7 +93,7 @@ export function AdminSidebar() {
               type="text"
               icon={<MenuUnfoldOutlined />}
               onClick={toggleCollapsed}
-              className="hidden lg:flex mx-auto"
+              className="mx-auto"
             />
           </Tooltip>
         )}
@@ -102,20 +111,20 @@ export function AdminSidebar() {
       </div>
 
       {/* Sidebar Footer Logout */}
-      <div style={{ padding: "12px", borderTop: "1px solid #f1f5f9" }}>
+      <div style={{ padding: "16px 12px 28px 12px", borderTop: "1px solid #f1f5f9" }}>
         <Button
           type="text"
           danger
-          block={!isCollapsed}
+          block={!collapsed}
           icon={<LogoutOutlined />}
           style={{
             fontWeight: 700,
             display: "flex",
             alignItems: "center",
-            justifyContent: isCollapsed ? "center" : "flex-start",
+            justifyContent: collapsed ? "center" : "flex-start",
           }}
         >
-          {!isCollapsed && "Logout"}
+          {!collapsed && "Logout"}
         </Button>
       </div>
     </Flex>
@@ -142,7 +151,7 @@ export function AdminSidebar() {
         }}
         className="hidden lg:block"
       >
-        {sidebarContent}
+        {renderSidebarContent(isCollapsed, false)}
       </Sider>
 
       {/* Mobile Antd Drawer */}
@@ -150,12 +159,12 @@ export function AdminSidebar() {
         placement="left"
         onClose={() => setMobileOpen(false)}
         open={isMobileOpen}
-        size={260 as any}
-        styles={{ body: { padding: 0 } }}
-        closeIcon={<CloseOutlined />}
+        size={280 as any}
+        closable={false}
+        styles={{ header: { display: "none" }, body: { padding: 0 } }}
         className="lg:hidden"
       >
-        {sidebarContent}
+        {renderSidebarContent(false, true)}
       </Drawer>
     </>
   );

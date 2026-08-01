@@ -9,7 +9,12 @@ import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useQueryClient } from "@tanstack/react-query";
 import { createOrder, } from "@/actions/order";
-import { DELIVERY_CHARGES } from "@/lib/delivery-charges";
+import {
+  calculateShippingCost,
+  getWeightTierLabel,
+  DELIVERY_ZONES,
+  DeliveryZone,
+} from "@/lib/shipping";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -28,6 +33,7 @@ import {
   User,
   CreditCard,
   Zap,
+  Weight,
 } from "lucide-react";
 import { formatPrice } from "@/lib/priceUtils";
 import Image from "next/image";
@@ -43,7 +49,7 @@ const CheckoutSchema = z
     receiverName: z.string().optional(),
     receiverPhone: z.string().optional(),
     addressLine1: z.string().min(5, "বিস্তারিত ঠিকানা দিন"),
-    deliveryArea: z.enum(["dhaka", "outside"] as const),
+    deliveryArea: z.enum(["dhaka", "suburbs", "outside"] as const),
     paymentMethod: z.enum(["cod", "mobile"] as const),
     paymentProvider: z.enum(["bkash", "nagad", "rocket"] as const).optional(),
     senderNumber: z.string().optional(),
@@ -155,8 +161,18 @@ export function CheckoutForm({ cart, user }: CheckoutFormProps) {
     name: "paymentProvider",
   }) as ProviderKey;
 
-  // ✅ Single source of truth — server থেকে আসা DELIVERY_CHARGES ব্যবহার
-  const deliveryCharge = DELIVERY_CHARGES[deliveryArea];
+  // 📦 Total cart weight calculation (grams)
+  const totalWeightGrams = cart.items.reduce((sum, item) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const w = (item.product as any)?.weight || 500;
+    return sum + w * item.itemQuantity;
+  }, 0);
+
+  // 🚚 Dynamic Delivery Charge Calculation
+  const deliveryCharge = calculateShippingCost(
+    deliveryArea as DeliveryZone,
+    totalWeightGrams,
+  );
   const grandTotal = cart.total + deliveryCharge;
 
   const handleCopy = (num: string) => {
@@ -177,11 +193,6 @@ export function CheckoutForm({ cart, user }: CheckoutFormProps) {
           formData.append(key, value);
         }
       });
-      // ✅ district ও deliveryArea দুটোই পাঠাচ্ছি
-      formData.append(
-        "district",
-        data.deliveryArea === "dhaka" ? "Dhaka" : "Outside Dhaka",
-      );
 
       const result = await createOrder(formData);
       if (result && "orderNumber" in result) {
@@ -189,7 +200,7 @@ export function CheckoutForm({ cart, user }: CheckoutFormProps) {
         queryClient.invalidateQueries({ queryKey: ["cart-details"] });
         router.push(`/checkout/success?order=${result.orderNumber}`);
       } else if (result && result.error) {
-        toast.error("কিছু ভুল হয়েছে, দয়া করে আবার চেষ্টা করুন।");
+        toast.error(typeof result.error === "string" ? result.error : "কিছু ভুল হয়েছে, দয়া করে আবার চেষ্টা করুন।");
       }
     } catch {
       toast.error("কিছু ভুল হয়েছে।");
@@ -309,17 +320,26 @@ export function CheckoutForm({ cart, user }: CheckoutFormProps) {
                 </>
               )}
               <div className="md:col-span-2 space-y-2">
-                <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground ml-1">
-                  বিস্তারিত ঠিকানা
-                </Label>
+                <div className="flex flex-wrap items-center justify-between gap-1">
+                  <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground ml-1">
+                    বিস্তারিত ঠিকানা (Full Address)
+                  </Label>
+                  <span className="text-[11px] font-medium text-muted-foreground">
+                    (গ্রাম/এরিয়া, থানা, জেলা)
+                  </span>
+                </div>
                 <Textarea
                   {...register("addressLine1")}
-                  placeholder="জেলা: মুন্সীগঞ্জ, উপজেলা: শ্রীনগর, . . ."
-                  className="min-h-25 rounded-xl bg-background/50 resize-none text-base"
+                  placeholder="গ্রাম/এরিয়া, থানা, জেলা..."
+                  className="min-h-24 rounded-xl bg-background/50 resize-none text-base p-3.5 leading-relaxed"
                 />
-                {errors.addressLine1 && (
+                {errors.addressLine1 ? (
                   <p className="text-xs text-destructive font-bold">
                     {errors.addressLine1.message}
+                  </p>
+                ) : (
+                  <p className="text-[11px] text-muted-foreground ml-1">
+                    দয়া করে আপনার পূর্ণাঙ্গ ঠিকানা দিন যাতে ডেলিভারিম্যান সহজেই আপনার পার্সেল পৌঁছাতে পারে।
                   </p>
                 )}
               </div>
@@ -328,39 +348,52 @@ export function CheckoutForm({ cart, user }: CheckoutFormProps) {
 
           {/* Section 2: Delivery Area */}
           <div className="space-y-4">
-            <div className="flex items-center gap-3">
-              <div className="size-9 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
-                <Truck className="size-5" />
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div className="flex items-center gap-3">
+                <div className="size-9 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
+                  <Truck className="size-5" />
+                </div>
+                <h2 className="text-base sm:text-lg font-black uppercase tracking-widest">
+                  ডেলিভারি এরিয়া
+                </h2>
               </div>
-              <h2 className="text-base sm:text-lg font-black uppercase tracking-widest">
-                ডেলিভারি এরিয়া
-              </h2>
+              <div className="flex items-center gap-1.5 bg-slate-100 px-3 py-1.5 rounded-full border border-slate-200 text-xs font-bold text-slate-700">
+                <Weight className="size-3.5 text-primary" />
+                <span>কার্ট ওজন: {totalWeightGrams}g ({getWeightTierLabel(totalWeightGrams)})</span>
+              </div>
             </div>
+
             <RadioGroup
-              onValueChange={(v: "dhaka" | "outside") =>
+              onValueChange={(v: DeliveryZone) =>
                 setValue("deliveryArea", v)
               }
-              className="grid sm:grid-cols-2 gap-4"
+              className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-stretch"
             >
               {[
                 {
                   id: "dhaka" as const,
-                  label: "ঢাকার ভেতর",
-                  sub: "Home Delivery",
-                  price: DELIVERY_CHARGES.dhaka,
+                  label: "ঢাকার ভেতর (ISD)",
+                  sub: "Inside Dhaka City",
+                  price: calculateShippingCost("dhaka", totalWeightGrams),
+                },
+                {
+                  id: "suburbs" as const,
+                  label: "উপ-শহর (SUB)",
+                  sub: "গাজীপুর, সাভার, নারায়নগঞ্জ, কেরানীগঞ্জ",
+                  price: calculateShippingCost("suburbs", totalWeightGrams),
                 },
                 {
                   id: "outside" as const,
-                  label: "ঢাকার বাইরে",
-                  sub: "Courier Service",
-                  price: DELIVERY_CHARGES.outside,
+                  label: "ঢাকার বাইরে (OSD)",
+                  sub: "Outside Dhaka (All Districts)",
+                  price: calculateShippingCost("outside", totalWeightGrams),
                 },
               ].map((area) => (
                 <div
                   key={area.id}
                   onClick={() => setValue("deliveryArea", area.id)}
                   className={cn(
-                    "relative flex items-center justify-between p-5 rounded-xl border-2 transition-all cursor-pointer overflow-hidden",
+                    "relative flex flex-col justify-between p-4 rounded-xl border-2 transition-all cursor-pointer overflow-hidden",
                     deliveryArea === area.id
                       ? "border-primary bg-primary/3 ring-1 ring-primary/20 shadow-sm"
                       : "border-border/40 bg-card/20 hover:border-primary/20",
@@ -371,34 +404,38 @@ export function CheckoutForm({ cart, user }: CheckoutFormProps) {
                       <Check className="size-3.5 stroke-[4px]" />
                     </div>
                   )}
-                  <div className="flex items-center gap-3">
-                    <div
-                      className={cn(
-                        "size-5 rounded-full border-2 flex items-center justify-center transition-all",
-                        deliveryArea === area.id
-                          ? "border-primary"
-                          : "border-muted-foreground/30",
-                      )}
-                    >
+
+                  {/* Row 1: Top Header (Title + Price) */}
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2.5 min-w-0">
                       <div
                         className={cn(
-                          "size-2.5 rounded-full bg-primary transition-all",
-                          deliveryArea === area.id ? "scale-100" : "scale-0",
+                          "size-5 rounded-full border-2 flex items-center justify-center transition-all shrink-0",
+                          deliveryArea === area.id
+                            ? "border-primary"
+                            : "border-muted-foreground/30",
                         )}
-                      />
-                    </div>
-                    <div>
-                      <p className="font-bold text-base leading-none">
+                      >
+                        <div
+                          className={cn(
+                            "size-2.5 rounded-full bg-primary transition-all",
+                            deliveryArea === area.id ? "scale-100" : "scale-0",
+                          )}
+                        />
+                      </div>
+                      <p className="font-bold text-sm leading-tight truncate">
                         {area.label}
                       </p>
-                      <p className="text-[10px] font-bold text-muted-foreground uppercase mt-1.5 tracking-wider">
-                        {area.sub}
-                      </p>
                     </div>
+                    <span className="text-base font-black text-primary shrink-0">
+                      ৳{area.price}
+                    </span>
                   </div>
-                  <span className="text-lg font-black text-primary">
-                    ৳{area.price}
-                  </span>
+
+                  {/* Row 2: Bottom Row (1 Column Full-Width Card Footer Subtitle) */}
+                  <div className="mt-3 pt-2.5 border-t border-border/40 text-[11px] font-medium text-muted-foreground leading-snug text-center">
+                    {area.sub}
+                  </div>
                 </div>
               ))}
             </RadioGroup>

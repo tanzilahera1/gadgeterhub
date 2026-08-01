@@ -80,7 +80,7 @@ export function buildInvoiceText(
     addr.deliveryZone || (isOutside ? "OSD (Outside Dhaka)" : "ISD (Inside Dhaka)");
 
   const cleanAddrParts = rawAddrParts.filter(
-    (p) => !/outside dhaka|inside dhaka|^dhaka$/i.test(p.trim())
+    (p) => !/suburbs|suburb|outside dhaka|inside dhaka|^dhaka$/i.test(p.trim())
   );
   const cleanAddrStr =
     (cleanAddrParts.length > 0 ? cleanAddrParts.join(", ") : addr.addressLine1) +

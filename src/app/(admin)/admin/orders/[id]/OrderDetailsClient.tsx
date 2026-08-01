@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 import {
+  Dropdown,
   Card,
   Row,
   Col,
@@ -25,6 +26,7 @@ import {
   ArrowLeftOutlined,
   PrinterOutlined,
   PhoneOutlined,
+  MessageOutlined,
   EnvironmentOutlined,
   ShoppingOutlined,
   CreditCardOutlined,
@@ -98,134 +100,188 @@ export function OrderDetailsClient({ order }: Props) {
     order.shipping.addressLine2,
     order.shipping.city,
     order.shipping.district,
-  ]
-    .filter((p): p is string => Boolean(p) && !/outside dhaka|inside dhaka|^dhaka$/i.test(p!.trim()));
+  ].filter((p): p is string => Boolean(p) && !/suburbs|suburb|outside dhaka|inside dhaka|^dhaka$/i.test(p!.trim()));
 
   const fullAddressStr = addressParts.join(", ") || order.shipping.addressLine1;
 
   return (
     <div style={{ padding: 0 }} className="space-y-5">
-      {/* Top Header Card */}
+      {/* Unified Top Header & Order Status Card */}
       <Card style={{ borderRadius: 16 }} styles={{ body: { padding: 16 } }}>
-        <Flex align="center" justify="space-between" wrap="wrap" gap={12}>
-          <Flex align="center" gap={12}>
-            <Button
-              shape="circle"
-              icon={<ArrowLeftOutlined />}
-              onClick={() => router.back()}
-            />
-            <div>
-              <Flex align="center" gap={8} wrap="wrap">
+        <div className="space-y-4">
+          {/* Top Bar: Order Info & Actions (Center-aligned on Mobile, Top-aligned on Desktop) */}
+          <div className="flex flex-col sm:flex-row items-center sm:items-start justify-between gap-3 text-center sm:text-left">
+            <div className="flex flex-col sm:flex-row items-center sm:items-start gap-3">
+              <Button
+                shape="circle"
+                icon={<ArrowLeftOutlined />}
+                onClick={() => router.back()}
+                className="shrink-0"
+              />
+              <div className="flex flex-col items-center sm:items-start gap-1 text-center sm:text-left">
+                {/* Row 1: Order ID */}
                 <Title level={4} style={{ margin: 0, fontWeight: 900 }}>
-                  Order {order.orderNumber}
+                  Order ID: {order.orderNumber}
                 </Title>
-                <Tag color="blue" style={{ fontWeight: 700, borderRadius: 6 }}>
-                  {channelLabel}
-                </Tag>
-              </Flex>
-              <Text type="secondary" style={{ fontSize: "12px" }}>
-                <CalendarOutlined style={{ marginRight: 4 }} />
-                Placed on {dateStr}
-              </Text>
-            </div>
-          </Flex>
-
-          <Space wrap>
-            <a href={`tel:${order.shipping.phone}`}>
-              <Button icon={<PhoneOutlined />} style={{ fontWeight: 700 }}>
-                Call Customer
-              </Button>
-            </a>
-            <Link
-              href={`/admin/orders/${order._id}/invoice`}
-              target="_blank"
-              rel="noopener"
-            >
-              <Button type="primary" icon={<PrinterOutlined />} style={{ fontWeight: 700 }}>
-                Print Invoice
-              </Button>
-            </Link>
-          </Space>
-        </Flex>
-      </Card>
-
-      {/* Progress Steps Tracker Card */}
-      <Card style={{ borderRadius: 16 }} styles={{ body: { padding: 20 } }}>
-        <Flex align="center" justify="space-between" wrap="wrap" gap={16} style={{ marginBottom: 20 }}>
-          <Flex align="center" gap={12}>
-            <div
-              style={{
-                width: 44,
-                height: 44,
-                borderRadius: 12,
-                background: "#e6f4ff",
-                color: "#1677ff",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                fontSize: 20,
-              }}
-            >
-              <ShoppingOutlined />
-            </div>
-            <div>
-              <Text type="secondary" style={{ fontSize: "11px", fontWeight: 700, display: "block" }}>
-                Order Status
-              </Text>
-              <Flex align="center" gap={8}>
-                <Tag
-                  color={
-                    isCancelled
-                      ? "red"
-                      : isReturned
-                      ? "default"
-                      : order.orderStatus === "delivered"
-                      ? "green"
-                      : "gold"
-                  }
-                  style={{ fontWeight: 800, fontSize: "13px", padding: "2px 10px", margin: 0 }}
-                >
-                  {order.orderStatus?.toUpperCase()}
-                </Tag>
-
-                {isGiftOrder && (
-                  <Tag color="magenta" icon={<GiftOutlined />} style={{ fontWeight: 700, margin: 0 }}>
-                    GIFT ORDER
+                
+                {/* Row 2: Channel Tag */}
+                <div>
+                  <Tag color="blue" style={{ fontWeight: 700, borderRadius: 6, margin: 0 }}>
+                    {channelLabel}
                   </Tag>
-                )}
-              </Flex>
+                </div>
+
+                {/* Row 3: Date */}
+                <Text type="secondary" style={{ fontSize: "12px" }}>
+                  <CalendarOutlined style={{ marginRight: 4 }} />
+                  Placed on {dateStr}
+                </Text>
+              </div>
             </div>
-          </Flex>
 
-          <Flex align="center" gap={12}>
-            <Text strong style={{ fontSize: "13px" }}>
-              Update Status:
-            </Text>
-            <StatusUpdater
-              orderId={order._id}
-              currentStatus={order.orderStatus}
+            <div className="flex items-center justify-center sm:justify-end gap-2 wrap sm:pt-0.5">
+              {(() => {
+                const cleanPhone = order.shipping.phone.replace(/[^0-9]/g, "");
+                const waNumber = cleanPhone.startsWith("88") ? cleanPhone : `88${cleanPhone}`;
+                return (
+                  <Space.Compact>
+                    <Button
+                      icon={<PhoneOutlined />}
+                      onClick={() => {
+                        window.location.href = `tel:${order.shipping.phone}`;
+                      }}
+                      style={{ fontWeight: 700 }}
+                    >
+                      Call Customer
+                    </Button>
+                    <Dropdown
+                      menu={{
+                        items: [
+                          {
+                            key: "call",
+                            label: (
+                              <a href={`tel:${order.shipping.phone}`} style={{ fontWeight: 700 }}>
+                                📞 Call {order.shipping.phone}
+                              </a>
+                            ),
+                          },
+                          {
+                            key: "whatsapp",
+                            label: (
+                              <a
+                                href={`https://wa.me/${waNumber}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                style={{ fontWeight: 700 }}
+                              >
+                                💬 WhatsApp Chat
+                              </a>
+                            ),
+                            icon: <MessageOutlined style={{ color: "#25D366" }} />,
+                          },
+                          {
+                            key: "copy",
+                            label: "📋 Copy Number",
+                            icon: <CopyOutlined />,
+                            onClick: () => handleCopy(order.shipping.phone, "phone_top"),
+                          },
+                        ],
+                      }}
+                      placement="bottomRight"
+                    >
+                      <Button icon={<PhoneOutlined />} />
+                    </Dropdown>
+                  </Space.Compact>
+                );
+              })()}
+              <Link
+                href={`/admin/orders/${order._id}/invoice`}
+                target="_blank"
+                rel="noopener"
+              >
+                <Button type="primary" icon={<PrinterOutlined />} style={{ fontWeight: 700 }}>
+                  Print Invoice
+                </Button>
+              </Link>
+            </div>
+          </div>
+
+          <Divider style={{ margin: "8px 0" }} />
+
+          {/* Status Control Bar */}
+          <div className="flex items-center justify-center gap-3 py-1">
+            {isGiftOrder && (
+              <Tag color="magenta" icon={<GiftOutlined />} style={{ fontWeight: 700, margin: 0 }}>
+                GIFT ORDER
+              </Tag>
+            )}
+            <Flex align="center" gap={8} justify="center">
+              <Text strong style={{ fontSize: "13px" }}>
+                Order Status:
+              </Text>
+              <StatusUpdater
+                orderId={order._id}
+                currentStatus={order.orderStatus}
+              />
+            </Flex>
+          </div>
+
+          {/* Steps Timeline */}
+          {!isCancelled && !isReturned ? (
+            <div className="admin-steps-horizontal-wrapper overflow-x-auto pt-2">
+              <Steps
+                orientation="horizontal"
+                responsive={false}
+                titlePlacement="vertical"
+                current={currentStep}
+                size="small"
+                items={STAGE_STEPS.map((step) => ({
+                  title: step.title,
+                  icon: step.icon,
+                }))}
+              />
+              <style jsx global>{`
+                .admin-steps-horizontal-wrapper {
+                  scrollbar-width: none !important;
+                  -ms-overflow-style: none !important;
+                }
+                .admin-steps-horizontal-wrapper::-webkit-scrollbar {
+                  display: none !important;
+                  width: 0 !important;
+                  height: 0 !important;
+                }
+                .admin-steps-horizontal-wrapper .ant-steps-item-title {
+                  font-size: 10px !important;
+                  font-weight: 700 !important;
+                  line-height: 1.2 !important;
+                  padding-inline-end: 0 !important;
+                }
+                .admin-steps-horizontal-wrapper .ant-steps-item-container {
+                  display: flex !important;
+                  flex-direction: column !important;
+                  align-items: center !important;
+                  text-align: center !important;
+                }
+                .admin-steps-horizontal-wrapper .ant-steps-item-icon {
+                  margin-inline-end: 0 !important;
+                  margin-bottom: 4px !important;
+                }
+                .admin-steps-horizontal-wrapper .ant-steps-item-content {
+                  width: 100% !important;
+                  text-align: center !important;
+                }
+              `}</style>
+            </div>
+          ) : (
+            <Alert
+              type="error"
+              showIcon
+              icon={<CloseCircleOutlined />}
+              title={isCancelled ? "Order Cancelled" : "Order Returned"}
+              style={{ borderRadius: 10 }}
             />
-          </Flex>
-        </Flex>
-
-        {!isCancelled && !isReturned ? (
-          <Steps
-            current={currentStep}
-            size="small"
-            items={STAGE_STEPS.map((step) => ({
-              title: step.title,
-              icon: step.icon,
-            }))}
-          />
-        ) : (
-          <Alert
-            type="error"
-            showIcon
-            icon={<CloseCircleOutlined />}
-            title={isCancelled ? "Order Cancelled" : "Order Returned"}
-            style={{ borderRadius: 10 }}
-          />
-        )}
+          )}
+        </div>
       </Card>
 
       {/* Main Grid: Left Items List, Right Customer & Payment Details */}

@@ -21,6 +21,8 @@ export interface IOrderItem {
   productSku: string;
 }
 
+import type { DeliveryZone } from "@/lib/shipping";
+
 export interface IOrderShipping {
   name: string;
   phone: string;
@@ -30,6 +32,7 @@ export interface IOrderShipping {
   district?: string;
   postalCode?: string;
   deliveryZone?: string;
+  deliveryArea?: DeliveryZone;
 }
 
 export type ChannelSource =
@@ -77,6 +80,7 @@ export interface IOrderBase {
   shipping: IOrderShipping;
   subtotal: Price;
   shippingCost: Price;
+  totalWeightGrams?: number;
   discount: Price;
   total: Price;
   paymentMethod: PaymentMethod;
