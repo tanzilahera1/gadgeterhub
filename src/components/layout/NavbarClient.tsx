@@ -227,7 +227,7 @@ export default function NavbarClient() {
           </Suspense>
 
           {/* Actions */}
-          <div className="flex items-center gap-1.5 sm:gap-3">
+          <div className="flex items-center gap-2.5 sm:gap-3">
             <Button
               variant="ghost"
               size="icon"

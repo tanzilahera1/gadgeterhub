@@ -348,18 +348,17 @@ export function CheckoutForm({ cart, user }: CheckoutFormProps) {
 
           {/* Section 2: Delivery Area */}
           <div className="space-y-4">
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <div className="flex items-center gap-3">
-                <div className="size-9 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
-                  <Truck className="size-5" />
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="size-8 sm:size-9 rounded-lg bg-primary/10 flex items-center justify-center text-primary shrink-0">
+                  <Truck className="size-4 sm:size-5" />
                 </div>
-                <h2 className="text-base sm:text-lg font-black uppercase tracking-widest">
+                <h2 className="text-sm sm:text-lg font-black uppercase tracking-widest">
                   ডেলিভারি এরিয়া
                 </h2>
               </div>
-              <div className="flex items-center gap-1.5 bg-slate-100 px-3 py-1.5 rounded-full border border-slate-200 text-xs font-bold text-slate-700">
-                <Weight className="size-3.5 text-primary" />
-                <span>কার্ট ওজন: {totalWeightGrams}g ({getWeightTierLabel(totalWeightGrams)})</span>
+              <div className="bg-slate-100 px-2.5 py-1 rounded-full border border-slate-200 text-[11px] sm:text-xs font-bold text-slate-700 shrink-0">
+                <span>ওজন: {totalWeightGrams}g ({getWeightTierLabel(totalWeightGrams)})</span>
               </div>
             </div>
 

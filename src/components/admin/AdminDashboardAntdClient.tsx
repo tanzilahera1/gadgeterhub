@@ -17,6 +17,7 @@ import { IOrder, CHANNEL_LABELS } from "@/types/order";
 import { StatusUpdater } from "@/components/admin/StatusUpdater";
 import { format } from "date-fns";
 import { getZoneBadgeInfo } from "@/lib/shipping";
+import { AdminOrderMobileCard } from "@/components/admin/AdminOrderMobileCard";
 
 const { Title, Text } = Typography;
 
@@ -109,27 +110,29 @@ export function AdminDashboardAntdClient({ stats }: { stats: StatsData }) {
       {/* Stats Cards Row — 2 Columns on Mobile (xs={12}) */}
       <Row gutter={[10, 10]}>
         <Col xs={12} sm={12} lg={6}>
-          <Card style={{ borderRadius: 14 }} styles={{ body: { padding: 12 } }}>
+          <Card style={{ borderRadius: 14, textAlign: "center" }} styles={{ body: { padding: 12 } }}>
             <Statistic
               title="Total Sales"
               value={formatPrice(stats.totalSales)}
               prefix={<DollarOutlined style={{ color: "#52c41a" }} />}
               styles={{ content: { fontWeight: 900, fontSize: "16px", color: "#111827" } }}
+              style={{ textAlign: "center" }}
             />
           </Card>
         </Col>
         <Col xs={12} sm={12} lg={6}>
-          <Card style={{ borderRadius: 14 }} styles={{ body: { padding: 12 } }}>
+          <Card style={{ borderRadius: 14, textAlign: "center" }} styles={{ body: { padding: 12 } }}>
             <Statistic
               title="Total Orders"
               value={stats.totalOrders}
               prefix={<ShoppingCartOutlined style={{ color: "#1890ff" }} />}
               styles={{ content: { fontWeight: 900, fontSize: "16px", color: "#111827" } }}
+              style={{ textAlign: "center" }}
             />
           </Card>
         </Col>
         <Col xs={12} sm={12} lg={6}>
-          <Card style={{ borderRadius: 14 }} styles={{ body: { padding: 12 } }}>
+          <Card style={{ borderRadius: 14, textAlign: "center" }} styles={{ body: { padding: 12 } }}>
             <Statistic
               title="Pending Orders"
               value={stats.pendingOrders}
@@ -141,16 +144,18 @@ export function AdminDashboardAntdClient({ stats }: { stats: StatsData }) {
                   color: stats.pendingOrders > 0 ? "#fa8c16" : "#52c41a",
                 },
               }}
+              style={{ textAlign: "center" }}
             />
           </Card>
         </Col>
         <Col xs={12} sm={12} lg={6}>
-          <Card style={{ borderRadius: 14 }} styles={{ body: { padding: 12 } }}>
+          <Card style={{ borderRadius: 14, textAlign: "center" }} styles={{ body: { padding: 12 } }}>
             <Statistic
               title="Products"
               value={stats.totalProducts}
               prefix={<AppstoreOutlined style={{ color: "#722ed1" }} />}
               styles={{ content: { fontWeight: 900, fontSize: "16px", color: "#111827" } }}
+              style={{ textAlign: "center" }}
             />
           </Card>
         </Col>
@@ -159,103 +164,39 @@ export function AdminDashboardAntdClient({ stats }: { stats: StatsData }) {
       {/* Main Grid: Recent Orders (10 Items) & Quick Actions */}
       <Row gutter={[16, 16]}>
         <Col xs={24} lg={16}>
-          <Card
-            title={<Text strong>Recent Orders (Top 10)</Text>}
-            extra={<Link href="/admin/orders">View All Orders</Link>}
-            style={{ borderRadius: 16, overflow: "hidden" }}
-            styles={{ body: { padding: 0 } }}
-          >
-            {/* DESKTOP VIEW: Antd Table with Interactive StatusUpdater */}
-            <div className="hidden md:block">
+          {/* DESKTOP: Bordered Card with Table */}
+          <div className="hidden md:block">
+            <Card
+              title={<Text strong>Recent Orders (Top 10)</Text>}
+              extra={<Link href="/admin/orders">View All Orders</Link>}
+              style={{ borderRadius: 16, overflow: "hidden" }}
+              styles={{ body: { padding: 0 } }}
+            >
               <Table
                 columns={columns}
                 dataSource={stats.recentOrders}
                 rowKey={(r) => r._id?.toString() || r.orderNumber}
                 pagination={false}
               />
+            </Card>
+          </div>
+
+          {/* MOBILE: Borderless floating cards */}
+          <div className="block md:hidden">
+            <div className="flex items-center justify-between mb-3">
+              <Text strong style={{ fontSize: "15px" }}>Recent Orders (Top 10)</Text>
+              <Link href="/admin/orders" style={{ fontSize: "13px", fontWeight: 700 }}>
+                View All →
+              </Link>
             </div>
-
-            {/* MOBILE VIEW: Antd Card Rows — 100% Unified with Admin Orders Mobile Cards */}
-            <div className="block md:hidden divide-y divide-slate-100">
-              {stats.recentOrders.map((order) => {
-                const channelKey = order.channelSource || "web";
-                const channelLabel = CHANNEL_LABELS[channelKey] || "Website";
-
-                return (
-                  <div key={order._id?.toString()} className="p-3.5 space-y-3">
-                    {/* Top Bar: Order ID & Channel + Status */}
-                    <Flex align="start" justify="space-between" gap={8}>
-                      <div>
-                        <Text code style={{ fontWeight: 900, fontSize: "14px", display: "inline-block", margin: 0, letterSpacing: "0.5px" }}>
-                          {order.orderNumber}
-                        </Text>
-                        <div style={{ marginTop: 4 }}>
-                          <Tag
-                            color="blue"
-                            style={{ fontSize: "10px", margin: 0, borderRadius: 6, padding: "0 5px", lineHeight: "18px" }}
-                          >
-                            {channelLabel}
-                          </Tag>
-                        </div>
-                      </div>
-
-                      <StatusUpdater
-                        orderId={order._id.toString()}
-                        currentStatus={order.orderStatus || "pending"}
-                      />
-                    </Flex>
-
-                    {/* Middle Body: Customer Info & Price + Eye Button */}
-                    <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100 flex items-center justify-between gap-2">
-                      <div>
-                        <Text strong style={{ display: "block", fontSize: "13px" }}>
-                          {order.shipping.name}
-                        </Text>
-                        <Text type="secondary" style={{ fontSize: "11px" }}>
-                          {order.shipping.phone}
-                        </Text>
-                      </div>
-
-                      <Flex align="center" gap={8}>
-                        <Text strong style={{ fontSize: "15px", color: "#1677ff" }}>
-                          {formatPrice(order.total)}
-                        </Text>
-                        <Link href={`/admin/orders/${order._id?.toString()}`}>
-                          <Button icon={<EyeOutlined />} size="small" type="default" />
-                        </Link>
-                      </Flex>
-                    </div>
-
-                    {/* Bottom Footer: Date | Delivery Zone | Payment */}
-                    <div className="flex items-center justify-between pt-1 border-t border-slate-100">
-                      <Text type="secondary" style={{ fontSize: "11px" }}>
-                        {format(new Date(order.createdAt!), "dd MMM, hh:mm a")}
-                      </Text>
-
-                      {(() => {
-                        const zoneBadge = getZoneBadgeInfo(order.shipping, order.shippingCost);
-                        return (
-                          <Tag
-                            color={zoneBadge.color}
-                            style={{ margin: 0, fontSize: "10px", padding: "0 5px", lineHeight: "18px", borderRadius: 6, fontWeight: 700 }}
-                          >
-                            {zoneBadge.label}
-                          </Tag>
-                        );
-                      })()}
-
-                      <Tag
-                        color={order.paymentMethod === "cod" ? "default" : "magenta"}
-                        style={{ margin: 0, fontWeight: 700, borderRadius: 6, fontSize: "10px", padding: "0 5px", lineHeight: "18px" }}
-                      >
-                        {order.paymentMethod ? order.paymentMethod.toUpperCase() : "COD"}
-                      </Tag>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </Card>
+            {stats.recentOrders.map((order) => (
+              <AdminOrderMobileCard
+                key={order._id?.toString() || order.orderNumber}
+                order={order}
+                marginBottom={8}
+              />
+            ))}
+          </div>
         </Col>
 
         <Col xs={24} lg={8}>

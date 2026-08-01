@@ -13,6 +13,8 @@ import { getZoneBadgeInfo } from "@/lib/shipping";
 import { StatusUpdater } from "@/components/admin/StatusUpdater";
 import { CreateOrderModal } from "@/components/admin/CreateOrderModal";
 
+import { AdminOrderMobileCard } from "@/components/admin/AdminOrderMobileCard";
+
 const { Text, Title } = Typography;
 
 interface ProductOption {
@@ -174,7 +176,12 @@ export function AdminOrdersAntdClient({
       </div>
 
       {/* Filters Toolbar */}
-      <Card style={{ borderRadius: 16 }} styles={{ body: { padding: "12px" } }}>
+      <Card
+        variant="borderless"
+        style={{ borderRadius: 16, background: "transparent" }}
+        styles={{ body: { padding: "0 0 8px 0" } }}
+        className="md:!border md:!border-slate-200 md:!bg-white md:shadow-sm"
+      >
         <div className="flex flex-col sm:flex-row items-center justify-between gap-3 w-full">
           <Input
             placeholder="Search by Order ID or Name..."
@@ -243,91 +250,15 @@ export function AdminOrdersAntdClient({
       </div>
 
       {/* MOBILE VIEW: Ultra Responsive Fluid Antd Cards */}
-      <div className="block md:hidden space-y-3">
+      <div className="block md:hidden mt-3">
         {filteredOrders.length > 0 ? (
-          filteredOrders.map((order) => {
-            const channelKey = order.channelSource || "web";
-            const channelLabel = CHANNEL_LABELS[channelKey] || "Website";
-
-            return (
-              <Card
-                key={order._id.toString()}
-                style={{ borderRadius: 16, border: "1px solid #e2e8f0" }}
-                styles={{ body: { padding: 14 } }}
-              >
-                <div className="space-y-3">
-                  {/* Top Bar: Order ID & Channel + Status */}
-                  <Flex align="start" justify="space-between" gap={8}>
-                    <div>
-                      <Text code style={{ fontWeight: 900, fontSize: "14px", display: "inline-block", margin: 0, letterSpacing: "0.5px" }}>
-                        {order.orderNumber}
-                      </Text>
-                      <div style={{ marginTop: 4 }}>
-                        <Tag
-                          color="blue"
-                          style={{ fontSize: "10px", margin: 0, borderRadius: 6, padding: "0 5px", lineHeight: "18px" }}
-                        >
-                          {channelLabel}
-                        </Tag>
-                      </div>
-                    </div>
-
-                    <StatusUpdater
-                      orderId={order._id.toString()}
-                      currentStatus={order.orderStatus || "pending"}
-                    />
-                  </Flex>
-
-                  {/* Middle Body: Customer Info & Price + Eye Button */}
-                  <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100 flex items-center justify-between gap-2">
-                    <div>
-                      <Text strong style={{ display: "block", fontSize: "13px" }}>
-                        {order.shipping.name}
-                      </Text>
-                      <Text type="secondary" style={{ fontSize: "11px" }}>
-                        {order.shipping.phone}
-                      </Text>
-                    </div>
-
-                    <Flex align="center" gap={8}>
-                      <Text strong style={{ fontSize: "15px", color: "#1677ff" }}>
-                        {formatPrice(order.total)}
-                      </Text>
-                      <Link href={`/admin/orders/${order._id.toString()}`}>
-                        <Button icon={<EyeOutlined />} size="small" type="default" />
-                      </Link>
-                    </Flex>
-                  </div>
-
-                  {/* Bottom Footer: Date | Delivery Zone | Payment */}
-                  <div className="flex items-center justify-between pt-1 border-t border-slate-100">
-                    <Text type="secondary" style={{ fontSize: "11px" }}>
-                      {format(new Date(order.createdAt!), "dd MMM, hh:mm a")}
-                    </Text>
-
-                    {(() => {
-                      const zoneBadge = getZoneBadgeInfo(order.shipping, order.shippingCost);
-                      return (
-                        <Tag
-                          color={zoneBadge.color}
-                          style={{ margin: 0, fontSize: "10px", padding: "0 5px", lineHeight: "18px", borderRadius: 6, fontWeight: 700 }}
-                        >
-                          {zoneBadge.label}
-                        </Tag>
-                      );
-                    })()}
-
-                    <Tag
-                      color={order.paymentMethod === "cod" ? "default" : "magenta"}
-                      style={{ margin: 0, fontWeight: 700, borderRadius: 6, fontSize: "10px", padding: "0 5px", lineHeight: "18px" }}
-                    >
-                      {order.paymentMethod ? order.paymentMethod.toUpperCase() : "COD"}
-                    </Tag>
-                  </div>
-                </div>
-              </Card>
-            );
-          })
+          filteredOrders.map((order) => (
+            <AdminOrderMobileCard
+              key={order._id.toString()}
+              order={order}
+              marginBottom={8}
+            />
+          ))
         ) : (
           <Card style={{ borderRadius: 16 }} styles={{ body: { padding: 30 } }}>
             <div style={{ textAlign: "center" }}>
