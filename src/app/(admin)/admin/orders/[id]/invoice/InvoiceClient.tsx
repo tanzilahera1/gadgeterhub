@@ -62,12 +62,20 @@ export function InvoiceClient({ order }: Props) {
   // ✅ Option 1: Full Unique Order ID as Invoice Number (e.g. GH-FBP-260731-0002)
   const invoiceNo = order.orderNumber;
 
+  const handlePrint = () => {
+    const prevTitle = document.title;
+    document.title = `Invoice-${order.orderNumber}`;
+    window.print();
+    // Restore after print dialog closes
+    setTimeout(() => { document.title = prevTitle; }, 1000);
+  };
+
   return (
     <>
       {/* Toolbar */}
       <div className="invoice-toolbar no-print">
         <button onClick={() => window.history.back()}>← Back</button>
-        <button className="primary" onClick={() => window.print()}>
+        <button className="primary" onClick={handlePrint}>
           🖨 Print / Save PDF
         </button>
       </div>

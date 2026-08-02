@@ -34,11 +34,26 @@ export const DEFAULT_PRODUCT_WEIGHT_GRAMS = 500;
 
 /**
  * Calculates delivery charge based on delivery zone and total weight in grams.
- * 
+ *
  * Matrix:
- * - Dhaka:   0-500g -> ৳60  | 500g-1kg -> ৳70  | 1kg-2kg -> ৳90  | >2kg -> +৳20/kg
- * - Suburbs: 0-500g -> ৳80  | 500g-1kg -> ৳100 | 1kg-2kg -> ৳130 | >2kg -> +৳30/kg
- * - Outside: 0-500g -> ৳110 | 500g-1kg -> ৳130 | 1kg-2kg -> ৳170 | >2kg -> +৳40/kg
+ * - Dhaka:   0-500g → ৳60  | 500g-1kg → ৳70  | 1kg-2kg → ৳90  | >2kg → +৳20/kg
+ * - Suburbs: 0-500g → ৳80  | 500g-1kg → ৳100 | 1kg-2kg → ৳130 | >2kg → +৳30/kg
+ * - Outside: see PATHAO PRICING MODE below
+ *
+ * ============================================================
+ * PATHAO PRICING MODE — Switch comment when changing mode
+ * ============================================================
+ *
+ * [MODE A] Pathao ONLINE (pickup from your location):
+ *   0-500g → ৳110  |  500g-1kg → ৳130  |  1kg-2kg → ৳170
+ *
+ * [MODE B] Pathao OFFLINE (hub drop-off, minimum ৳130):
+ *   All weights → ৳130 (Pathao offline policy: min ৳130 regardless of weight)
+ *
+ * CURRENT MODE: B (Offline / Hub Drop-off)
+ * TO SWITCH BACK TO MODE A: in the <=500 block below, change `return 130` → `return 110`
+ *                            and update CURRENT MODE comment above to "A (Online / Pickup)"
+ * ============================================================
  */
 export function calculateShippingCost(
   zone: DeliveryZone = "dhaka",
@@ -48,19 +63,19 @@ export function calculateShippingCost(
 
   if (weight <= 500) {
     switch (zone) {
-      case "dhaka": return 60;
+      case "dhaka":   return 60;
       case "suburbs": return 80;
-      case "outside": return 110;
+      case "outside": return 130; // MODE B: ৳130 (offline min). MODE A (online): return 110
     }
   } else if (weight <= 1000) {
     switch (zone) {
-      case "dhaka": return 70;
+      case "dhaka":   return 70;
       case "suburbs": return 100;
       case "outside": return 130;
     }
   } else if (weight <= 2000) {
     switch (zone) {
-      case "dhaka": return 90;
+      case "dhaka":   return 90;
       case "suburbs": return 130;
       case "outside": return 170;
     }
@@ -68,7 +83,7 @@ export function calculateShippingCost(
     // Exceeds 2kg: Base 2kg rate + extra per additional kg
     const extraKg = Math.ceil((weight - 2000) / 1000);
     switch (zone) {
-      case "dhaka": return 90 + extraKg * 20;
+      case "dhaka":   return 90  + extraKg * 20;
       case "suburbs": return 130 + extraKg * 30;
       case "outside": return 170 + extraKg * 40;
     }
