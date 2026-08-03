@@ -22,8 +22,11 @@ export function useCart() {
   });
 
   // 2. Fetch Full Cart Details
-  const { data: cartData = { items: [], total: 0 }, isLoading: isLoadingCart } =
-    useQuery({
+  const {
+    data: cartData = { items: [], total: 0 },
+    isLoading: isLoadingCart,
+    isFetching: isFetchingCart,
+  } = useQuery({
       queryKey: ["cart-details", userId],
       queryFn: async () => {
         const res = await fetch("/api/cart");
@@ -282,6 +285,7 @@ export function useCart() {
     cart: cartData,
     isLoadingCount,
     isLoadingCart,
+    isFetchingCart,
     addToCart: addToCartMutation.mutate,
     isAdding: addToCartMutation.isPending,
     updateQty: updateQtyMutation.mutate,

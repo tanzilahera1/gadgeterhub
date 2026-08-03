@@ -20,13 +20,28 @@ import QuantitySelector from "@/components/products/QuantitySelector";
 import { IPopulatedCartItem } from "@/types/cart";
 
 export default function CartPageClient() {
-  const { cart, updateQty, removeItem, isLoadingCart } = useCart();
+  const {
+    cart,
+    cartCount,
+    updateQty,
+    removeItem,
+    isLoadingCart,
+    isFetchingCart,
+    isAdding,
+  } = useCart();
 
   const getCategorySlug = (product: IPopulatedCartItem["product"]): string => {
     return product.category?.slug || "uncategorized";
   };
 
-  if (isLoadingCart) {
+  // ✅ Prevent flash of "আপনার কার্ট খালি" UI while items exist or are being fetched/added
+  const isPendingCartDetails =
+    isLoadingCart ||
+    isAdding ||
+    (cartCount > 0 && (!cart.items || cart.items.length === 0)) ||
+    (isFetchingCart && (!cart.items || cart.items.length === 0));
+
+  if (isPendingCartDetails) {
     return (
       <div className="container mx-auto px-4 py-20 text-center">
         <div className="animate-pulse flex flex-col items-center">
