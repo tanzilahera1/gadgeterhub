@@ -7,17 +7,20 @@ export const dynamic = "force-dynamic";
 
 async function getStats() {
   await dbConnect();
-  const totalOrders = await Order.countDocuments();
-  const totalProducts = await Product.countDocuments();
-  const pendingOrders = await Order.countDocuments({ orderStatus: "pending" });
 
-  const orders = await Order.find({ orderStatus: { $ne: "cancelled" } });
-  const totalSales = orders.reduce((acc, order) => acc + (order.total || 0), 0);
+  const [totalOrders, totalProducts, pendingOrders, salesAgg, recentOrders] =
+    await Promise.all([
+      Order.countDocuments(),
+      Product.countDocuments(),
+      Order.countDocuments({ orderStatus: "pending" }),
+      Order.aggregate([
+        { $match: { orderStatus: { $ne: "cancelled" } } },
+        { $group: { _id: null, total: { $sum: "$total" } } },
+      ]),
+      Order.find().sort({ createdAt: -1 }).limit(10).lean(),
+    ]);
 
-  const recentOrders = await Order.find()
-    .sort({ createdAt: -1 })
-    .limit(10)
-    .lean();
+  const totalSales = salesAgg[0]?.total || 0;
 
   return {
     totalOrders,

@@ -12,42 +12,41 @@ export const revalidate = 60; // ISR চালু
 async function getHomepageData() {
   await dbConnect();
 
-  // ✅ ফিক্স: featured + trending এ category.slug populate করো
-  const featured = await Product.find({ featured: true, status: "published" })
-    .populate("category", "slug name") // শুধু slug + name আনো
-    .sort({ createdAt: -1 })
-    .limit(8)
-    .lean();
-
-  const trending = await Product.find({ trending: true, status: "published" })
-    .populate("category", "slug name") // এখানেও
-    .sort({ createdAt: -1 })
-    .limit(5)
-    .lean();
-
-  const categories = await Category.find({ parent: { $exists: false } })
-    .limit(5)
-    .lean();
-
-  const categoryGrids = [];
-
-  for (const cat of categories) {
-    const catProducts = await Product.find({
-      category: cat._id,
-      status: "published",
-    })
-      .populate("category", "slug name") // ✅ এখানেও লাগবে
+  const [featured, trending, categories] = await Promise.all([
+    Product.find({ featured: true, status: "published" })
+      .populate("category", "slug name")
+      .sort({ createdAt: -1 })
+      .limit(8)
+      .lean(),
+    Product.find({ trending: true, status: "published" })
+      .populate("category", "slug name")
       .sort({ createdAt: -1 })
       .limit(5)
-      .lean();
+      .lean(),
+    Category.find({ parent: { $exists: false } }).limit(5).lean(),
+  ]);
 
-    if (catProducts.length > 0) {
-      categoryGrids.push({
-        category: JSON.parse(JSON.stringify(cat)),
-        products: JSON.parse(JSON.stringify(catProducts)),
-      });
-    }
-  }
+  const categoryGrids = (
+    await Promise.all(
+      categories.map(async (cat) => {
+        const catProducts = await Product.find({
+          category: cat._id,
+          status: "published",
+        })
+          .populate("category", "slug name")
+          .sort({ createdAt: -1 })
+          .limit(5)
+          .lean();
+
+        if (catProducts.length === 0) return null;
+
+        return {
+          category: JSON.parse(JSON.stringify(cat)),
+          products: JSON.parse(JSON.stringify(catProducts)),
+        };
+      })
+    )
+  ).filter((grid): grid is NonNullable<typeof grid> => grid !== null);
 
   return {
     featuredProducts: JSON.parse(JSON.stringify(featured)) as IProduct[],
