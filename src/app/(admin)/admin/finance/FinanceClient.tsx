@@ -229,43 +229,43 @@ export function FinanceClient({
       </Flex>
 
       {/* KPI Cards Grid */}
-      <Row gutter={[16, 16]}>
+      <Row gutter={[12, 12]}>
         {/* Card 1: Total Revenue */}
-        <Col xs={24} sm={12} md={8} lg={4.8}>
-          <Card style={{ borderRadius: 16, background: "#f8fafc", border: "1px solid #e2e8f0" }}>
-            <Text type="secondary" style={{ fontSize: "11px", fontWeight: 700, textTransform: "uppercase" }}>
+        <Col xs={12} sm={12} md={8} lg={4.8}>
+          <Card style={{ borderRadius: 16, background: "#f8fafc", border: "1px solid #e2e8f0", textAlign: "center" }}>
+            <Text type="secondary" style={{ fontSize: "11px", fontWeight: 700, textTransform: "uppercase", display: "block" }}>
               💵 Total Revenue
             </Text>
             <Title level={3} style={{ margin: "4px 0 0", color: "#0f172a", fontWeight: 900 }}>
               {summary ? formatPrice(summary.totalRevenue) : "৳0"}
             </Title>
-            <Text type="secondary" style={{ fontSize: "10px" }}>
+            <Text type="secondary" style={{ fontSize: "10px", display: "block" }}>
               {summary?.deliveredOrdersCount || 0} Orders
             </Text>
           </Card>
         </Col>
 
         {/* Card 2: COGS / Buying Cost */}
-        <Col xs={24} sm={12} md={8} lg={4.8}>
-          <Card style={{ borderRadius: 16, background: "#f8fafc", border: "1px solid #e2e8f0" }}>
-            <Text type="secondary" style={{ fontSize: "11px", fontWeight: 700, textTransform: "uppercase" }}>
-              📦 COGS (Purchase Cost)
+        <Col xs={12} sm={12} md={8} lg={4.8}>
+          <Card style={{ borderRadius: 16, background: "#f8fafc", border: "1px solid #e2e8f0", textAlign: "center" }}>
+            <Text type="secondary" style={{ fontSize: "11px", fontWeight: 700, textTransform: "uppercase", display: "block" }}>
+              📦 COGS (Cost)
             </Text>
             <Title level={3} style={{ margin: "4px 0 0", color: "#64748b", fontWeight: 900 }}>
               {summary ? formatPrice(summary.totalCogs) : "৳0"}
             </Title>
-            <Text type="secondary" style={{ fontSize: "10px" }}>
-              Product Buying Cost
+            <Text type="secondary" style={{ fontSize: "10px", display: "block" }}>
+              Buying Cost
             </Text>
           </Card>
         </Col>
 
         {/* Card 3: Courier & 1% Fee */}
-        <Col xs={24} sm={12} md={8} lg={4.8}>
-          <Card style={{ borderRadius: 16, background: "#f8fafc", border: "1px solid #e2e8f0" }}>
-            <Flex align="center" justify="space-between">
+        <Col xs={12} sm={12} md={8} lg={4.8}>
+          <Card style={{ borderRadius: 16, background: "#f8fafc", border: "1px solid #e2e8f0", textAlign: "center" }}>
+            <Flex align="center" justify="center" gap={4}>
               <Text type="secondary" style={{ fontSize: "11px", fontWeight: 700, textTransform: "uppercase" }}>
-                🚚 Courier & 1% Fee
+                🚚 Courier & 1%
               </Text>
               <Tooltip title="Base Delivery Charge + 1% COD Fee">
                 <CarOutlined style={{ color: "#fa8c16" }} />
@@ -274,28 +274,28 @@ export function FinanceClient({
             <Title level={3} style={{ margin: "4px 0 0", color: "#d97706", fontWeight: 900 }}>
               {summary ? formatPrice(summary.totalCourierExpenses) : "৳0"}
             </Title>
-            <Text type="secondary" style={{ fontSize: "10px" }}>
-              1% COD Fee: {summary ? formatPrice(summary.courierCodFees) : "৳0"}
+            <Text type="secondary" style={{ fontSize: "10px", display: "block" }}>
+              1% Fee: {summary ? formatPrice(summary.courierCodFees) : "৳0"}
             </Text>
           </Card>
         </Col>
 
         {/* Card 4: Operating Expenses (Ads & Ops) */}
-        <Col xs={24} sm={12} md={8} lg={4.8}>
-          <Card style={{ borderRadius: 16, background: "#f8fafc", border: "1px solid #e2e8f0" }}>
-            <Text type="secondary" style={{ fontSize: "11px", fontWeight: 700, textTransform: "uppercase" }}>
+        <Col xs={12} sm={12} md={8} lg={4.8}>
+          <Card style={{ borderRadius: 16, background: "#f8fafc", border: "1px solid #e2e8f0", textAlign: "center" }}>
+            <Text type="secondary" style={{ fontSize: "11px", fontWeight: 700, textTransform: "uppercase", display: "block" }}>
               📢 Ad & OpEx
             </Text>
             <Title level={3} style={{ margin: "4px 0 0", color: "#7c3aed", fontWeight: 900 }}>
               {summary ? formatPrice(summary.totalLoggedExpenses) : "৳0"}
             </Title>
-            <Text type="secondary" style={{ fontSize: "10px" }}>
+            <Text type="secondary" style={{ fontSize: "10px", display: "block" }}>
               Ad Spend: {summary ? formatPrice(summary.totalAdExpenses) : "৳0"}
             </Text>
           </Card>
         </Col>
 
-        {/* Card 5: TRUE NET PROFIT (Glow highlight card!) */}
+        {/* Card 5: TRUE NET PROFIT */}
         <Col xs={24} sm={24} md={16} lg={4.8}>
           <Card
             style={{
@@ -303,9 +303,10 @@ export function FinanceClient({
               background: "linear-gradient(135deg, #059669 0%, #10b981 100%)",
               color: "#fff",
               boxShadow: "0 10px 25px -5px rgba(16, 185, 129, 0.4)",
+              textAlign: "center",
             }}
           >
-            <Flex align="center" justify="space-between">
+            <Flex align="center" justify="center" gap={6}>
               <Text style={{ fontSize: "11px", fontWeight: 900, textTransform: "uppercase", color: "#ecfdf5" }}>
                 💰 NET PROFIT
               </Text>
@@ -314,7 +315,7 @@ export function FinanceClient({
             <Title level={2} style={{ margin: "4px 0 0", color: "#ffffff", fontWeight: 900 }}>
               {summary ? formatPrice(summary.netProfit) : "৳0"}
             </Title>
-            <Flex align="center" gap={12} style={{ marginTop: 4 }}>
+            <Flex align="center" justify="center" gap={12} style={{ marginTop: 4 }}>
               <Tag color="gold" style={{ margin: 0, fontWeight: 900, fontSize: "10px" }}>
                 ROI: {summary ? `${summary.roiPercent.toFixed(1)}%` : "0%"}
               </Tag>
@@ -358,93 +359,176 @@ export function FinanceClient({
         style={{ borderRadius: 16 }}
         styles={{ body: { padding: 16 } }}
       >
-        <Table
-          dataSource={winningProducts}
-          rowKey="productId"
-          pagination={{ pageSize: 10 }}
-          loading={loading}
-          columns={[
-            {
-              title: "Product",
-              key: "product",
-              render: (_, record) => (
-                <Flex align="center" gap={10}>
-                  <div
-                    style={{
-                      width: 44,
-                      height: 44,
-                      borderRadius: 8,
-                      overflow: "hidden",
-                      background: "#f8fafc",
-                      border: "1px solid #e2e8f0",
-                      position: "relative",
-                      flexShrink: 0,
-                    }}
-                  >
+        {/* Mobile Cards View (block md:hidden) */}
+        <div className={`block md:hidden space-y-3 transition-opacity duration-200 ${loading ? "opacity-50 pointer-events-none" : "opacity-100"}`}>
+          {winningProducts.length === 0 ? (
+            <div className="text-center py-12 text-slate-400 text-xs font-medium bg-slate-50 rounded-2xl border border-dashed border-slate-200">
+              {loading ? "ডাটা লোড হচ্ছে..." : "কোনো ডাটা পাওয়া যায়নি"}
+            </div>
+          ) : (
+            winningProducts.map((item, index) => (
+              <div
+                key={item.productId}
+                className="p-3.5 rounded-2xl bg-white border border-slate-200/80 shadow-sm space-y-3"
+              >
+                {/* Product Header */}
+                <div className="flex items-start gap-2.5">
+                  <div className="flex items-center justify-center size-6 rounded-md bg-amber-50 text-amber-700 font-black text-[11px] shrink-0 border border-amber-200/80">
+                    #{index + 1}
+                  </div>
+                  <div className="relative size-11 rounded-lg overflow-hidden bg-slate-50 border border-slate-100 shrink-0">
                     <Image
-                      src={record.thumbnail || "/logo.png"}
-                      alt={record.title}
+                      src={item.thumbnail || "/logo.png"}
+                      alt={item.title}
                       fill
                       sizes="44px"
                       className="object-contain p-1"
                     />
                   </div>
-                  <div>
-                    <Flex align="center" gap={6}>
-                      <Text strong style={{ fontSize: "13px" }}>
-                        {record.title}
-                      </Text>
-                      {record.isWinner && (
-                        <Tag color="gold" style={{ margin: 0, fontSize: "10px", fontWeight: 900 }}>
-                          🏆 WINNING PRODUCT
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <span className="font-bold text-xs text-slate-900 leading-snug break-words">
+                        {item.title}
+                      </span>
+                      {item.isWinner && (
+                        <Tag color="gold" style={{ margin: 0, fontSize: "9px", fontWeight: 900 }}>
+                          🏆 WINNER
                         </Tag>
                       )}
-                    </Flex>
-                    <Text type="secondary" style={{ fontSize: "11px" }}>
-                      SKU: {record.sku}
-                    </Text>
+                    </div>
+                    <span className="text-[10px] text-slate-400 font-medium block mt-0.5">
+                      SKU: {item.sku}
+                    </span>
                   </div>
-                </Flex>
-              ),
-            },
-            {
-              title: "Sales Vol",
-              dataIndex: "unitsSold",
-              key: "unitsSold",
-              align: "center",
-              render: (val) => <Text strong>{val} pcs</Text>,
-            },
-            {
-              title: "Ad Spend",
-              dataIndex: "attributedAdSpend",
-              key: "attributedAdSpend",
-              align: "right",
-              render: (val) => <Text style={{ color: "#7c3aed" }}>{formatPrice(val)}</Text>,
-            },
-            {
-              title: "Profit",
-              dataIndex: "netProfit",
-              key: "netProfit",
-              align: "right",
-              render: (val) => (
-                <Text strong style={{ color: val >= 0 ? "#16a34a" : "#dc2626", fontSize: "14px" }}>
-                  {formatPrice(val)}
-                </Text>
-              ),
-            },
-            {
-              title: "ROI %",
-              dataIndex: "roiPercent",
-              key: "roiPercent",
-              align: "center",
-              render: (val) => (
-                <Tag color={val >= 100 ? "green" : val > 0 ? "blue" : "red"} style={{ fontWeight: 900 }}>
-                  {val}%
-                </Tag>
-              ),
-            },
-          ]}
-        />
+                </div>
+
+                {/* Stats 4-Column Grid */}
+                <div className="grid grid-cols-4 gap-1.5 pt-2 border-t border-slate-100 text-center items-center">
+                  <div className="bg-slate-50 p-1.5 rounded-lg">
+                    <p className="text-[9px] text-slate-400 font-semibold uppercase">Sales Vol</p>
+                    <p className="text-xs font-bold text-slate-800">{item.unitsSold} pcs</p>
+                  </div>
+                  <div className="bg-slate-50 p-1.5 rounded-lg">
+                    <p className="text-[9px] text-slate-400 font-semibold uppercase">Ad Spend</p>
+                    <p className="text-xs font-bold text-purple-600">{formatPrice(item.attributedAdSpend)}</p>
+                  </div>
+                  <div className="bg-slate-50 p-1.5 rounded-lg">
+                    <p className="text-[9px] text-slate-400 font-semibold uppercase">Profit</p>
+                    <p className={`text-xs font-black ${item.netProfit >= 0 ? "text-emerald-600" : "text-red-500"}`}>
+                      {formatPrice(item.netProfit)}
+                    </p>
+                  </div>
+                  <div className="bg-slate-50 p-1.5 rounded-lg">
+                    <p className="text-[9px] text-slate-400 font-semibold uppercase">ROI %</p>
+                    <Tag
+                      color={item.roiPercent >= 100 ? "green" : item.roiPercent > 0 ? "blue" : "red"}
+                      style={{ margin: 0, fontWeight: 900, fontSize: "10px" }}
+                    >
+                      {item.roiPercent}%
+                    </Tag>
+                  </div>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+
+        {/* Desktop Table View (hidden md:block) */}
+        <div className="hidden md:block">
+          <Table
+            dataSource={winningProducts}
+            rowKey="productId"
+            pagination={{ pageSize: 10 }}
+            loading={loading}
+            scroll={{ x: 650 }}
+            columns={[
+              {
+                title: "Product",
+                key: "product",
+                width: 260,
+                render: (_, record) => (
+                  <Flex align="center" gap={10} style={{ minWidth: 220 }}>
+                    <div
+                      style={{
+                        width: 44,
+                        height: 44,
+                        borderRadius: 8,
+                        overflow: "hidden",
+                        background: "#f8fafc",
+                        border: "1px solid #e2e8f0",
+                        position: "relative",
+                        flexShrink: 0,
+                      }}
+                    >
+                      <Image
+                        src={record.thumbnail || "/logo.png"}
+                        alt={record.title}
+                        fill
+                        sizes="44px"
+                        className="object-contain p-1"
+                      />
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <Flex align="center" gap={6} wrap="wrap">
+                        <Text strong style={{ fontSize: "13px", wordBreak: "break-word" }}>
+                          {record.title}
+                        </Text>
+                        {record.isWinner && (
+                          <Tag color="gold" style={{ margin: 0, fontSize: "10px", fontWeight: 900 }}>
+                            🏆 WINNER
+                          </Tag>
+                        )}
+                      </Flex>
+                      <Text type="secondary" style={{ fontSize: "11px", display: "block" }}>
+                        SKU: {record.sku}
+                      </Text>
+                    </div>
+                  </Flex>
+                ),
+              },
+              {
+                title: "Sales Vol",
+                dataIndex: "unitsSold",
+                key: "unitsSold",
+                width: 100,
+                align: "center",
+                render: (val) => <Text strong>{val} pcs</Text>,
+              },
+              {
+                title: "Ad Spend",
+                dataIndex: "attributedAdSpend",
+                key: "attributedAdSpend",
+                width: 110,
+                align: "right",
+                render: (val) => <Text style={{ color: "#7c3aed" }}>{formatPrice(val)}</Text>,
+              },
+              {
+                title: "Profit",
+                dataIndex: "netProfit",
+                key: "netProfit",
+                width: 110,
+                align: "right",
+                render: (val) => (
+                  <Text strong style={{ color: val >= 0 ? "#16a34a" : "#dc2626", fontSize: "14px" }}>
+                    {formatPrice(val)}
+                  </Text>
+                ),
+              },
+              {
+                title: "ROI %",
+                dataIndex: "roiPercent",
+                key: "roiPercent",
+                width: 90,
+                align: "center",
+                render: (val) => (
+                  <Tag color={val >= 100 ? "green" : val > 0 ? "blue" : "red"} style={{ fontWeight: 900 }}>
+                    {val}%
+                  </Tag>
+                ),
+              },
+            ]}
+          />
+        </div>
       </Card>
 
       {/* Expenses Management Table */}
@@ -462,76 +546,143 @@ export function FinanceClient({
         style={{ borderRadius: 16 }}
         styles={{ body: { padding: 16 } }}
       >
-        <Table
-          dataSource={expenses}
-          rowKey="_id"
-          loading={loading}
-          pagination={{ pageSize: 8 }}
-          columns={[
-            {
-              title: "Date",
-              dataIndex: "date",
-              key: "date",
-              render: (val) => dayjs(val).format("DD MMM YYYY"),
-            },
-            {
-              title: "Category",
-              dataIndex: "category",
-              key: "category",
-              render: (val) => {
-                const cat = CATEGORY_LABELS[val] || CATEGORY_LABELS.other;
-                return <Tag color={cat.color}>{cat.label}</Tag>;
-              },
-            },
-            {
-              title: "Title & Details",
-              key: "details",
-              render: (_, record) => (
-                <div>
-                  <Text strong style={{ fontSize: "13px", display: "block" }}>
-                    {record.title}
-                  </Text>
-                  {record.product && (
-                    <Text type="secondary" style={{ fontSize: "11px" }}>
-                      প্রোডাক্ট: {record.product.title}
-                    </Text>
-                  )}
-                  {record.note && (
-                    <Text type="secondary" style={{ fontSize: "11px", display: "block", fontStyle: "italic" }}>
-                      নোট: {record.note}
-                    </Text>
-                  )}
-                </div>
-              ),
-            },
-            {
-              title: "Amount",
-              dataIndex: "amount",
-              key: "amount",
-              align: "right",
-              render: (val) => (
-                <Text strong style={{ color: "#dc2626", fontSize: "14px" }}>
-                  -{formatPrice(val)}
-                </Text>
-              ),
-            },
-            {
-              title: "Action",
-              key: "action",
-              align: "center",
-              render: (_, record) => (
-                <Popconfirm
-                  title="খরচটি মুছে ফেলতে চান?"
-                  onConfirm={() => handleDeleteExpense(record._id)}
-                  okText="হ্যাঁ, মুছুন"
-                  cancelText="বাতিল"
+        {/* Mobile Cards View (block md:hidden) */}
+        <div className={`block md:hidden space-y-3 transition-opacity duration-200 ${loading ? "opacity-50 pointer-events-none" : "opacity-100"}`}>
+          {expenses.length === 0 ? (
+            <div className="text-center py-12 text-slate-400 text-xs font-medium bg-slate-50 rounded-2xl border border-dashed border-slate-200">
+              {loading ? "ডাটা লোড হচ্ছে..." : "কোনো খরচ এন্ট্রি নেই"}
+            </div>
+          ) : (
+            expenses.map((record) => {
+              const cat = CATEGORY_LABELS[record.category] || CATEGORY_LABELS.other;
+              return (
+                <div
+                  key={record._id}
+                  className="p-3.5 rounded-2xl bg-white border border-slate-200/80 shadow-sm space-y-2.5"
                 >
-                  <Button size="small" danger icon={<DeleteOutlined />} />
-                </Popconfirm>
-              ),
-            },
-          ]}
-        />
+                  <div className="flex items-center justify-between">
+                    <Tag color={cat.color} style={{ margin: 0, fontWeight: 700 }}>
+                      {cat.label}
+                    </Tag>
+                    <span className="text-[11px] font-medium text-slate-400">
+                      {dayjs(record.date).format("DD MMM YYYY")}
+                    </span>
+                  </div>
+
+                  <div>
+                    <span className="font-bold text-xs text-slate-900 block">
+                      {record.title}
+                    </span>
+                    {record.product && (
+                      <span className="text-[11px] text-slate-500 block mt-0.5">
+                        প্রোডাক্ট: {record.product.title}
+                      </span>
+                    )}
+                    {record.note && (
+                      <span className="text-[11px] text-slate-400 italic block mt-0.5">
+                        নোট: {record.note}
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="flex items-center justify-between pt-2 border-t border-slate-100">
+                    <span className="font-black text-sm text-red-600">
+                      -{formatPrice(record.amount)}
+                    </span>
+                    <Popconfirm
+                      title="খরচটি মুছে ফেলতে চান?"
+                      onConfirm={() => handleDeleteExpense(record._id)}
+                      okText="হ্যাঁ, মুছুন"
+                      cancelText="বাতিল"
+                    >
+                      <Button size="small" danger icon={<DeleteOutlined />} />
+                    </Popconfirm>
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </div>
+
+        {/* Desktop Table View (hidden md:block) */}
+        <div className="hidden md:block">
+          <Table
+            dataSource={expenses}
+            rowKey="_id"
+            loading={loading}
+            pagination={{ pageSize: 8 }}
+            scroll={{ x: 600 }}
+            columns={[
+              {
+                title: "Date",
+                dataIndex: "date",
+                key: "date",
+                width: 110,
+                render: (val) => dayjs(val).format("DD MMM YYYY"),
+              },
+              {
+                title: "Category",
+                dataIndex: "category",
+                key: "category",
+                width: 160,
+                render: (val) => {
+                  const cat = CATEGORY_LABELS[val] || CATEGORY_LABELS.other;
+                  return <Tag color={cat.color}>{cat.label}</Tag>;
+                },
+              },
+              {
+                title: "Title & Details",
+                key: "details",
+                width: 220,
+                render: (_, record) => (
+                  <div>
+                    <Text strong style={{ fontSize: "13px", display: "block" }}>
+                      {record.title}
+                    </Text>
+                    {record.product && (
+                      <Text type="secondary" style={{ fontSize: "11px" }}>
+                        প্রোডাক্ট: {record.product.title}
+                      </Text>
+                    )}
+                    {record.note && (
+                      <Text type="secondary" style={{ fontSize: "11px", display: "block", fontStyle: "italic" }}>
+                        নোট: {record.note}
+                      </Text>
+                    )}
+                  </div>
+                ),
+              },
+              {
+                title: "Amount",
+                dataIndex: "amount",
+                key: "amount",
+                width: 110,
+                align: "right",
+                render: (val) => (
+                  <Text strong style={{ color: "#dc2626", fontSize: "14px" }}>
+                    -{formatPrice(val)}
+                  </Text>
+                ),
+              },
+              {
+                title: "Action",
+                key: "action",
+                width: 80,
+                align: "center",
+                render: (_, record) => (
+                  <Popconfirm
+                    title="খরচটি মুছে ফেলতে চান?"
+                    onConfirm={() => handleDeleteExpense(record._id)}
+                    okText="হ্যাঁ, মুছুন"
+                    cancelText="বাতিল"
+                  >
+                    <Button size="small" danger icon={<DeleteOutlined />} />
+                  </Popconfirm>
+                ),
+              },
+            ]}
+          />
+        </div>
       </Card>
 
       {/* Expense Modal */}
