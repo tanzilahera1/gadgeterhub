@@ -82,15 +82,32 @@ export function AdminOrdersAntdClient({
       key: "customer",
       render: (_, record) => {
         const vipDeduction = (record.vipPrivilege && record.vipPrivilege > 0) ? record.vipPrivilege : (record.discount || 0);
+        const districtName = record.shipping?.district;
         return (
           <div>
-            <Flex align="center" gap={6}>
+            <Flex align="center" gap={6} wrap="wrap">
               <Text strong style={{ display: "block", fontSize: "13px" }}>
                 {record.shipping.name}
               </Text>
               {vipDeduction > 0 && (
                 <Tag color="gold" style={{ margin: 0, fontSize: "10px", fontWeight: 900, padding: "0 4px" }}>
                   🌟 VIP
+                </Tag>
+              )}
+              {districtName && (
+                <Tag
+                  variant="filled"
+                  style={{
+                    margin: 0,
+                    fontSize: "10px",
+                    fontWeight: 700,
+                    padding: "0 6px",
+                    borderRadius: 4,
+                    background: "#f1f5f9",
+                    color: "#475569",
+                  }}
+                >
+                  📍 {districtName}
                 </Tag>
               )}
             </Flex>
@@ -215,19 +232,18 @@ export function AdminOrdersAntdClient({
 
       {/* Filters Toolbar */}
       <Card
-        variant="borderless"
-        style={{ borderRadius: 16, background: "transparent" }}
-        styles={{ body: { padding: "0 0 8px 0" } }}
-        className="md:!border md:!border-slate-200 md:!bg-white md:shadow-sm"
+        style={{ borderRadius: 16 }}
+        styles={{ body: { padding: "12px 16px" } }}
+        className="border border-slate-200 bg-white shadow-sm"
       >
         <div className="flex flex-col sm:flex-row items-center justify-between gap-3 w-full">
           <Input
             placeholder="Search by Order ID or Name..."
-            prefix={<SearchOutlined />}
+            prefix={<SearchOutlined style={{ color: "#94a3b8", marginRight: 4 }} />}
             value={searchText}
             onChange={(e) => setSearchText(e.target.value)}
             style={{ borderRadius: 10 }}
-            className="w-full sm:w-72"
+            className="w-full sm:w-80"
             allowClear
           />
 

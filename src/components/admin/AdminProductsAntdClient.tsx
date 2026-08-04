@@ -254,7 +254,7 @@ export function AdminProductsAntdClient({ products: initialProducts, categories 
   return (
     <div className="space-y-4 sm:space-y-6">
       {/* Header Bar */}
-      <Flex align="center" justify="space-between" wrap="wrap" gap={12}>
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left">
         <div>
           <Title level={3} style={{ margin: 0, fontWeight: 900 }}>
             Products Directory
@@ -265,65 +265,60 @@ export function AdminProductsAntdClient({ products: initialProducts, categories 
         </div>
 
         <Link href="/admin/products/new">
-          <Button type="primary" size="large" icon={<PlusOutlined />} style={{ fontWeight: 700 }}>
+          <Button type="primary" size="large" icon={<PlusOutlined />} style={{ fontWeight: 700, borderRadius: 10 }}>
             Add Product
           </Button>
         </Link>
-      </Flex>
+      </div>
 
       {/* Top 3 Stat Cards Grid */}
-      <Row gutter={[12, 12]}>
-        <Col xs={8} sm={8}>
-          <Card style={{ borderRadius: 16 }} styles={{ body: { padding: 14 } }}>
-            <Statistic
-              title={<Text type="secondary" style={{ fontSize: "11px", fontWeight: 700 }}>TOTAL PRODUCTS</Text>}
-              value={totalCount}
-              prefix={<ShoppingOutlined style={{ color: "#1677ff" }} />}
-              styles={{ content: { fontWeight: 900, fontSize: "20px" } }}
-            />
-          </Card>
-        </Col>
+      <div className="grid grid-cols-3 gap-2.5 sm:gap-4">
+        <Card style={{ borderRadius: 16 }} styles={{ body: { padding: 12 } }} className="text-center">
+          <Statistic
+            title={<Text type="secondary" style={{ fontSize: "10px", fontWeight: 700, display: "block" }}>TOTAL PRODUCTS</Text>}
+            value={totalCount}
+            prefix={<ShoppingOutlined style={{ color: "#1677ff" }} />}
+            styles={{ content: { fontWeight: 900, fontSize: "18px" } }}
+          />
+        </Card>
 
-        <Col xs={8} sm={8}>
-          <Card style={{ borderRadius: 16 }} styles={{ body: { padding: 14 } }}>
-            <Statistic
-              title={<Text type="secondary" style={{ fontSize: "11px", fontWeight: 700 }}>ACTIVE LISTINGS</Text>}
-              value={activeCount}
-              prefix={<CheckCircleOutlined style={{ color: "#52c41a" }} />}
-              styles={{ content: { fontWeight: 900, fontSize: "20px" } }}
-            />
-          </Card>
-        </Col>
+        <Card style={{ borderRadius: 16 }} styles={{ body: { padding: 12 } }} className="text-center">
+          <Statistic
+            title={<Text type="secondary" style={{ fontSize: "10px", fontWeight: 700, display: "block" }}>ACTIVE LISTINGS</Text>}
+            value={activeCount}
+            prefix={<CheckCircleOutlined style={{ color: "#52c41a" }} />}
+            styles={{ content: { fontWeight: 900, fontSize: "18px" } }}
+          />
+        </Card>
 
-        <Col xs={8} sm={8}>
-          <Card style={{ borderRadius: 16 }} styles={{ body: { padding: 14 } }}>
-            <Statistic
-              title={<Text type="secondary" style={{ fontSize: "11px", fontWeight: 700 }}>OUT OF STOCK</Text>}
-              value={outOfStockCount}
-              prefix={<WarningOutlined style={{ color: "#ff4d4f" }} />}
-              styles={{ content: { fontWeight: 900, fontSize: "20px" } }}
-            />
-          </Card>
-        </Col>
-      </Row>
+        <Card style={{ borderRadius: 16 }} styles={{ body: { padding: 12 } }} className="text-center">
+          <Statistic
+            title={<Text type="secondary" style={{ fontSize: "10px", fontWeight: 700, display: "block" }}>OUT OF STOCK</Text>}
+            value={outOfStockCount}
+            prefix={<WarningOutlined style={{ color: "#ff4d4f" }} />}
+            styles={{ content: { fontWeight: 900, fontSize: "18px" } }}
+          />
+        </Card>
+      </div>
 
       {/* Filter & Search Header Box */}
       <Card style={{ borderRadius: 16 }} styles={{ body: { padding: 14 } }}>
-        <Flex align="center" justify="space-between" wrap="wrap" gap={12}>
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
           <Input
             placeholder="Search by title, SKU, or brand..."
-            prefix={<SearchOutlined style={{ color: "#94a3b8" }} />}
+            prefix={<SearchOutlined style={{ color: "#94a3b8", marginRight: 4 }} />}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            style={{ width: 280, borderRadius: 10 }}
+            style={{ borderRadius: 10 }}
+            className="w-full sm:w-80"
             allowClear
           />
 
-          <Flex align="center" gap={8} wrap="wrap">
+          <div className="flex items-center justify-center sm:justify-start gap-2 w-full sm:w-auto flex-wrap">
             <Select
               value={statusFilter}
               onChange={setStatusFilter}
-              style={{ width: 140 }}
+              style={{ width: 130 }}
               options={[
                 { value: "all", label: "All Status" },
                 { value: "published", label: "Published" },
@@ -334,14 +329,14 @@ export function AdminProductsAntdClient({ products: initialProducts, categories 
             <Select
               value={categoryFilter}
               onChange={setCategoryFilter}
-              style={{ width: 160 }}
+              style={{ width: 150 }}
               options={[
                 { value: "all", label: "All Categories" },
                 ...categories.map((c) => ({ value: c._id, label: c.name })),
               ]}
             />
-          </Flex>
-        </Flex>
+          </div>
+        </div>
       </Card>
 
       {/* Desktop Table View */}
@@ -357,7 +352,7 @@ export function AdminProductsAntdClient({ products: initialProducts, categories 
       </div>
 
       {/* Mobile Card List View */}
-      <div className="block md:hidden space-y-3">
+      <div className="flex flex-col gap-3.5 md:hidden">
         {filteredProducts.length > 0 ? (
           filteredProducts.map((product) => {
             const categoryData = product.category as unknown as CategoryOption | null;
@@ -367,8 +362,9 @@ export function AdminProductsAntdClient({ products: initialProducts, categories 
             return (
               <Card
                 key={String(product._id)}
-                style={{ borderRadius: 16, border: "1px solid #e2e8f0" }}
+                style={{ borderRadius: 16, marginBottom: 0 }}
                 styles={{ body: { padding: 14 } }}
+                className="shadow-sm border border-slate-200/80"
               >
                 <div className="space-y-3">
                   {/* Top Bar: Thumbnail + Title & Tags */}
@@ -398,7 +394,7 @@ export function AdminProductsAntdClient({ products: initialProducts, categories 
                       <Link
                         href={`/admin/products/${String(product._id)}`}
                         style={{ fontWeight: 800, color: "#0f172a", fontSize: "13px" }}
-                        className="line-clamp-2"
+                        className="line-clamp-2 hover:text-blue-600 transition-colors"
                       >
                         {product.title}
                       </Link>

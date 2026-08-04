@@ -62,16 +62,37 @@ export function AdminDashboardAntdClient({ stats }: { stats: StatsData }) {
     {
       title: "Customer",
       key: "customer",
-      render: (_, record) => (
-        <div>
-          <Text strong style={{ display: "block", fontSize: "13px" }}>
-            {record.shipping.name}
-          </Text>
-          <Text type="secondary" style={{ fontSize: "11px" }}>
-            {record.shipping.phone}
-          </Text>
-        </div>
-      ),
+      render: (_, record) => {
+        const districtName = record.shipping?.district;
+        return (
+          <div>
+            <Flex align="center" gap={6} wrap="wrap">
+              <Text strong style={{ display: "block", fontSize: "13px" }}>
+                {record.shipping.name}
+              </Text>
+              {districtName && (
+                <Tag
+                  variant="filled"
+                  style={{
+                    margin: 0,
+                    fontSize: "10px",
+                    fontWeight: 700,
+                    padding: "0 6px",
+                    borderRadius: 4,
+                    background: "#f1f5f9",
+                    color: "#475569",
+                  }}
+                >
+                  📍 {districtName}
+                </Tag>
+              )}
+            </Flex>
+            <Text type="secondary" style={{ fontSize: "11px" }}>
+              {record.shipping.phone}
+            </Text>
+          </div>
+        );
+      },
     },
     {
       title: "Total",
@@ -169,64 +190,87 @@ export function AdminDashboardAntdClient({ stats }: { stats: StatsData }) {
       </Row>
 
       {/* Finance Quick Summary Banner */}
-      <Link href="/admin/finance">
+      <Link href="/admin/finance" className="block">
         <div
           style={{
             background: "linear-gradient(135deg, #0f172a 0%, #1e3a5f 50%, #0f172a 100%)",
             borderRadius: 16,
-            padding: "16px 20px",
+            padding: "18px 20px",
             cursor: "pointer",
-            transition: "opacity 0.2s",
-            border: "1px solid rgba(99,179,237,0.2)",
+            border: "1px solid rgba(99,179,237,0.25)",
+            boxShadow: "0 10px 25px -5px rgba(15,23,42,0.5)",
           }}
-          className="hover:opacity-90"
+          className="hover:opacity-95 transition-all"
         >
-          <Flex align="center" justify="space-between" wrap="wrap" gap={12}>
-            <Flex align="center" gap={10}>
-              <LineChartOutlined style={{ fontSize: 22, color: "#63b3ed" }} />
-              <div>
-                <Text style={{ color: "#a0aec0", fontSize: "11px", display: "block", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em" }}>
-                  Finance & Profit Summary
+          <div className="flex flex-col md:flex-row items-center justify-between gap-5 w-full">
+            {/* Banner Header: Center aligned on mobile */}
+            <div className="flex flex-col sm:flex-row items-center justify-center text-center md:text-left gap-2 sm:gap-3 w-full md:w-auto">
+              <LineChartOutlined style={{ fontSize: 24, color: "#63b3ed" }} />
+              <div className="text-center md:text-left">
+                <Text style={{ color: "#a0aec0", fontSize: "11px", display: "block", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em" }}>
+                  FINANCE & PROFIT SUMMARY
                 </Text>
-                <Text style={{ color: "#e2e8f0", fontSize: "12px" }}>Click to view detailed analytics →</Text>
+                <Text style={{ color: "#93c5fd", fontSize: "12px", fontWeight: 500 }}>
+                  Click to view detailed analytics →
+                </Text>
               </div>
-            </Flex>
-            <Row gutter={[24, 8]}>
-              <Col>
-                <Flex vertical align="center">
-                  <Text style={{ color: "#68d391", fontSize: "18px", fontWeight: 900 }}>
-                    {formatPrice(stats.todayRevenue)}
+            </div>
+
+            {/* 4 Metrics Grid: 2 columns on mobile (2x2 grid), row on desktop */}
+            <div className="grid grid-cols-2 md:flex md:items-center gap-2.5 sm:gap-3 md:gap-6 w-full md:w-auto">
+              {/* Metric 1: Today's Revenue */}
+              <div className="flex flex-col items-center justify-center p-3 rounded-xl bg-white/5 border border-white/10 text-center">
+                <Text style={{ color: "#4ade80", fontSize: "17px", fontWeight: 900, lineHeight: 1.2 }}>
+                  {formatPrice(stats.todayRevenue)}
+                </Text>
+                <Flex align="center" justify="center" gap={4} style={{ marginTop: 2 }}>
+                  <FireOutlined style={{ color: "#f87171", fontSize: "11px" }} />
+                  <Text style={{ color: "#94a3b8", fontSize: "11px", fontWeight: 600 }}>
+                    Today&apos;s Revenue ({stats.todayOrders})
                   </Text>
-                  <Flex align="center" gap={4}>
-                    <FireOutlined style={{ color: "#fc8181", fontSize: "10px" }} />
-                    <Text style={{ color: "#a0aec0", fontSize: "11px" }}>Today&apos;s Revenue ({stats.todayOrders} orders)</Text>
-                  </Flex>
                 </Flex>
-              </Col>
-              <Col>
-                <Flex vertical align="center">
-                  <Text style={{ color: "#f6e05e", fontSize: "18px", fontWeight: 900 }}>
-                    {formatPrice(stats.netProfit)}
+              </div>
+
+              {/* Metric 2: Total Revenue */}
+              <div className="flex flex-col items-center justify-center p-3 rounded-xl bg-white/5 border border-white/10 text-center">
+                <Text style={{ color: "#60a5fa", fontSize: "17px", fontWeight: 900, lineHeight: 1.2 }}>
+                  {formatPrice(stats.totalSales)}
+                </Text>
+                <Flex align="center" justify="center" gap={4} style={{ marginTop: 2 }}>
+                  <ShoppingCartOutlined style={{ color: "#60a5fa", fontSize: "11px" }} />
+                  <Text style={{ color: "#94a3b8", fontSize: "11px", fontWeight: 600 }}>
+                    Total Revenue
                   </Text>
-                  <Flex align="center" gap={4}>
-                    <RiseOutlined style={{ color: "#68d391", fontSize: "10px" }} />
-                    <Text style={{ color: "#a0aec0", fontSize: "11px" }}>Est. Net Profit</Text>
-                  </Flex>
                 </Flex>
-              </Col>
-              <Col>
-                <Flex vertical align="center">
-                  <Text style={{ color: "#fc8181", fontSize: "18px", fontWeight: 900 }}>
-                    {formatPrice(stats.totalAdSpend)}
+              </div>
+
+              {/* Metric 3: Total Ad Spend */}
+              <div className="flex flex-col items-center justify-center p-3 rounded-xl bg-white/5 border border-white/10 text-center">
+                <Text style={{ color: "#f87171", fontSize: "17px", fontWeight: 900, lineHeight: 1.2 }}>
+                  {formatPrice(stats.totalAdSpend)}
+                </Text>
+                <Flex align="center" justify="center" gap={4} style={{ marginTop: 2 }}>
+                  <DollarOutlined style={{ color: "#f87171", fontSize: "11px" }} />
+                  <Text style={{ color: "#94a3b8", fontSize: "11px", fontWeight: 600 }}>
+                    Total Ad Spend
                   </Text>
-                  <Flex align="center" gap={4}>
-                    <DollarOutlined style={{ color: "#fc8181", fontSize: "10px" }} />
-                    <Text style={{ color: "#a0aec0", fontSize: "11px" }}>Total Ad Spend</Text>
-                  </Flex>
                 </Flex>
-              </Col>
-            </Row>
-          </Flex>
+              </div>
+
+              {/* Metric 4: Est. Net Profit */}
+              <div className="flex flex-col items-center justify-center p-3 rounded-xl bg-white/5 border border-white/10 text-center">
+                <Text style={{ color: "#facc15", fontSize: "17px", fontWeight: 900, lineHeight: 1.2 }}>
+                  {formatPrice(stats.netProfit)}
+                </Text>
+                <Flex align="center" justify="center" gap={4} style={{ marginTop: 2 }}>
+                  <RiseOutlined style={{ color: "#4ade80", fontSize: "11px" }} />
+                  <Text style={{ color: "#94a3b8", fontSize: "11px", fontWeight: 600 }}>
+                    Est. Net Profit
+                  </Text>
+                </Flex>
+              </div>
+            </div>
+          </div>
         </div>
       </Link>
 

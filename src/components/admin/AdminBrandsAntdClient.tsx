@@ -159,8 +159,8 @@ export function AdminBrandsAntdClient({ brands: initialBrands }: Props) {
 
   return (
     <div className="space-y-4 sm:space-y-6">
-      {/* Header */}
-      <Flex align="center" justify="space-between" wrap="wrap" gap={12}>
+      {/* Header Bar */}
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left">
         <div>
           <Title level={3} style={{ margin: 0, fontWeight: 900 }}>
             Brands Directory
@@ -170,16 +170,16 @@ export function AdminBrandsAntdClient({ brands: initialBrands }: Props) {
           </Text>
         </div>
         <Link href="/admin/brands/new">
-          <Button type="primary" size="large" icon={<PlusOutlined />} style={{ fontWeight: 700 }}>
+          <Button type="primary" size="large" icon={<PlusOutlined />} style={{ fontWeight: 700, borderRadius: 10 }}>
             Add Brand
           </Button>
         </Link>
-      </Flex>
+      </div>
 
       {/* Stat + Search */}
       <Row gutter={[12, 12]}>
         <Col xs={24} sm={8}>
-          <Card style={{ borderRadius: 16 }} styles={{ body: { padding: 14 } }}>
+          <Card style={{ borderRadius: 16 }} styles={{ body: { padding: 14 } }} className="text-center">
             <Statistic
               title={<Text type="secondary" style={{ fontSize: "11px", fontWeight: 700 }}>TOTAL BRANDS</Text>}
               value={totalCount}
@@ -193,7 +193,7 @@ export function AdminBrandsAntdClient({ brands: initialBrands }: Props) {
             <Flex align="center" style={{ height: "100%" }}>
               <Input
                 placeholder="Search brands by name, slug, or description..."
-                prefix={<SearchOutlined style={{ color: "#94a3b8" }} />}
+                prefix={<SearchOutlined style={{ color: "#94a3b8", marginRight: 4 }} />}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 style={{ width: "100%", borderRadius: 10 }}
@@ -217,13 +217,14 @@ export function AdminBrandsAntdClient({ brands: initialBrands }: Props) {
       </div>
 
       {/* Mobile Cards */}
-      <div className="block md:hidden space-y-3">
+      <div className="flex flex-col gap-3.5 md:hidden">
         {filteredBrands.length > 0 ? (
           filteredBrands.map((brand) => (
             <Card
               key={brand._id}
-              style={{ borderRadius: 16, border: "1px solid #e2e8f0" }}
+              style={{ borderRadius: 16, marginBottom: 0 }}
               styles={{ body: { padding: 14 } }}
+              className="shadow-sm border border-slate-200/80"
             >
               <div className="space-y-3">
                 <Flex align="start" gap={10}>
@@ -252,10 +253,11 @@ export function AdminBrandsAntdClient({ brands: initialBrands }: Props) {
                     <Link
                       href={`/admin/brands/${brand._id}`}
                       style={{ fontWeight: 800, color: "#0f172a", fontSize: "14px" }}
+                      className="line-clamp-1 hover:text-blue-600 transition-colors"
                     >
                       {brand.name}
                     </Link>
-                    <Text code style={{ fontSize: "11px", marginTop: 2, display: "block" }}>
+                    <Text code style={{ fontSize: "11px", marginTop: 2, display: "inline-block" }}>
                       /{brand.slug}
                     </Text>
                   </div>

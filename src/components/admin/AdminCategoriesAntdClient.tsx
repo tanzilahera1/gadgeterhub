@@ -176,7 +176,7 @@ export function AdminCategoriesAntdClient({ categories: initialCategories }: Pro
   return (
     <div className="space-y-4 sm:space-y-6">
       {/* Header Bar */}
-      <Flex align="center" justify="space-between" wrap="wrap" gap={12}>
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left">
         <div>
           <Title level={3} style={{ margin: 0, fontWeight: 900 }}>
             Categories Directory
@@ -187,16 +187,16 @@ export function AdminCategoriesAntdClient({ categories: initialCategories }: Pro
         </div>
 
         <Link href="/admin/categories/new">
-          <Button type="primary" size="large" icon={<PlusOutlined />} style={{ fontWeight: 700 }}>
+          <Button type="primary" size="large" icon={<PlusOutlined />} style={{ fontWeight: 700, borderRadius: 10 }}>
             Add Category
           </Button>
         </Link>
-      </Flex>
+      </div>
 
       {/* Top Stat & Filter Box */}
       <Row gutter={[12, 12]}>
         <Col xs={24} sm={8}>
-          <Card style={{ borderRadius: 16 }} styles={{ body: { padding: 14 } }}>
+          <Card style={{ borderRadius: 16 }} styles={{ body: { padding: 14 } }} className="text-center">
             <Statistic
               title={<Text type="secondary" style={{ fontSize: "11px", fontWeight: 700 }}>TOTAL CATEGORIES</Text>}
               value={totalCount}
@@ -211,7 +211,7 @@ export function AdminCategoriesAntdClient({ categories: initialCategories }: Pro
             <Flex align="center" style={{ height: "100%" }}>
               <Input
                 placeholder="Search categories by name, slug, or description..."
-                prefix={<SearchOutlined style={{ color: "#94a3b8" }} />}
+                prefix={<SearchOutlined style={{ color: "#94a3b8", marginRight: 4 }} />}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 style={{ width: "100%", borderRadius: 10 }}
@@ -235,13 +235,14 @@ export function AdminCategoriesAntdClient({ categories: initialCategories }: Pro
       </div>
 
       {/* Mobile Card List View */}
-      <div className="block md:hidden space-y-3">
+      <div className="flex flex-col gap-3.5 md:hidden">
         {filteredCategories.length > 0 ? (
           filteredCategories.map((cat) => (
             <Card
               key={String(cat._id)}
-              style={{ borderRadius: 16, border: "1px solid #e2e8f0" }}
+              style={{ borderRadius: 16, marginBottom: 0 }}
               styles={{ body: { padding: 14 } }}
+              className="shadow-sm border border-slate-200/80"
             >
               <div className="space-y-3">
                 {/* Top Bar: Image + Name & Slug */}
@@ -278,7 +279,7 @@ export function AdminCategoriesAntdClient({ categories: initialCategories }: Pro
                     <Link
                       href={`/admin/categories/${String(cat._id)}`}
                       style={{ fontWeight: 800, color: "#0f172a", fontSize: "14px" }}
-                      className="line-clamp-1"
+                      className="line-clamp-1 hover:text-blue-600 transition-colors"
                     >
                       {cat.name}
                     </Link>

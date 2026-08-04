@@ -3,7 +3,6 @@
 
 import Link from "next/link";
 import { Card, Tag, Typography, Button, Flex } from "antd";
-import { EyeOutlined } from "@ant-design/icons";
 import { format } from "date-fns";
 import { formatPrice } from "@/lib/priceUtils";
 import { IOrder, CHANNEL_LABELS } from "@/types/order";
@@ -74,13 +73,17 @@ export function AdminOrderMobileCard({
           )}
         </Flex>
 
-        {/* Middle Body: Customer Info & Price + Eye Button */}
+        {/* Middle Body: Customer Info (with District) & Price */}
         {(() => {
           const vipDeduction = (order.vipPrivilege && order.vipPrivilege > 0) ? order.vipPrivilege : (order.discount || 0);
+          const districtName = order.shipping?.district;
+          const zoneBadge = getZoneBadgeInfo(order.shipping, order.shippingCost);
+          const displayLabel = districtName ? `📍 ${districtName}` : zoneBadge.label;
+
           return (
             <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100 flex items-center justify-between gap-2">
-              <div>
-                <Flex align="center" gap={6}>
+              <div className="min-w-0">
+                <Flex align="center" gap={6} wrap="wrap">
                   <Text strong style={{ display: "block", fontSize: "13px" }}>
                     {order.shipping?.name}
                   </Text>
@@ -89,86 +92,58 @@ export function AdminOrderMobileCard({
                       🌟 VIP
                     </Tag>
                   )}
+                  <Tag
+                    variant="filled"
+                    color={districtName ? undefined : zoneBadge.color}
+                    style={{
+                      margin: 0,
+                      fontSize: "10px",
+                      padding: "0 6px",
+                      lineHeight: "18px",
+                      borderRadius: 4,
+                      fontWeight: 700,
+                      background: districtName ? "#f1f5f9" : undefined,
+                      color: districtName ? "#475569" : undefined,
+                    }}
+                  >
+                    {displayLabel}
+                  </Tag>
                 </Flex>
-                <Text type="secondary" style={{ fontSize: "11px" }}>
+                <Text type="secondary" style={{ fontSize: "11px", display: "block", marginTop: 2 }}>
                   {order.shipping?.phone}
                 </Text>
               </div>
 
-              <Flex align="center" gap={8}>
-                <div style={{ textAlign: "right" }}>
-                  <Text strong style={{ fontSize: "15px", color: "#1677ff", display: "block" }}>
-                    {formatPrice(Math.max(0, order.total - (order.advancePaid || 0)))}
+              <div style={{ textAlign: "right" }} className="shrink-0">
+                <Text strong style={{ fontSize: "15px", color: "#1677ff", display: "block" }}>
+                  {formatPrice(Math.max(0, order.total - (order.advancePaid || 0)))}
+                </Text>
+                {Boolean(order.advancePaid && order.advancePaid > 0) && (
+                  <Text type="secondary" style={{ fontSize: "9px", display: "block", color: "#2563eb", fontWeight: 700 }}>
+                    Adv: {formatPrice(order.advancePaid || 0)}
                   </Text>
-                  {Boolean(order.advancePaid && order.advancePaid > 0) && (
-                    <Text type="secondary" style={{ fontSize: "9px", display: "block", color: "#2563eb", fontWeight: 700 }}>
-                      Adv: {formatPrice(order.advancePaid || 0)}
-                    </Text>
-                  )}
-                </div>
-                {orderIdStr && (
-                  <Link href={`/admin/orders/${orderIdStr}`}>
-                    <Button icon={<EyeOutlined />} size="small" type="default" />
-                  </Link>
                 )}
-              </Flex>
+              </div>
             </div>
           );
         })()}
 
-        {/* Bottom Footer: Date | Delivery Zone | Payment | Actions */}
-        <div className="flex items-center justify-between pt-0.5 flex-wrap gap-1">
-          <Text type="secondary" style={{ fontSize: "11px" }}>
+        {/* Bottom Footer: Date (Left) | Details Action (Right) */}
+        <div className="flex items-center justify-between pt-0.5 gap-2">
+          <Text type="secondary" style={{ fontSize: "11px", whiteSpace: "nowrap" }}>
             {order.createdAt
               ? format(new Date(order.createdAt), "dd MMM, hh:mm a")
               : ""}
           </Text>
 
-          <Flex align="center" gap={6}>
-            {(() => {
-              const zoneBadge = getZoneBadgeInfo(
-                order.shipping,
-                order.shippingCost,
-              );
-              return (
-                <Tag
-                  color={zoneBadge.color}
-                  style={{
-                    margin: 0,
-                    fontSize: "10px",
-                    padding: "0 5px",
-                    lineHeight: "18px",
-                    borderRadius: 6,
-                    fontWeight: 700,
-                  }}
-                >
-                  {zoneBadge.label}
-                </Tag>
-              );
-            })()}
-
-            <Tag
-              color={order.paymentMethod === "cod" ? "default" : "magenta"}
-              style={{
-                margin: 0,
-                fontWeight: 700,
-                borderRadius: 6,
-                fontSize: "10px",
-                padding: "0 5px",
-                lineHeight: "18px",
-              }}
-            >
-              {order.paymentMethod ? order.paymentMethod.toUpperCase() : "COD"}
-            </Tag>
-
-            {orderIdStr && (
-              <Link href={`/admin/orders/${orderIdStr}`}>
-                <Button size="small" type="primary" style={{ fontSize: "11px", fontWeight: 700, borderRadius: 6 }}>
-                  Details →
-                </Button>
-              </Link>
-            )}
-          </Flex>
+          {/* Details Action */}
+          {orderIdStr && (
+            <Link href={`/admin/orders/${orderIdStr}`} className="shrink-0">
+              <Button size="small" type="primary" style={{ fontSize: "11px", fontWeight: 700, borderRadius: 6 }}>
+                Details →
+              </Button>
+            </Link>
+          )}
         </div>
       </div>
     </Card>

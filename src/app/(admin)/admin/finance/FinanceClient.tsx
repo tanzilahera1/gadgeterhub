@@ -169,7 +169,7 @@ export function FinanceClient({
   return (
     <div className="space-y-6">
       {/* Top Header & Date Filter Bar */}
-      <Flex align="center" justify="space-between" wrap="wrap" gap={12}>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4 sm:mb-6 text-center sm:text-left">
         <div>
           <Title level={3} style={{ margin: 0, fontWeight: 900 }}>
             💰 Finance & Profit Analytics
@@ -179,7 +179,7 @@ export function FinanceClient({
           </Text>
         </div>
 
-        <Flex align="center" gap={8} wrap="wrap">
+        <div className="flex items-center justify-center sm:justify-start flex-wrap gap-2.5 sm:gap-3 w-full sm:w-auto">
           <Select
             value={statusFilter}
             onChange={setStatusFilter}
@@ -225,8 +225,8 @@ export function FinanceClient({
           >
             + Add Expense
           </Button>
-        </Flex>
-      </Flex>
+        </div>
+      </div>
 
       {/* KPI Cards Grid */}
       <Row gutter={[12, 12]}>
@@ -329,38 +329,39 @@ export function FinanceClient({
 
       {/* Winning Products Scorecard Section */}
       <Card
-        title={
-          <Flex align="center" justify="space-between" wrap="wrap" gap={12}>
-            <Flex align="center" gap={8}>
-              <TrophyOutlined style={{ color: "#eab308", fontSize: "20px" }} />
-              <div>
-                <Text strong style={{ fontSize: "16px" }}>
-                  Winning Products Leaderboard
-                </Text>
-                <Text type="secondary" style={{ display: "block", fontSize: "11px", fontWeight: 400 }}>
-                  Rank products by Universal Score, Net Profit, ROI %, or Sales Volume
-                </Text>
-              </div>
-            </Flex>
-
-            <Select
-              value={sortBy}
-              onChange={setSortBy}
-              style={{ width: 230 }}
-              options={[
-                { value: "universal", label: "🏆 Smart Winner (Universal)" },
-                { value: "profit", label: "💰 Highest Net Profit" },
-                { value: "roi", label: "📈 Highest ROI %" },
-                { value: "sales", label: "📦 Most Units Sold" },
-              ]}
-            />
-          </Flex>
-        }
         style={{ borderRadius: 16 }}
         styles={{ body: { padding: 16 } }}
       >
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mb-4 text-center sm:text-left">
+          <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-2.5">
+            <TrophyOutlined style={{ color: "#eab308", fontSize: "22px" }} />
+            <div>
+              <Text strong style={{ fontSize: "16px", display: "block" }}>
+                Winning Products Leaderboard
+              </Text>
+              <Text type="secondary" style={{ fontSize: "11px", fontWeight: 400 }}>
+                Rank products by Universal Score, Net Profit, ROI %, or Sales Volume
+              </Text>
+            </div>
+          </div>
+
+          <Select
+            value={sortBy}
+            onChange={setSortBy}
+            style={{ width: "100%", maxWidth: 240 }}
+            className="w-full sm:w-[240px]"
+            options={[
+              { value: "universal", label: "🏆 Smart Winner (Universal)" },
+              { value: "profit", label: "💰 Highest Net Profit" },
+              { value: "roi", label: "📈 Highest ROI %" },
+              { value: "sales", label: "📦 Most Units Sold" },
+            ]}
+          />
+        </div>
+
         {/* Mobile Cards View (block md:hidden) */}
-        <div className={`block md:hidden space-y-3 transition-opacity duration-200 ${loading ? "opacity-50 pointer-events-none" : "opacity-100"}`}>
+        <div className={`block md:hidden space-y-3.5 transition-opacity duration-200 ${loading ? "opacity-50 pointer-events-none" : "opacity-100"}`}>
           {winningProducts.length === 0 ? (
             <div className="text-center py-12 text-slate-400 text-xs font-medium bg-slate-50 rounded-2xl border border-dashed border-slate-200">
               {loading ? "ডাটা লোড হচ্ছে..." : "কোনো ডাটা পাওয়া যায়নি"}
@@ -533,19 +534,18 @@ export function FinanceClient({
 
       {/* Expenses Management Table */}
       <Card
-        title={
-          <Flex align="center" justify="space-between">
-            <Text strong style={{ fontSize: "16px" }}>
-              📝 Logged Expenses
-            </Text>
-            <Button size="small" type="primary" icon={<PlusOutlined />} onClick={() => setIsExpenseModalOpen(true)}>
-              + Add Expense
-            </Button>
-          </Flex>
-        }
         style={{ borderRadius: 16 }}
         styles={{ body: { padding: 16 } }}
       >
+        {/* Header */}
+        <div className="flex items-center justify-between gap-3 pb-4 mb-4 border-b border-slate-100">
+          <Text strong style={{ fontSize: "16px" }}>
+            📝 Logged Expenses
+          </Text>
+          <Button size="small" type="primary" icon={<PlusOutlined />} onClick={() => setIsExpenseModalOpen(true)}>
+            + Add Expense
+          </Button>
+        </div>
         {/* Mobile Cards View (block md:hidden) */}
         <div className={`block md:hidden space-y-3 transition-opacity duration-200 ${loading ? "opacity-50 pointer-events-none" : "opacity-100"}`}>
           {expenses.length === 0 ? (

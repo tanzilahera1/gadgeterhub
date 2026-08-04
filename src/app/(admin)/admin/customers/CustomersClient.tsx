@@ -107,58 +107,157 @@ export function CustomersClient({ customers }: { customers: CustomerDirectoryIte
 
   return (
     <div className="space-y-6">
-      {/* Top Header */}
-      <Flex align="center" justify="space-between" wrap="wrap" gap={12}>
+      {/* Top Header & Search Bar */}
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left">
         <div>
           <Title level={3} style={{ margin: 0, fontWeight: 900 }}>
-            👑 Customer Directory & Lifetime Analytics
+            👑 Customer Directory & Analytics
           </Title>
           <Text type="secondary" style={{ fontSize: "12px" }}>
-            আপনার সমস্ত কাস্টমারদের ইতিহাস, লয়ালটি রিপিট কাউন্ট ও লাইফটাইম সেলস সামারি
+            সমস্ত কাস্টমারদের ইতিহাস, লয়ালটি রিপিট কাউন্ট ও লাইফটাইম সেলস সামারি
           </Text>
         </div>
 
         <Input
-          prefix={<SearchOutlined style={{ color: "#bfbfbf" }} />}
-          placeholder="নাম, ফোন বা ঠিকানা দিয়ে খুজুন..."
+          prefix={<SearchOutlined style={{ color: "#bfbfbf", marginRight: 4 }} />}
+          placeholder="নাম, ফোন বা ঠিকানা দিয়ে খুঁজুন..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          style={{ width: 280, borderRadius: 10, height: 40 }}
+          style={{ borderRadius: 10, height: 40 }}
+          className="w-full sm:w-80"
+          allowClear
         />
-      </Flex>
+      </div>
 
-      {/* Overview Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <Card style={{ borderRadius: 16 }} styles={{ body: { padding: 16 } }}>
+      {/* Overview KPI Cards */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+        <Card style={{ borderRadius: 16 }} styles={{ body: { padding: 14 } }} className="text-center col-span-2 sm:col-span-1">
           <Text type="secondary" style={{ fontSize: "11px", fontWeight: 700, display: "block" }}>
-            মোট কাস্টমার
+            👥 মোট কাস্টমার
           </Text>
-          <Title level={2} style={{ margin: "4px 0 0", fontWeight: 900, color: "#0f172a" }}>
+          <Title level={3} style={{ margin: "4px 0 0", fontWeight: 900, color: "#0f172a" }}>
             {customers.length} জন
           </Title>
         </Card>
 
-        <Card style={{ borderRadius: 16 }} styles={{ body: { padding: 16 } }}>
+        <Card style={{ borderRadius: 16 }} styles={{ body: { padding: 14 } }} className="text-center">
           <Text type="secondary" style={{ fontSize: "11px", fontWeight: 700, display: "block" }}>
-            🌟 VIP লয়াল কাস্টমার (3+ Orders)
+            🌟 VIP লয়াল (3+ Orders)
           </Text>
-          <Title level={2} style={{ margin: "4px 0 0", fontWeight: 900, color: "#d97706" }}>
+          <Title level={3} style={{ margin: "4px 0 0", fontWeight: 900, color: "#d97706" }}>
             {vipCount} জন
           </Title>
         </Card>
 
-        <Card style={{ borderRadius: 16 }} styles={{ body: { padding: 16 } }}>
+        <Card style={{ borderRadius: 16 }} styles={{ body: { padding: 14 } }} className="text-center">
           <Text type="secondary" style={{ fontSize: "11px", fontWeight: 700, display: "block" }}>
             🔁 রিপিট কাস্টমার (2 Orders)
           </Text>
-          <Title level={2} style={{ margin: "4px 0 0", fontWeight: 900, color: "#2563eb" }}>
+          <Title level={3} style={{ margin: "4px 0 0", fontWeight: 900, color: "#2563eb" }}>
             {repeatCount} জন
           </Title>
         </Card>
       </div>
 
-      {/* Customers Table */}
-      <Card style={{ borderRadius: 16 }} styles={{ body: { padding: 0 } }}>
+      {/* Mobile Cards View (block md:hidden) */}
+      <div className="flex flex-col gap-3.5 md:hidden">
+        {filtered.length === 0 ? (
+          <div className="text-center py-12 text-slate-400 text-xs font-medium bg-white rounded-2xl border border-dashed border-slate-200">
+            কোনো কাস্টমার পাওয়া যায়নি
+          </div>
+        ) : (
+          filtered.map((item) => {
+            const cleanPhone = item.phone.replace(/[^0-9]/g, "");
+            const waNumber = cleanPhone.startsWith("88") ? cleanPhone : `88${cleanPhone}`;
+            return (
+              <Card
+                key={item.phone}
+                style={{ borderRadius: 16, marginBottom: 0 }}
+                styles={{ body: { padding: 14 } }}
+                className="shadow-sm border border-slate-200/80"
+              >
+                <div className="space-y-2.5">
+                  {/* Top Row: Name + Tier Tag (Left) & WhatsApp Button (Right) */}
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <Text strong style={{ fontSize: "14px" }}>
+                        {item.name}
+                      </Text>
+                      <Tag
+                        color={item.tier === "VIP" ? "gold" : item.tier === "Repeat" ? "blue" : "default"}
+                        style={{ fontWeight: 900, borderRadius: 6, margin: 0, fontSize: "10px" }}
+                      >
+                        {item.tier === "VIP" ? "🌟 VIP" : item.tier === "Repeat" ? "🔁 Repeat" : "🆕 New"}
+                      </Tag>
+                    </div>
+
+                    <a
+                      href={`https://wa.me/${waNumber}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="shrink-0"
+                    >
+                      <Button
+                        size="small"
+                        type="primary"
+                        icon={<MessageOutlined style={{ fontSize: "12px" }} />}
+                        style={{ background: "#25D366", borderColor: "#25D366", borderRadius: 8, fontSize: "11px", fontWeight: 700 }}
+                      >
+                        WhatsApp
+                      </Button>
+                    </a>
+                  </div>
+
+                  {/* Contact & Address */}
+                  <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100 space-y-1">
+                    <Text type="secondary" style={{ fontSize: "12px", display: "block" }}>
+                      📞 <span className="font-semibold text-slate-800">{item.phone}</span>
+                    </Text>
+                    {item.lastAddress && (
+                      <Text type="secondary" style={{ fontSize: "11px", display: "block", color: "#64748b" }}>
+                        📍 {item.lastAddress}
+                      </Text>
+                    )}
+                  </div>
+
+                  {/* Stats Row: Total Orders & Lifetime Spent */}
+                  <div className="flex items-center justify-between pt-1">
+                    <div>
+                      <Text type="secondary" style={{ fontSize: "10px", display: "block", textTransform: "uppercase", fontWeight: 700 }}>
+                        মোট অর্ডার
+                      </Text>
+                      <Tag color="cyan" style={{ fontWeight: 900, fontSize: "11px", borderRadius: 6, margin: "2px 0 0" }}>
+                        {item.totalOrders}টি ({item.deliveredCount} সাকসেস)
+                      </Tag>
+                    </div>
+
+                    <div style={{ textAlign: "right" }}>
+                      <Text type="secondary" style={{ fontSize: "10px", display: "block", textTransform: "uppercase", fontWeight: 700 }}>
+                        Lifetime Spent
+                      </Text>
+                      <Text strong style={{ fontSize: "14px", color: "#1677ff", display: "block" }}>
+                        {formatPrice(item.totalSpent)}
+                      </Text>
+                    </div>
+                  </div>
+
+                  {/* Footer Date */}
+                  {item.lastOrderDate && (
+                    <div className="pt-1.5 border-t border-slate-100 text-right">
+                      <Text type="secondary" style={{ fontSize: "10px" }}>
+                        সর্বশেষ কেনাকাটা: {format(new Date(item.lastOrderDate), "dd MMM, yyyy")}
+                      </Text>
+                    </div>
+                  )}
+                </div>
+              </Card>
+            );
+          })
+        )}
+      </div>
+
+      {/* Desktop Table View (hidden md:block) */}
+      <Card style={{ borderRadius: 16 }} styles={{ body: { padding: 0 } }} className="hidden md:block">
         <Table
           columns={columns}
           dataSource={filtered.map((c) => ({ ...c, key: c.phone }))}
