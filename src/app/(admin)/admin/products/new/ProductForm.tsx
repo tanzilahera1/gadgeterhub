@@ -16,7 +16,6 @@ import {
   Button,
   Row,
   Col,
-  Space,
   Typography,
   Divider,
   Flex,
@@ -90,6 +89,8 @@ export default function ProductForm({ categories, initialData }: { categories: C
       stockQuantity: values.stockQuantity,
       regularPrice: values.regularPrice,
       salePrice: values.salePrice || 0,
+      costPrice: values.costPrice || 0,
+      targetAdCost: values.targetAdCost || 0,
       weight: Number(values.weight) || 500,
       status: values.status,
       isDraft: values.status === "draft",
@@ -149,293 +150,266 @@ export default function ProductForm({ categories, initialData }: { categories: C
           sku: initialData?.sku || "",
           category: initialData?.category || undefined,
           brand: initialData?.brand || "",
-        stockQuantity: initialData?.stockQuantity ?? 0,
-        weight: initialData?.weight ?? 500,
-        regularPrice: initialData?.regularPrice ?? undefined,
-        salePrice: initialData?.salePrice ?? undefined,
-        status: initialData?.status || "published",
-        featured: initialData?.featured || false,
-        bestseller: initialData?.bestseller || false,
-        thumbnail: initialData?.thumbnail || "",
-        shortDesc: initialData?.shortDesc || "",
-        description: initialData?.description || "",
-      }}
-      className="space-y-6"
-    >
-      {/* Section 1: Basic Information */}
-      <Card
-        title={
-          <Text strong style={{ fontSize: "15px" }}>
-            <InfoCircleOutlined style={{ color: "#1677ff", marginRight: 8 }} />
-            Basic Details
-          </Text>
-        }
-        style={{ borderRadius: 16 }}
-        styles={{ body: { padding: 20 } }}
+          stockQuantity: initialData?.stockQuantity ?? 0,
+          weight: initialData?.weight ?? 500,
+          regularPrice: initialData?.regularPrice ?? undefined,
+          salePrice: initialData?.salePrice ?? undefined,
+          costPrice: initialData?.costPrice ?? undefined,
+          targetAdCost: initialData?.targetAdCost ?? undefined,
+          status: initialData?.status || "published",
+          featured: initialData?.featured || false,
+          bestseller: initialData?.bestseller || false,
+          thumbnail: initialData?.thumbnail || "",
+          shortDesc: initialData?.shortDesc || "",
+          description: initialData?.description || "",
+        }}
+        className="space-y-6"
       >
-        <Row gutter={[16, 16]}>
-          <Col xs={24} sm={12}>
-            <Form.Item
-              name="title"
-              label={<Text strong>Product Title</Text>}
-              rules={[{ required: true, message: "Please enter product title" }]}
-            >
-              <Input size="large" placeholder="e.g. Apple AirPods Pro 2" style={{ borderRadius: 10 }} />
-            </Form.Item>
-          </Col>
-
-          <Col xs={24} sm={12}>
-            <Form.Item
-              name="sku"
-              label={<Text strong>SKU (Stock Keeping Unit)</Text>}
-              rules={[{ required: true, message: "Please enter SKU" }]}
-            >
-              <Input size="large" placeholder="e.g. APP-AIRPODS-PRO2" style={{ borderRadius: 10 }} />
-            </Form.Item>
-          </Col>
-
-          <Col xs={24} sm={12}>
-            <Form.Item
-              name="category"
-              label={<Text strong>Category</Text>}
-              rules={[{ required: true, message: "Please select a category" }]}
-            >
-              <Select
-                size="large"
-                placeholder="Select a category"
-                style={{ borderRadius: 10 }}
-                options={categories.map((c) => ({ value: c._id, label: c.name }))}
-              />
-            </Form.Item>
-          </Col>
-
-          <Col xs={24} sm={12}>
-            <Form.Item name="brand" label={<Text strong>Brand (Optional)</Text>}>
-              <Input size="large" placeholder="e.g. Apple, Samsung, Anker" style={{ borderRadius: 10 }} />
-            </Form.Item>
-          </Col>
-
-          <Col xs={24} sm={12}>
-            <Form.Item
-              name="stockQuantity"
-              label={<Text strong>Stock Quantity</Text>}
-              rules={[{ required: true, message: "Please enter stock quantity" }]}
-            >
-              <InputNumber
-                size="large"
-                min={0}
-                style={{ width: "100%", borderRadius: 10 }}
-                placeholder="0"
-              />
-            </Form.Item>
-          </Col>
-
-          <Col xs={24} sm={12}>
-            <Form.Item
-              name="weight"
-              label={<Text strong>Product Weight (Grams)</Text>}
-              extra="Defaults to 500g (0-500g bracket) if left empty."
-            >
-              <InputNumber
-                size="large"
-                min={1}
-                step={50}
-                addonAfter="grams"
-                style={{ width: "100%", borderRadius: 10 }}
-                placeholder="500"
-              />
-            </Form.Item>
-          </Col>
-        </Row>
-      </Card>
-
-      {/* Section 2: Pricing & Status */}
-      <Card
-        title={
-          <Text strong style={{ fontSize: "15px" }}>
-            <DollarOutlined style={{ color: "#1677ff", marginRight: 8 }} />
-            Pricing & Status
-          </Text>
-        }
-        style={{ borderRadius: 16 }}
-        styles={{ body: { padding: 20 } }}
-      >
-        <Row gutter={[16, 16]}>
-          <Col xs={24} sm={8}>
-            <Form.Item
-              name="regularPrice"
-              label={<Text strong>Regular Price (৳)</Text>}
-              rules={[{ required: true, message: "Please enter regular price" }]}
-            >
-              <InputNumber
-                size="large"
-                min={0}
-                style={{ width: "100%", borderRadius: 10 }}
-                placeholder="e.g. 12000"
-              />
-            </Form.Item>
-          </Col>
-
-          <Col xs={24} sm={8}>
-            <Form.Item name="salePrice" label={<Text strong>Sale Price (৳)</Text>}>
-              <InputNumber
-                size="large"
-                min={0}
-                style={{ width: "100%", borderRadius: 10 }}
-                placeholder="Optional discount price"
-              />
-            </Form.Item>
-          </Col>
-
-          <Col xs={24} sm={8}>
-            <Form.Item
-              name="status"
-              label={<Text strong>Status</Text>}
-              rules={[{ required: true, message: "Please select status" }]}
-            >
-              <Select
-                size="large"
-                style={{ borderRadius: 10 }}
-                options={[
-                  { value: "published", label: "Published (Active)" },
-                  { value: "draft", label: "Draft (Hidden)" },
-                  { value: "archived", label: "Archived" },
-                ]}
-              />
-            </Form.Item>
-          </Col>
-        </Row>
-
-        <Divider style={{ margin: "16px 0" }} />
-
-        <Flex gap={24} wrap="wrap">
-          <Form.Item name="featured" valuePropName="checked" noStyle>
-            <Flex align="center" gap={8}>
-              <Switch />
-              <Text strong>Featured Product</Text>
-            </Flex>
-          </Form.Item>
-
-          <Form.Item name="bestseller" valuePropName="checked" noStyle>
-            <Flex align="center" gap={8}>
-              <Switch />
-              <Text strong>Bestseller Product</Text>
-            </Flex>
-          </Form.Item>
-        </Flex>
-      </Card>
-
-      {/* Section 3: Media */}
-      <Card
-        title={
-          <Text strong style={{ fontSize: "15px" }}>
-            <PictureOutlined style={{ color: "#1677ff", marginRight: 8 }} />
-            Media & Images
-          </Text>
-        }
-        style={{ borderRadius: 16 }}
-        styles={{ body: { padding: 20 } }}
-      >
-        <Form.Item
-          name="thumbnail"
-          label={<Text strong>Main Thumbnail Image URL</Text>}
-          rules={[{ required: true, message: "Please enter thumbnail image URL" }]}
-          extra="This is the primary image displayed on catalog cards."
+        {/* Section 1: Basic Details */}
+        <Card
+          title={
+            <Text strong style={{ fontSize: "15px" }}>
+              <InfoCircleOutlined style={{ color: "#1677ff", marginRight: 8 }} />
+              Basic Details
+            </Text>
+          }
+          style={{ borderRadius: 16 }}
+          styles={{ body: { padding: 20 } }}
         >
-          <Input size="large" placeholder="https://example.com/thumbnail.jpg" style={{ borderRadius: 10 }} />
-        </Form.Item>
+          <Row gutter={[16, 16]}>
+            <Col xs={24} sm={12}>
+              <Form.Item
+                name="title"
+                label={<Text strong>Product Title</Text>}
+                rules={[{ required: true, message: "Please enter title" }]}
+              >
+                <Input size="large" placeholder="e.g. Apple AirPods Pro 2" style={{ borderRadius: 10 }} />
+              </Form.Item>
+            </Col>
 
-        <Divider style={{ margin: "16px 0" }} />
+            <Col xs={24} sm={12}>
+              <Form.Item
+                name="sku"
+                label={<Text strong>SKU</Text>}
+                rules={[{ required: true, message: "Please enter SKU" }]}
+              >
+                <Input size="large" placeholder="e.g. APP-AIRPODS-PRO2" style={{ borderRadius: 10 }} />
+              </Form.Item>
+            </Col>
 
-        <div>
-          <Text strong style={{ display: "block", marginBottom: 4 }}>
-            Gallery Image URLs
+            <Col xs={24} sm={12}>
+              <Form.Item
+                name="category"
+                label={<Text strong>Category</Text>}
+                rules={[{ required: true, message: "Please select category" }]}
+              >
+                <Select
+                  size="large"
+                  placeholder="Select category"
+                  style={{ borderRadius: 10 }}
+                  options={categories.map((c) => ({ value: c._id, label: c.name }))}
+                />
+              </Form.Item>
+            </Col>
+
+            <Col xs={24} sm={12}>
+              <Form.Item name="brand" label={<Text strong>Brand (Optional)</Text>}>
+                <Input size="large" placeholder="e.g. Apple" style={{ borderRadius: 10 }} />
+              </Form.Item>
+            </Col>
+
+            <Col xs={24} sm={12}>
+              <Form.Item
+                name="stockQuantity"
+                label={<Text strong>Stock Quantity</Text>}
+                rules={[{ required: true, message: "Please enter stock" }]}
+              >
+                <InputNumber size="large" min={0} style={{ width: "100%", borderRadius: 10 }} placeholder="0" />
+              </Form.Item>
+            </Col>
+
+            <Col xs={24} sm={12}>
+              <Form.Item
+                name="weight"
+                label={<Text strong>Product Weight (Grams)</Text>}
+                extra="Defaults to 500g bracket"
+              >
+                <InputNumber size="large" min={1} step={50} addonAfter="grams" style={{ width: "100%", borderRadius: 10 }} placeholder="500" />
+              </Form.Item>
+            </Col>
+          </Row>
+        </Card>
+
+        {/* Section 2: Pricing & Profit Economics */}
+        <Card
+          title={
+            <Text strong style={{ fontSize: "15px" }}>
+              <DollarOutlined style={{ color: "#1677ff", marginRight: 8 }} />
+              Pricing & Profit Economics
+            </Text>
+          }
+          style={{ borderRadius: 16 }}
+          styles={{ body: { padding: 20 } }}
+        >
+          <Row gutter={[16, 16]}>
+            <Col xs={24} sm={6}>
+              <Form.Item
+                name="regularPrice"
+                label={<Text strong>Regular Price (৳)</Text>}
+                rules={[{ required: true, message: "Please enter regular price" }]}
+              >
+                <InputNumber size="large" min={0} style={{ width: "100%", borderRadius: 10 }} placeholder="1200" />
+              </Form.Item>
+            </Col>
+
+            <Col xs={24} sm={6}>
+              <Form.Item name="salePrice" label={<Text strong>Sale Price (৳)</Text>}>
+                <InputNumber size="large" min={0} style={{ width: "100%", borderRadius: 10 }} placeholder="Discount price" />
+              </Form.Item>
+            </Col>
+
+            <Col xs={24} sm={6}>
+              <Form.Item name="costPrice" label={<Text strong style={{ color: "#d97706" }}>📦 পাইকারি কেনাদাম (৳)</Text>} extra="ROI ও নিট লাভ হিসেব করতে">
+                <InputNumber size="large" min={0} style={{ width: "100%", borderRadius: 10 }} placeholder="650" />
+              </Form.Item>
+            </Col>
+
+            <Col xs={24} sm={6}>
+              <Form.Item name="targetAdCost" label={<Text strong style={{ color: "#2563eb" }}>📢 টার্গেট এড খরচ (৳)</Text>} extra="Per unit target CPA">
+                <InputNumber size="large" min={0} style={{ width: "100%", borderRadius: 10 }} placeholder="150" />
+              </Form.Item>
+            </Col>
+
+            <Col xs={24} sm={12}>
+              <Form.Item
+                name="status"
+                label={<Text strong>Status</Text>}
+                rules={[{ required: true, message: "Please select status" }]}
+              >
+                <Select
+                  size="large"
+                  style={{ borderRadius: 10 }}
+                  options={[
+                    { value: "published", label: "Published (Active)" },
+                    { value: "draft", label: "Draft (Hidden)" },
+                    { value: "archived", label: "Archived" },
+                  ]}
+                />
+              </Form.Item>
+            </Col>
+          </Row>
+
+          <Divider style={{ margin: "16px 0" }} />
+
+          <Flex gap={24} wrap="wrap">
+            <Form.Item name="featured" valuePropName="checked" noStyle>
+              <Flex align="center" gap={8}>
+                <Switch />
+                <Text strong>Featured Product</Text>
+              </Flex>
+            </Form.Item>
+
+            <Form.Item name="bestseller" valuePropName="checked" noStyle>
+              <Flex align="center" gap={8}>
+                <Switch />
+                <Text strong>Bestseller Product</Text>
+              </Flex>
+            </Form.Item>
+          </Flex>
+        </Card>
+
+        {/* Section 3: Media */}
+        <Card
+          title={
+            <Text strong style={{ fontSize: "15px" }}>
+              <PictureOutlined style={{ color: "#1677ff", marginRight: 8 }} />
+              Media & Images
+            </Text>
+          }
+          style={{ borderRadius: 16 }}
+          styles={{ body: { padding: 20 } }}
+        >
+          <Form.Item
+            name="thumbnail"
+            label={<Text strong>Main Thumbnail Image URL</Text>}
+            rules={[{ required: true, message: "Please enter thumbnail URL" }]}
+          >
+            <Input size="large" placeholder="https://..." style={{ borderRadius: 10 }} />
+          </Form.Item>
+
+          <Divider style={{ margin: "16px 0" }} />
+
+          <Text strong style={{ fontSize: "13px", display: "block", marginBottom: 12 }}>
+            Additional Gallery Images (URLs)
           </Text>
-          <Text type="secondary" style={{ fontSize: "12px", display: "block", marginBottom: 12 }}>
-            Add additional high-resolution product images for detail gallery.
-          </Text>
 
-          <Flex vertical gap={12} style={{ width: "100%" }}>
+          <div className="space-y-3">
             {galleryImages.map((img, idx) => (
               <Flex key={idx} align="center" gap={8}>
                 <Input
                   size="large"
-                  placeholder="https://example.com/gallery-image.jpg"
+                  placeholder={`Gallery Image #${idx + 1} URL`}
                   value={img}
                   onChange={(e) => handleGalleryChange(idx, e.target.value)}
                   style={{ borderRadius: 10 }}
                 />
-                <Button
-                  danger
-                  icon={<DeleteOutlined />}
-                  onClick={() => handleRemoveGalleryField(idx)}
-                />
+                <Button danger icon={<DeleteOutlined />} onClick={() => handleRemoveGalleryField(idx)} />
               </Flex>
             ))}
 
-            <Button
-              type="dashed"
-              icon={<PlusOutlined />}
-              onClick={handleAddGalleryField}
-              style={{ fontWeight: 600, borderRadius: 10 }}
-            >
+            <Button type="dashed" icon={<PlusOutlined />} onClick={handleAddGalleryField} block style={{ borderRadius: 10, marginTop: 8 }}>
               Add Another Gallery Image
             </Button>
-          </Flex>
-        </div>
-      </Card>
+          </div>
+        </Card>
 
-      {/* Section 4: Descriptions */}
-      <Card
-        title={
-          <Text strong style={{ fontSize: "15px" }}>
-            <FileTextOutlined style={{ color: "#1677ff", marginRight: 8 }} />
-            Product Description
-          </Text>
-        }
-        style={{ borderRadius: 16 }}
-        styles={{ body: { padding: 20 } }}
-      >
-        <Form.Item
-          name="shortDesc"
-          label={<Text strong>Short Summary (Max 160 characters)</Text>}
-          rules={[{ required: true, message: "Please enter short description" }]}
+        {/* Section 4: Content */}
+        <Card
+          title={
+            <Text strong style={{ fontSize: "15px" }}>
+              <FileTextOutlined style={{ color: "#1677ff", marginRight: 8 }} />
+              Description & Details
+            </Text>
+          }
+          style={{ borderRadius: 16 }}
+          styles={{ body: { padding: 20 } }}
         >
-          <Input maxLength={160} size="large" placeholder="Brief summary of key features" style={{ borderRadius: 10 }} />
-        </Form.Item>
-
-        <Form.Item
-          name="description"
-          label={<Text strong>Full Specification & Description</Text>}
-          rules={[{ required: true, message: "Please enter full description" }]}
-        >
-          <TextArea
-            rows={6}
-            placeholder="Detailed features, specifications, package contents, and warranty details..."
-            style={{ borderRadius: 10 }}
-          />
-        </Form.Item>
-      </Card>
-
-      {/* Bottom Action Footer */}
-      <Card style={{ borderRadius: 16 }} styles={{ body: { padding: 16 } }}>
-        <Flex justify="space-between" align="center" wrap="wrap" gap={12}>
-          <Button icon={<ArrowLeftOutlined />} onClick={() => router.back()} style={{ fontWeight: 600 }}>
-            Cancel
-          </Button>
-
-          <Button
-            type="primary"
-            htmlType="submit"
-            size="large"
-            loading={isLoading}
-            icon={isLoading ? <LoadingOutlined /> : <SaveOutlined />}
-            style={{ fontWeight: 800, paddingLeft: 24, paddingRight: 24 }}
+          <Form.Item
+            name="shortDesc"
+            label={<Text strong>Short Summary (Max 160 characters)</Text>}
+            rules={[{ required: true, message: "Please enter short description" }]}
           >
-            {isEditing ? "Save Product Changes" : "Create Product"}
-          </Button>
-        </Flex>
-      </Card>
+            <Input maxLength={160} size="large" placeholder="Brief summary" style={{ borderRadius: 10 }} />
+          </Form.Item>
+
+          <Form.Item
+            name="description"
+            label={<Text strong>Full Specification & Description</Text>}
+            rules={[{ required: true, message: "Please enter full description" }]}
+          >
+            <TextArea rows={6} placeholder="Detailed features..." style={{ borderRadius: 10 }} />
+          </Form.Item>
+        </Card>
+
+        {/* Bottom Action Footer */}
+        <Card style={{ borderRadius: 16 }} styles={{ body: { padding: 16 } }}>
+          <Flex justify="space-between" align="center" wrap="wrap" gap={12}>
+            <Button icon={<ArrowLeftOutlined />} onClick={() => router.back()} style={{ fontWeight: 600 }}>
+              Cancel
+            </Button>
+
+            <Button
+              type="primary"
+              htmlType="submit"
+              size="large"
+              loading={isLoading}
+              icon={isLoading ? <LoadingOutlined /> : <SaveOutlined />}
+              style={{ fontWeight: 800, paddingLeft: 24, paddingRight: 24 }}
+            >
+              {isEditing ? "Save Product Changes" : "Create Product"}
+            </Button>
+          </Flex>
+        </Card>
       </Form>
     </div>
   );

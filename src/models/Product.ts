@@ -50,6 +50,7 @@ const ProductSchema = new Schema<IProduct & Document>(
     regularPrice: { type: Number, required: true, min: 0 },
     salePrice: { type: Number, min: 0 },
     costPrice: { type: Number, min: 0 },
+    targetAdCost: { type: Number, min: 0 },
     stockQuantity: { type: Number, required: true, min: 0, default: 0 },
     thumbnail: { type: String, required: true },
     images: { type: [ProductImageSchema], required: true },

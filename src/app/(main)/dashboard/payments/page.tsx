@@ -109,7 +109,7 @@ export default async function PaymentsPage() {
                   <div className="flex items-center justify-between sm:justify-end gap-6 w-full sm:w-auto">
                     <div className="text-left sm:text-right">
                       <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-1">
-                        Amount
+                        {payment.advancePaid && payment.advancePaid > 0 ? "Net COD Amount" : "Amount"}
                       </p>
                       <p
                         className={cn(
@@ -117,8 +117,13 @@ export default async function PaymentsPage() {
                           isPaid ? "text-slate-900" : "text-amber-600",
                         )}
                       >
-                        {formatPrice(payment.total)}
+                        {formatPrice(Math.max(0, payment.total - (payment.advancePaid || 0)))}
                       </p>
+                      {Boolean(payment.advancePaid && payment.advancePaid > 0) && (
+                        <p className="text-[10px] font-bold text-blue-600">
+                          Adv Paid: {formatPrice(payment.advancePaid || 0)}
+                        </p>
+                      )}
                     </div>
                     <Link href={`/dashboard/my-orders/${payment._id}`}>
                       <button className="size-10 rounded-xl bg-slate-50 text-slate-400 flex items-center justify-center hover:bg-primary hover:text-white transition-all shadow-sm group-hover:shadow-md">

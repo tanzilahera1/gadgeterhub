@@ -5,7 +5,7 @@ import { formatPrice } from "@/lib/priceUtils";
 import { notFound } from "next/navigation";
 import { ProductImageGallery } from "@/components/product/ProductImageGallery";
 import { ProductActions } from "@/components/product/ProductActions";
-import { Star, Package, Info, ListChecks, ScrollText } from "lucide-react";
+import { Star, Package, Info, ListChecks, ScrollText, Truck, RefreshCcw } from "lucide-react";
 import Link from "next/link";
 import ProductCard from "@/components/products/ProductCard";
 
@@ -201,10 +201,28 @@ export default async function ProductDetailPage({
         </nav>
 
         {/* ==================== Main Section ==================== */}
-        <div className="grid md:grid-cols-2 gap-5 md:gap-6 lg:gap-12">
-          {/* Image */}
-          <div className="min-w-0">
+        <div className="grid md:grid-cols-2 gap-5 md:gap-6 lg:gap-12 md:items-start">
+          {/* Image + Desktop Trust Badges */}
+          <div className="min-w-0 space-y-3">
             <ProductImageGallery images={product.images || []} />
+
+            {/* Trust Badges — desktop only (mobile version is inside ProductActions) */}
+            <div className="hidden md:flex gap-3">
+              <div className="flex flex-1 items-center gap-3 px-4 py-3 rounded-xl border border-border bg-muted/30">
+                <Truck className="size-4 text-primary shrink-0" />
+                <div>
+                  <p className="text-[10px] text-muted-foreground">ডেলিভারি</p>
+                  <p className="text-xs font-bold">২৪–৪৮ ঘণ্টা</p>
+                </div>
+              </div>
+              <div className="flex flex-1 items-center gap-3 px-4 py-3 rounded-xl border border-border bg-muted/30">
+                <RefreshCcw className="size-4 text-primary shrink-0" />
+                <div>
+                  <p className="text-[10px] text-muted-foreground">রিটার্ন</p>
+                  <p className="text-xs font-bold">৭ দিন</p>
+                </div>
+              </div>
+            </div>
           </div>
 
           {/* Info */}
@@ -272,7 +290,7 @@ export default async function ProductDetailPage({
           {/* ── Features Section ── */}
           {hasFeatures && (
             <section className="min-w-0">
-              <div className="flex items-center gap-2 sm:gap-2.5 mb-4 sm:mb-5">
+              <div className="flex items-center justify-center gap-2 sm:gap-2.5 mb-4 sm:mb-5 text-center">
                 <div className="flex items-center justify-center size-8 sm:size-9 rounded-lg bg-primary/10 shrink-0">
                   <ListChecks className="size-4 sm:size-5 text-primary" />
                 </div>
@@ -299,17 +317,16 @@ export default async function ProductDetailPage({
             </section>
           )}
 
-          {/* ── Description & Specs Grid ── */}
-          <div className="grid lg:grid-cols-3 gap-6 lg:gap-8">
-            {/* Description — 2/3 */}
-            <div className="lg:col-span-2 min-w-0">
-              <div className="flex items-center gap-2 sm:gap-2.5 mb-4 sm:mb-5">
+          {/* ── Description & Specs: stacked, description full-width, specs 2-col ── */}
+          <div className="space-y-8">
+
+            {/* Description — full width */}
+            <div className="min-w-0">
+              <div className="flex items-center justify-center gap-2 sm:gap-2.5 mb-4 sm:mb-5 text-center">
                 <div className="flex items-center justify-center size-8 sm:size-9 rounded-lg bg-blue-500/10 shrink-0">
                   <ScrollText className="size-4 sm:size-5 text-blue-600 dark:text-blue-400" />
                 </div>
-                <h2 className="text-lg sm:text-xl font-black">
-                  বিস্তারিত বিবরণ
-                </h2>
+                <h2 className="text-lg sm:text-xl font-black">বিস্তারিত বিবরণ</h2>
               </div>
 
               <div className="rounded-2xl border border-border/50 bg-card p-4 sm:p-6 lg:p-7 overflow-hidden">
@@ -329,30 +346,22 @@ export default async function ProductDetailPage({
               </div>
             </div>
 
-            {/* Specifications — 1/3 */}
+            {/* Specifications — full width, 2-column internal grid */}
             {hasSpecs && (
               <div className="min-w-0">
-                <div className="flex items-center gap-2 sm:gap-2.5 mb-4 sm:mb-5">
+                <div className="flex items-center justify-center gap-2 sm:gap-2.5 mb-4 sm:mb-5 text-center">
                   <div className="flex items-center justify-center size-8 sm:size-9 rounded-lg bg-amber-500/10 shrink-0">
                     <Info className="size-4 sm:size-5 text-amber-600 dark:text-amber-400" />
                   </div>
-                  <h2 className="text-lg sm:text-xl font-black">
-                    স্পেসিফিকেশন
-                  </h2>
+                  <h2 className="text-lg sm:text-xl font-black">স্পেসিফিকেশন</h2>
                 </div>
 
-                <div className="rounded-2xl border border-border/50 bg-card overflow-hidden lg:sticky lg:top-20">
-                  {displaySpecs.map(
-                    (spec: IProductSpecification, idx: number) => (
+                <div className="rounded-2xl border border-border/50 bg-card overflow-hidden">
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2.5 sm:gap-3 p-3 sm:p-4">
+                    {displaySpecs.map((spec: IProductSpecification, idx: number) => (
                       <div
                         key={idx}
-                        className={`flex flex-col gap-0.5 px-3 sm:px-4 py-2.5 sm:py-3 text-sm min-w-0 ${
-                          idx % 2 === 0 ? "bg-muted/30" : "bg-transparent"
-                        } ${
-                          idx !== displaySpecs.length - 1
-                            ? "border-b border-border/30"
-                            : ""
-                        }`}
+                        className="flex flex-col gap-1 p-3 rounded-xl bg-muted/30 border border-border/40 hover:bg-muted/50 transition-colors min-w-0"
                       >
                         <span className="text-[10px] sm:text-[11px] font-semibold uppercase tracking-wider text-muted-foreground break-words">
                           {spec.key}
@@ -361,10 +370,10 @@ export default async function ProductDetailPage({
                           {spec.value}
                         </span>
                       </div>
-                    ),
-                  )}
+                    ))}
+                  </div>
 
-                  {/* Stock Status */}
+                  {/* Stock Status — full-width footer row */}
                   <div className="px-3 sm:px-4 py-2.5 sm:py-3 bg-muted/30 border-t border-border/30">
                     <span className="text-[10px] sm:text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
                       স্টক স্ট্যাটাস
@@ -382,6 +391,7 @@ export default async function ProductDetailPage({
               </div>
             )}
           </div>
+
         </div>
 
         {/* ==================== Related Products ==================== */}

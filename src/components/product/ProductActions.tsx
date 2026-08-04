@@ -247,7 +247,7 @@ export function ProductActions({
         </div>
       </div>
 
-      {/* Actions */}
+      {/* Action Buttons — 2 columns */}
       <div className="grid grid-cols-2 gap-3 w-full">
         <Button
           onClick={handleAddToCart}
@@ -284,33 +284,38 @@ export function ProductActions({
         </Button>
       </div>
 
-                  {/* WhatsApp অর্ডার বাটন */}
-       <WhatsAppOrderButton product={product} quantity={displayQty} color={selectedColor} size={selectedSize} />
+      {/* WhatsApp — full-width row, both desktop & mobile */}
+      <WhatsAppOrderButton
+        product={product}
+        quantity={displayQty}
+        color={selectedColor}
+        size={selectedSize}
+      />
 
-      {/* Separator */}
-      <div className="flex items-center gap-4 py-2">
-        <div className="h-px flex-1 bg-foreground/10"></div>
-        <span className="shrink-0 text-xs font-black uppercase tracking-[0.3em] text-muted-foreground/60">
-          সার্ভিস ইনফো
-        </span>
-        <div className="h-px flex-1 bg-foreground/10"></div>
-      </div>
-
-      {/* Trust Badges — ভার্টিক্যাল */}
-      <div className="flex flex-col rounded-xl border border-border overflow-hidden">
-        <div className="flex items-center gap-3 px-4 py-3 bg-muted/30">
-          <Truck className="size-4 text-primary shrink-0" />
-          <div>
-            <p className="text-[10px] text-muted-foreground">ডেলিভারি</p>
-            <p className="text-xs font-bold">২৪–৪৮ ঘণ্টা</p>
-          </div>
+      {/* Separator + Trust Badges — mobile only; desktop shown in image column */}
+      <div className="md:hidden">
+        <div className="flex items-center gap-4 py-2">
+          <div className="h-px flex-1 bg-foreground/10"></div>
+          <span className="shrink-0 text-xs font-black uppercase tracking-[0.3em] text-muted-foreground/60">
+            সার্ভিস ইনফো
+          </span>
+          <div className="h-px flex-1 bg-foreground/10"></div>
         </div>
 
-        <div className="flex items-center gap-3 px-4 py-3 bg-muted/30">
-          <RefreshCcw className="size-4 text-primary shrink-0" />
-          <div>
-            <p className="text-[10px] text-muted-foreground">রিটার্ন</p>
-            <p className="text-xs font-bold">৭ দিন</p>
+        <div className="flex flex-col rounded-xl border border-border overflow-hidden">
+          <div className="flex items-center gap-3 px-4 py-3 bg-muted/30">
+            <Truck className="size-4 text-primary shrink-0" />
+            <div>
+              <p className="text-[10px] text-muted-foreground">ডেলিভারি</p>
+              <p className="text-xs font-bold">২৪–৪৮ ঘণ্টা</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-3 px-4 py-3 bg-muted/30 border-t border-border/40">
+            <RefreshCcw className="size-4 text-primary shrink-0" />
+            <div>
+              <p className="text-[10px] text-muted-foreground">রিটার্ন</p>
+              <p className="text-xs font-bold">৭ দিন</p>
+            </div>
           </div>
         </div>
       </div>

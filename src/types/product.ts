@@ -40,6 +40,7 @@ export interface IProduct {
   regularPrice: Price
   salePrice?: Price
   costPrice?: Price
+  targetAdCost?: Price
   stockQuantity: StockQuantity
   thumbnail: string
   images: IProductImage[]

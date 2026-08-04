@@ -16,6 +16,8 @@ import {
   ArrowLeftOutlined,
   CloseOutlined,
   ShoppingOutlined,
+  UserOutlined,
+  DollarOutlined,
 } from "@ant-design/icons";
 import { useSidebar } from "@/hooks/use-sidebar";
 
@@ -25,6 +27,8 @@ const { Text, Title } = Typography;
 const NAV_ITEMS = [
   { key: "/admin", label: "Dashboard", icon: <DashboardOutlined /> },
   { key: "/admin/orders", label: "Orders", icon: <ShoppingCartOutlined /> },
+  { key: "/admin/finance", label: "Finance & Profit", icon: <DollarOutlined /> },
+  { key: "/admin/customers", label: "Customers", icon: <UserOutlined /> },
   { key: "/admin/products", label: "Products", icon: <ShoppingOutlined /> },
   { key: "/admin/categories", label: "Categories", icon: <AppstoreOutlined /> },
   { key: "/admin/brands", label: "Brands", icon: <TagsOutlined /> },

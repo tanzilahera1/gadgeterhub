@@ -224,37 +224,69 @@ export default async function UserOrderDetailsPage({
             </div>
 
             {/* Pricing Footer */}
-            <div className="p-6 sm:p-8 bg-slate-900 text-white flex flex-col sm:flex-row items-center justify-between gap-6">
-              <div className="flex items-center gap-6 text-center sm:text-left">
-                <div>
-                  <p className="text-[9px] font-black uppercase text-slate-400 tracking-widest mb-1">
-                    SUBTOTAL
-                  </p>
-                  <p className="text-sm font-bold">
-                    {formatPrice(order.subtotal)}
-                  </p>
+            {(() => {
+              const effectiveVipPrivilege = (order.vipPrivilege && order.vipPrivilege > 0) ? order.vipPrivilege : (order.discount || 0);
+              const codAmount = Math.max(0, order.total - (order.advancePaid || 0));
+              return (
+                <div className="p-6 sm:p-8 bg-slate-900 text-white flex flex-col sm:flex-row items-center justify-between gap-6">
+                  <div className="flex flex-wrap items-center gap-6 text-center sm:text-left">
+                    <div>
+                      <p className="text-[9px] font-black uppercase text-slate-400 tracking-widest mb-1">
+                        SUBTOTAL
+                      </p>
+                      <p className="text-sm font-bold">
+                        {formatPrice(order.subtotal)}
+                      </p>
+                    </div>
+                    {effectiveVipPrivilege > 0 && (
+                      <>
+                        <div className="w-px h-8 bg-white/10 hidden sm:block" />
+                        <div>
+                          <p className="text-[9px] font-black uppercase text-amber-400 tracking-widest mb-1">
+                            🌟 VIP PRIVILEGE
+                          </p>
+                          <p className="text-sm font-bold text-amber-400">
+                            -{formatPrice(effectiveVipPrivilege)}
+                          </p>
+                        </div>
+                      </>
+                    )}
+                    <div className="w-px h-8 bg-white/10 hidden sm:block" />
+                    <div>
+                      <p className="text-[9px] font-black uppercase text-slate-400 tracking-widest mb-1">
+                        SHIPPING
+                      </p>
+                      <p className="text-sm font-bold">
+                        {formatPrice(order.shippingCost)}
+                      </p>
+                    </div>
+                    {Boolean(order.advancePaid && order.advancePaid > 0) && (
+                      <>
+                        <div className="w-px h-8 bg-white/10 hidden sm:block" />
+                        <div>
+                          <p className="text-[9px] font-black uppercase text-blue-400 tracking-widest mb-1">
+                            💳 ADVANCE PAID
+                          </p>
+                          <p className="text-sm font-bold text-blue-400">
+                            -{formatPrice(order.advancePaid || 0)}
+                          </p>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-6">
+                    <div className="text-right">
+                      <p className="text-[10px] font-black uppercase text-primary tracking-widest mb-1">
+                        {order.advancePaid && order.advancePaid > 0 ? "NET COD TOTAL" : "GRAND TOTAL"}
+                      </p>
+                      <p className="text-3xl font-black tracking-tighter">
+                        {formatPrice(codAmount)}
+                      </p>
+                    </div>
+                  </div>
                 </div>
-                <div className="w-px h-8 bg-white/10 hidden sm:block" />
-                <div>
-                  <p className="text-[9px] font-black uppercase text-slate-400 tracking-widest mb-1">
-                    SHIPPING
-                  </p>
-                  <p className="text-sm font-bold">
-                    {formatPrice(order.shippingCost)}
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-center gap-6">
-                <div className="text-right">
-                  <p className="text-[10px] font-black uppercase text-primary tracking-widest mb-1">
-                    GRAND TOTAL
-                  </p>
-                  <p className="text-3xl font-black tracking-tighter">
-                    {formatPrice(order.total)}
-                  </p>
-                </div>
-              </div>
-            </div>
+              );
+            })()}
           </section>
         </div>
 

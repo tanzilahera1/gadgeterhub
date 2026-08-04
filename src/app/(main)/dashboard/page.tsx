@@ -49,6 +49,7 @@ interface RecentOrderData {
   orderNumber: string;
   orderStatus: "pending" | "processing" | "shipped" | "delivered" | "cancelled";
   total: number;
+  advancePaid?: number;
   createdAt: string;
 }
 
@@ -274,9 +275,14 @@ export default async function DashboardOverview() {
                       </div>
                       <div className="text-right">
                         <p className="font-black text-sm text-slate-900">
-                          {formatPrice(order.total)}
+                          {formatPrice(Math.max(0, order.total - (order.advancePaid || 0)))}
                         </p>
-                        <span className="text-[10px] font-black uppercase text-slate-400 tracking-widest">
+                        {Boolean(order.advancePaid && order.advancePaid > 0) && (
+                          <p className="text-[9px] font-bold text-blue-600">
+                            Adv Paid: {formatPrice(order.advancePaid || 0)}
+                          </p>
+                        )}
+                        <span className="text-[10px] font-black uppercase text-slate-400 tracking-widest block">
                           {order.orderStatus}
                         </span>
                       </div>

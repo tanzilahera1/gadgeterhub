@@ -285,9 +285,11 @@ export async function updateOrderStatus(orderId: string, status: string) {
 
 export interface AdminManualOrderItemInput {
   productId: string;
+  productTitle?: string;
   color?: string;
   size?: string;
   quantity: number;
+  unitPrice?: number;
 }
 
 export interface AdminManualOrderInput {
@@ -307,6 +309,9 @@ export interface AdminManualOrderInput {
   transactionId?: string;
   customerNotes?: string;
   channelSource: ChannelSource;
+  discount?: number;
+  vipPrivilege?: number;
+  advancePaid?: number;
   items: AdminManualOrderItemInput[];
 }
 
@@ -331,7 +336,11 @@ export async function createAdminManualOrder(data: AdminManualOrderInput) {
       return { error: "প্রোডাক্ট পাওয়া যায়নি" };
     }
 
-    const unitPrice = product.salePrice || product.regularPrice;
+    const unitPrice = item.unitPrice !== undefined && item.unitPrice >= 0
+      ? item.unitPrice
+      : (product.salePrice || product.regularPrice);
+    const title = item.productTitle && item.productTitle.trim() ? item.productTitle.trim() : product.title;
+
     subtotal += unitPrice * item.quantity;
     totalWeightGrams += (product.weight || 500) * item.quantity;
 
@@ -339,7 +348,7 @@ export async function createAdminManualOrder(data: AdminManualOrderInput) {
       product: product._id,
       color: item.color || undefined,
       size: item.size || undefined,
-      productTitle: product.title,
+      productTitle: title,
       productSlug: product.slug,
       productImage: product.thumbnail,
       unitPrice,
@@ -349,7 +358,14 @@ export async function createAdminManualOrder(data: AdminManualOrderInput) {
   }
 
   const shippingCost = calculateShippingCost(data.deliveryArea, totalWeightGrams);
-  const total = subtotal + shippingCost;
+  const discount = Math.max(0, data.discount || 0);
+  const vipPrivilege = Math.max(0, data.vipPrivilege || 0);
+  const advancePaid = Math.max(0, data.advancePaid || 0);
+
+  const total = Math.max(0, subtotal + shippingCost - discount - vipPrivilege);
+  // COD fee: courier charges ~1% of COD collection amount for cash-on-delivery
+  const codCollectionAmount = Math.max(0, total - advancePaid);
+  const courierCodFee = data.paymentMethod === "cod" ? Math.round(codCollectionAmount * 0.01) : 0;
   const deliveryZone = DELIVERY_ZONES[data.deliveryArea]?.badgeLabel || "ISD (Inside Dhaka)";
 
   const channelSource = data.channelSource || "web";
@@ -380,13 +396,16 @@ export async function createAdminManualOrder(data: AdminManualOrderInput) {
     subtotal,
     shippingCost,
     totalWeightGrams,
-    discount: 0,
+    discount,
+    vipPrivilege,
+    advancePaid,
     total,
     paymentMethod: data.paymentMethod,
     paymentStatus: data.paymentMethod === "mobile" ? "paid" : "pending",
     paymentProvider: data.paymentProvider || undefined,
     senderNumber: data.senderNumber || undefined,
     transactionId: data.transactionId || undefined,
+    courierCodFee,
     orderStatus: "pending",
     customerNotes: data.customerNotes,
   });
@@ -407,3 +426,188 @@ export async function createAdminManualOrder(data: AdminManualOrderInput) {
   revalidatePath("/admin/orders");
   return { success: true, orderNumber: order.orderNumber };
 }
+
+export interface UpdateAdminOrderItemInput {
+  productId: string;
+  productTitle?: string;
+  color?: string;
+  size?: string;
+  quantity: number;
+  unitPrice?: number;
+}
+
+export interface UpdateAdminOrderInput {
+  orderId: string;
+  name?: string;
+  phone?: string;
+  isGift?: boolean;
+  receiverName?: string;
+  receiverPhone?: string;
+  addressLine1?: string;
+  addressLine2?: string;
+  city?: string;
+  district?: string;
+  deliveryArea?: DeliveryZone;
+  channelSource?: ChannelSource;
+  customerNotes?: string;
+  discount?: number;
+  vipPrivilege?: number;
+  advancePaid?: number;
+  shippingCostOverride?: number;
+  items?: UpdateAdminOrderItemInput[];
+}
+
+export async function updateAdminOrder(data: UpdateAdminOrderInput) {
+  const session = await auth();
+  if (session?.user?.role !== "admin") {
+    return { error: "Unauthorized" };
+  }
+  await dbConnect();
+
+  const order = await Order.findById(data.orderId);
+  if (!order) {
+    return { error: "অর্ডারটি পাওয়া যায়নি" };
+  }
+
+  // 1. Update Items if provided
+  if (data.items && data.items.length > 0) {
+    let subtotal = 0;
+    let totalWeightGrams = 0;
+    const newItems = [];
+
+    for (const item of data.items) {
+      const product = await Product.findById(item.productId);
+      const price = item.unitPrice !== undefined && item.unitPrice >= 0
+        ? item.unitPrice
+        : (product ? (product.salePrice || product.regularPrice) : 0);
+
+      const title = item.productTitle && item.productTitle.trim() ? item.productTitle.trim() : (product?.title || "Custom Product");
+      const weight = product?.weight || 500;
+      subtotal += price * item.quantity;
+      totalWeightGrams += weight * item.quantity;
+
+      newItems.push({
+        product: product?._id || item.productId,
+        color: item.color || undefined,
+        size: item.size || undefined,
+        productTitle: title,
+        productSlug: product?.slug || "custom-product",
+        productImage: product?.thumbnail || "",
+        unitPrice: price,
+        itemQuantity: item.quantity,
+        productSku: product?.sku || "SKU-CUSTOM",
+      });
+    }
+
+    order.items = newItems;
+    order.subtotal = subtotal;
+    order.totalWeightGrams = totalWeightGrams;
+  }
+
+  // 2. Update Shipping & Customer Info
+  const deliveryArea = data.deliveryArea || order.shipping.deliveryArea || "dhaka";
+  const shippingName = data.isGift && data.receiverName ? data.receiverName : (data.name || order.shipping.name);
+  const shippingPhone = data.isGift && data.receiverPhone ? data.receiverPhone : (data.phone || order.shipping.phone);
+
+  if (data.phone) order.customerPhone = data.phone;
+  if (data.channelSource) order.channelSource = data.channelSource;
+  if (data.customerNotes !== undefined) order.customerNotes = data.customerNotes;
+
+  order.shipping = {
+    ...order.shipping,
+    name: shippingName,
+    phone: shippingPhone,
+    addressLine1: data.addressLine1 !== undefined ? data.addressLine1 : order.shipping.addressLine1,
+    addressLine2: data.addressLine2 !== undefined ? data.addressLine2 : order.shipping.addressLine2,
+    city: data.city !== undefined ? data.city : order.shipping.city,
+    district: data.district !== undefined ? data.district : order.shipping.district,
+    deliveryArea,
+    deliveryZone: DELIVERY_ZONES[deliveryArea as DeliveryZone]?.badgeLabel || order.shipping.deliveryZone,
+  };
+
+  // 3. Recalculate Shipping Cost & Total
+  const shippingCost = data.shippingCostOverride !== undefined && data.shippingCostOverride >= 0
+    ? data.shippingCostOverride
+    : calculateShippingCost(deliveryArea as DeliveryZone, order.totalWeightGrams || 500);
+
+  order.shippingCost = shippingCost;
+
+  if (data.discount !== undefined && data.discount >= 0) {
+    order.discount = data.discount;
+  }
+  if (data.vipPrivilege !== undefined && data.vipPrivilege >= 0) {
+    order.vipPrivilege = data.vipPrivilege;
+  }
+  if (data.advancePaid !== undefined && data.advancePaid >= 0) {
+    order.advancePaid = data.advancePaid;
+  }
+
+  order.total = Math.max(0, order.subtotal + shippingCost - (order.discount || 0) - (order.vipPrivilege || 0));
+
+  // Recalculate courier COD fee based on updated total
+  const updatedCodAmount = Math.max(0, order.total - (order.advancePaid || 0));
+  order.courierCodFee = order.paymentMethod === "cod" ? Math.round(updatedCodAmount * 0.01) : 0;
+
+  await order.save();
+
+  revalidatePath("/admin");
+  revalidatePath("/admin/orders");
+  revalidatePath(`/admin/orders/${data.orderId}`);
+
+  return { success: true };
+}
+
+export async function lookupCustomerHistory(phone: string) {
+  const session = await auth();
+  if (session?.user?.role !== "admin") {
+    return { error: "Unauthorized" };
+  }
+  if (!phone || phone.trim().length < 6) {
+    return { success: false, history: null };
+  }
+
+  await dbConnect();
+  const cleanPhone = phone.trim().replace(/[^0-9]/g, "");
+
+  const pastOrders = await Order.find({
+    $or: [
+      { customerPhone: cleanPhone },
+      { "shipping.phone": cleanPhone },
+      { customerPhone: { $regex: cleanPhone + "$" } },
+      { "shipping.phone": { $regex: cleanPhone + "$" } },
+    ],
+  })
+    .select("orderNumber orderStatus shipping subtotal shippingCost total createdAt")
+    .sort({ createdAt: -1 })
+    .lean();
+
+  if (!pastOrders || pastOrders.length === 0) {
+    return { success: true, history: null };
+  }
+
+  const totalOrders = pastOrders.length;
+  const deliveredCount = pastOrders.filter((o) => o.orderStatus === "delivered").length;
+  const returnedCount = pastOrders.filter((o) => o.orderStatus === "returned").length;
+  const totalSpent = pastOrders.reduce((sum, o) => sum + (o.total || 0), 0);
+
+  const lastOrder = pastOrders[0];
+
+  return {
+    success: true,
+    history: {
+      totalOrders,
+      deliveredCount,
+      returnedCount,
+      totalSpent,
+      lastShipping: {
+        name: lastOrder.shipping?.name || "",
+        phone: lastOrder.shipping?.phone || cleanPhone,
+        addressLine1: lastOrder.shipping?.addressLine1 || "",
+        addressLine2: lastOrder.shipping?.addressLine2 || "",
+        city: lastOrder.shipping?.city || "",
+        district: lastOrder.shipping?.district || "",
+        deliveryArea: lastOrder.shipping?.deliveryArea || "dhaka",
+      },
+    },
+  };
+}

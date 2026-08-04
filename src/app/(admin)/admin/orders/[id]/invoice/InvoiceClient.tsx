@@ -228,46 +228,67 @@ export function InvoiceClient({ order }: Props) {
                 </tr>
               ))}
 
-              <tr>
-                <td colSpan={2} rowSpan={order.discount > 0 ? 5 : 4} />
-                <td colSpan={2} className="summary-label">
-                  Subtotal
-                </td>
-                <td className="summary-value">{order.subtotal}</td>
-              </tr>
-              <tr>
-                <td colSpan={2} className="summary-label">
-                  Shipping
-                </td>
-                <td className="summary-value">{order.shippingCost}</td>
-              </tr>
-              {order.discount > 0 && (
-                <tr>
-                  <td colSpan={2} className="summary-label">
-                    Discount
-                  </td>
-                  <td className="summary-value">-{order.discount}</td>
-                </tr>
-              )}
-              <tr>
-                <td colSpan={2} className="summary-label">
-                  Total
-                </td>
-                <td className="summary-value">{order.total}</td>
-              </tr>
-              <tr className="payable-row">
-                <td colSpan={2} className="summary-label highlight-yellow">
-                  Customer Payable
-                </td>
-                <td className="summary-value highlight-yellow">
-                  {order.total}
-                </td>
-              </tr>
+              {(() => {
+                const vipDeduction = (order.vipPrivilege && order.vipPrivilege > 0) ? order.vipPrivilege : (order.discount || 0);
+                let rowCount = 4; // Subtotal, Shipping, Total, Customer Payable
+                if (vipDeduction > 0) rowCount++;
+                if (order.advancePaid && order.advancePaid > 0) rowCount++;
+
+                return (
+                  <>
+                    <tr>
+                      <td colSpan={2} rowSpan={rowCount} />
+                      <td colSpan={2} className="summary-label">
+                        Subtotal
+                      </td>
+                      <td className="summary-value">{order.subtotal}</td>
+                    </tr>
+                    {vipDeduction > 0 && (
+                      <tr>
+                        <td colSpan={2} className="summary-label highlight-yellow" style={{ color: "#d97706" }}>
+                          VIP Privilege
+                        </td>
+                        <td className="summary-value highlight-yellow" style={{ color: "#d97706" }}>
+                          -{vipDeduction}
+                        </td>
+                      </tr>
+                    )}
+                    {Boolean(order.advancePaid && order.advancePaid > 0) && (
+                      <tr>
+                        <td colSpan={2} className="summary-label">
+                          Advance Paid
+                        </td>
+                        <td className="summary-value">-{order.advancePaid}</td>
+                      </tr>
+                    )}
+                    <tr>
+                      <td colSpan={2} className="summary-label">
+                        Delevary Charge
+                      </td>
+                      <td className="summary-value">{order.shippingCost}</td>
+                    </tr>
+                    <tr>
+                      <td colSpan={2} className="summary-label">
+                        Total
+                      </td>
+                      <td className="summary-value">{order.total}</td>
+                    </tr>
+                    <tr className="payable-row">
+                      <td colSpan={2} className="summary-label highlight-yellow">
+                        {order.advancePaid && order.advancePaid > 0 ? "Net COD Payable" : "Customer Payable"}
+                      </td>
+                      <td className="summary-value highlight-yellow">
+                        {Math.max(0, order.total - (order.advancePaid || 0))}
+                      </td>
+                    </tr>
+                  </>
+                );
+              })()}
             </tbody>
           </table>
 
           <p className="invoice-words">
-            কথায়: {nWords(order.total)} টাকা মাত্র।
+            কথায়: {nWords(Math.max(0, order.total - (order.advancePaid || 0)))} টাকা মাত্র।
           </p>
 
           {order.customerNotes && (

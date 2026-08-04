@@ -75,71 +75,100 @@ export function AdminOrderMobileCard({
         </Flex>
 
         {/* Middle Body: Customer Info & Price + Eye Button */}
-        <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100 flex items-center justify-between gap-2">
-          <div>
-            <Text strong style={{ display: "block", fontSize: "13px" }}>
-              {order.shipping?.name}
-            </Text>
-            <Text type="secondary" style={{ fontSize: "11px" }}>
-              {order.shipping?.phone}
-            </Text>
-          </div>
+        {(() => {
+          const vipDeduction = (order.vipPrivilege && order.vipPrivilege > 0) ? order.vipPrivilege : (order.discount || 0);
+          return (
+            <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100 flex items-center justify-between gap-2">
+              <div>
+                <Flex align="center" gap={6}>
+                  <Text strong style={{ display: "block", fontSize: "13px" }}>
+                    {order.shipping?.name}
+                  </Text>
+                  {vipDeduction > 0 && (
+                    <Tag color="gold" style={{ margin: 0, fontSize: "10px", fontWeight: 900, padding: "0 4px" }}>
+                      🌟 VIP
+                    </Tag>
+                  )}
+                </Flex>
+                <Text type="secondary" style={{ fontSize: "11px" }}>
+                  {order.shipping?.phone}
+                </Text>
+              </div>
 
-          <Flex align="center" gap={8}>
-            <Text strong style={{ fontSize: "15px", color: "#1677ff" }}>
-              {formatPrice(order.total)}
-            </Text>
-            {orderIdStr && (
-              <Link href={`/admin/orders/${orderIdStr}`}>
-                <Button icon={<EyeOutlined />} size="small" type="default" />
-              </Link>
-            )}
-          </Flex>
-        </div>
+              <Flex align="center" gap={8}>
+                <div style={{ textAlign: "right" }}>
+                  <Text strong style={{ fontSize: "15px", color: "#1677ff", display: "block" }}>
+                    {formatPrice(Math.max(0, order.total - (order.advancePaid || 0)))}
+                  </Text>
+                  {Boolean(order.advancePaid && order.advancePaid > 0) && (
+                    <Text type="secondary" style={{ fontSize: "9px", display: "block", color: "#2563eb", fontWeight: 700 }}>
+                      Adv: {formatPrice(order.advancePaid || 0)}
+                    </Text>
+                  )}
+                </div>
+                {orderIdStr && (
+                  <Link href={`/admin/orders/${orderIdStr}`}>
+                    <Button icon={<EyeOutlined />} size="small" type="default" />
+                  </Link>
+                )}
+              </Flex>
+            </div>
+          );
+        })()}
 
-        {/* Bottom Footer: Date | Delivery Zone | Payment */}
-        <div className="flex items-center justify-between pt-0.5">
+        {/* Bottom Footer: Date | Delivery Zone | Payment | Actions */}
+        <div className="flex items-center justify-between pt-0.5 flex-wrap gap-1">
           <Text type="secondary" style={{ fontSize: "11px" }}>
             {order.createdAt
               ? format(new Date(order.createdAt), "dd MMM, hh:mm a")
               : ""}
           </Text>
 
-          {(() => {
-            const zoneBadge = getZoneBadgeInfo(
-              order.shipping,
-              order.shippingCost,
-            );
-            return (
-              <Tag
-                color={zoneBadge.color}
-                style={{
-                  margin: 0,
-                  fontSize: "10px",
-                  padding: "0 5px",
-                  lineHeight: "18px",
-                  borderRadius: 6,
-                  fontWeight: 700,
-                }}
-              >
-                {zoneBadge.label}
-              </Tag>
-            );
-          })()}
+          <Flex align="center" gap={6}>
+            {(() => {
+              const zoneBadge = getZoneBadgeInfo(
+                order.shipping,
+                order.shippingCost,
+              );
+              return (
+                <Tag
+                  color={zoneBadge.color}
+                  style={{
+                    margin: 0,
+                    fontSize: "10px",
+                    padding: "0 5px",
+                    lineHeight: "18px",
+                    borderRadius: 6,
+                    fontWeight: 700,
+                  }}
+                >
+                  {zoneBadge.label}
+                </Tag>
+              );
+            })()}
 
-          <Tag
-            color={order.paymentMethod === "cod" ? "default" : "magenta"}
-            style={{
-              margin: 0,
-              fontWeight: 700,
-              borderRadius: 6,
-              fontSize: "10px",
-              padding: "0 5px",
-              lineHeight: "18px",
-            }}
-          >
-            {order.paymentMethod ? order.paymentMethod.toUpperCase() : "COD"}
-          </Tag>
+            <Tag
+              color={order.paymentMethod === "cod" ? "default" : "magenta"}
+              style={{
+                margin: 0,
+                fontWeight: 700,
+                borderRadius: 6,
+                fontSize: "10px",
+                padding: "0 5px",
+                lineHeight: "18px",
+              }}
+            >
+              {order.paymentMethod ? order.paymentMethod.toUpperCase() : "COD"}
+            </Tag>
+
+            {orderIdStr && (
+              <Link href={`/admin/orders/${orderIdStr}`}>
+                <Button size="small" type="primary" style={{ fontSize: "11px", fontWeight: 700, borderRadius: 6 }}>
+                  Details →
+                </Button>
+              </Link>
+            )}
+          </Flex>
         </div>
       </div>
     </Card>

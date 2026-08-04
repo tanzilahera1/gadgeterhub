@@ -45,6 +45,10 @@ const OrderSchema = new Schema<IOrder>(
     shippingCost: { type: Number, required: true, min: 0, default: 0 },
     totalWeightGrams: { type: Number, default: 500 },
     discount: { type: Number, required: true, min: 0, default: 0 },
+    vipPrivilege: { type: Number, min: 0, default: 0 },
+    advancePaid: { type: Number, min: 0, default: 0 },
+    purchaseCost: { type: Number, min: 0, default: 0 },
+    courierCodFee: { type: Number, min: 0, default: 0 },
     total: { type: Number, required: true, min: 0 },
     paymentMethod: {
       type: String,

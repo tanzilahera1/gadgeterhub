@@ -57,6 +57,9 @@ interface OrderData {
     | "cancelled"
     | "returned";
   total: number;
+  discount?: number;
+  vipPrivilege?: number;
+  advancePaid?: number;
   createdAt: string;
   items: OrderItemData[];
 }
@@ -150,9 +153,16 @@ export default async function UserOrdersPage() {
                     <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest">
                       ORDER NUMBER
                     </p>
-                    <p className="text-lg font-black text-slate-900 tracking-tight">
-                      {order.orderNumber}
-                    </p>
+                    <div className="flex items-center gap-2">
+                      <p className="text-lg font-black text-slate-900 tracking-tight">
+                        {order.orderNumber}
+                      </p>
+                      {Boolean((order.vipPrivilege && order.vipPrivilege > 0) || (order.discount && order.discount > 0)) && (
+                        <span className="text-[9px] font-black bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full border border-amber-200">
+                          🌟 VIP
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
 
@@ -167,11 +177,16 @@ export default async function UserOrdersPage() {
                   </div>
                   <div>
                     <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest">
-                      TOTAL AMOUNT
+                      {order.advancePaid && order.advancePaid > 0 ? "COD AMOUNT" : "TOTAL AMOUNT"}
                     </p>
                     <p className="text-lg font-black text-primary tracking-tighter">
-                      {formatPrice(order.total)}
+                      {formatPrice(Math.max(0, order.total - (order.advancePaid || 0)))}
                     </p>
+                    {Boolean(order.advancePaid && order.advancePaid > 0) && (
+                      <p className="text-[10px] font-bold text-blue-600">
+                        Adv Paid: {formatPrice(order.advancePaid || 0)}
+                      </p>
+                    )}
                   </div>
                 </div>
               </div>

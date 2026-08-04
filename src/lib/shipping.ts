@@ -44,15 +44,13 @@ export const DEFAULT_PRODUCT_WEIGHT_GRAMS = 500;
  * PATHAO PRICING MODE — Switch comment when changing mode
  * ============================================================
  *
- * [MODE A] Pathao ONLINE (pickup from your location):
+ * [MODE A] Pathao ONLINE / Negotiated Rate:
  *   0-500g → ৳110  |  500g-1kg → ৳130  |  1kg-2kg → ৳170
  *
- * [MODE B] Pathao OFFLINE (hub drop-off, minimum ৳130):
- *   All weights → ৳130 (Pathao offline policy: min ৳130 regardless of weight)
+ * [MODE B] Pathao OFFLINE Standard (hub drop-off min ৳130):
+ *   All weights → ৳130 (Pathao offline default)
  *
- * CURRENT MODE: B (Offline / Hub Drop-off)
- * TO SWITCH BACK TO MODE A: in the <=500 block below, change `return 130` → `return 110`
- *                            and update CURRENT MODE comment above to "A (Online / Pickup)"
+ * CURRENT MODE: A (Online / Negotiated Rate — ৳110 for 0-500g)
  * ============================================================
  */
 export function calculateShippingCost(
@@ -65,7 +63,7 @@ export function calculateShippingCost(
     switch (zone) {
       case "dhaka":   return 60;
       case "suburbs": return 80;
-      case "outside": return 130; // MODE B: ৳130 (offline min). MODE A (online): return 110
+      case "outside": return 110; // MODE A: ৳110 (Online / Negotiated rate)
     }
   } else if (weight <= 1000) {
     switch (zone) {

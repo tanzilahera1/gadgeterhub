@@ -18,6 +18,8 @@ import {
   Space,
   Typography,
   Flex,
+  Tooltip,
+  InputNumber,
 } from "antd";
 import {
   ThunderboltOutlined,
@@ -30,9 +32,14 @@ import {
   DeleteOutlined,
   PrinterOutlined,
   CheckOutlined,
+  EditOutlined,
+  UndoOutlined,
 } from "@ant-design/icons";
 import { ChannelSource, CHANNEL_LABELS } from "@/types/order";
-import { createAdminManualOrder } from "@/actions/order";
+import {
+  createAdminManualOrder,
+  lookupCustomerHistory,
+} from "@/actions/order";
 import { formatPrice } from "@/lib/priceUtils";
 import {
   calculateShippingCost,
@@ -55,9 +62,11 @@ interface ProductOption {
 
 export interface AdminOrderItem {
   productId: string;
+  productTitle?: string;
   color?: string;
   size?: string;
   quantity: number;
+  unitPrice?: number;
 }
 
 export function CreateOrderModal({ products }: { products: ProductOption[] }) {
@@ -72,6 +81,7 @@ export function CreateOrderModal({ products }: { products: ProductOption[] }) {
   const [orderItems, setOrderItems] = useState<AdminOrderItem[]>([
     {
       productId: products[0]?._id || "",
+      productTitle: products[0]?.title || "",
       color: products[0]?.colors?.[0] || "",
       size: products[0]?.sizes?.[0] || "",
       quantity: 1,
@@ -92,6 +102,38 @@ export function CreateOrderModal({ products }: { products: ProductOption[] }) {
   const [senderNumber, setSenderNumber] = useState("");
   const [transactionId, setTransactionId] = useState("");
   const [customerNotes, setCustomerNotes] = useState("");
+  const [discount, setDiscount] = useState<number>(0);
+  const [vipPrivilege, setVipPrivilege] = useState<number>(0);
+  const [advancePaid, setAdvancePaid] = useState<number>(0);
+
+  // Customer History Lookup State
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [customerHistory, setCustomerHistory] = useState<any>(null);
+
+  const handlePhoneLookup = async (val: string) => {
+    setPhone(val);
+    if (val.trim().length >= 6) {
+      const res = await lookupCustomerHistory(val);
+      if (res.success && res.history) {
+        setCustomerHistory(res.history);
+      } else {
+        setCustomerHistory(null);
+      }
+    } else {
+      setCustomerHistory(null);
+    }
+  };
+
+  const handleAutoFillCustomerHistory = () => {
+    if (!customerHistory?.lastShipping) return;
+    const s = customerHistory.lastShipping;
+    if (s.name && !name) setName(s.name);
+    if (s.addressLine1) setAddressLine1(s.addressLine1);
+    if (s.city) setCity(s.city);
+    if (s.district) setDistrict(s.district);
+    if (s.deliveryArea) setDeliveryArea(s.deliveryArea as DeliveryZone);
+    toast.success("আগের কাস্টমার তথ্য সফলভাবে পূরণ করা হয়েছে!");
+  };
 
   const totalWeightGrams = orderItems.reduce((sum, item) => {
     const prod = products.find((p) => p._id === item.productId);
@@ -104,13 +146,21 @@ export function CreateOrderModal({ products }: { products: ProductOption[] }) {
     const price = prod ? prod.salePrice || prod.regularPrice : 0;
     return sum + price * item.quantity;
   }, 0);
+
   const shippingCost = calculateShippingCost(deliveryArea, totalWeightGrams);
-  const total = subtotal + shippingCost;
+  const total = Math.max(0, subtotal + shippingCost - discount - vipPrivilege);
+  const codAmount = Math.max(0, total - advancePaid);
 
   const handleAddItem = () => {
     const defaultProduct = products[0];
     setOrderItems((prev) => [
-      { productId: defaultProduct?._id || "", color: defaultProduct?.colors?.[0] || "", size: defaultProduct?.sizes?.[0] || "", quantity: 1 },
+      {
+        productId: defaultProduct?._id || "",
+        productTitle: defaultProduct?.title || "",
+        color: defaultProduct?.colors?.[0] || "",
+        size: defaultProduct?.sizes?.[0] || "",
+        quantity: 1,
+      },
       ...prev,
     ]);
   };
@@ -127,6 +177,7 @@ export function CreateOrderModal({ products }: { products: ProductOption[] }) {
       const target = { ...updated[index], [field]: value };
       if (field === "productId") {
         const prod = products.find((p) => p._id === value);
+        target.productTitle = prod?.title || "";
         target.color = prod?.colors?.[0] || "";
         target.size = prod?.sizes?.[0] || "";
       }
@@ -136,7 +187,7 @@ export function CreateOrderModal({ products }: { products: ProductOption[] }) {
   };
 
   const handleAiParse = async () => {
-    if (!aiText.trim()) { toast.error("অনুগ্রহ করে চ্যাট টেক্সট পেস্ট করুন"); return; }
+    if (!aiText.trim()) { toast.error("মেসেজ বা চ্যাট টেক্সট পেস্ট করুন"); return; }
     setIsParsing(true);
     try {
       const res = await fetch("/api/admin/orders/ai-parse", {
@@ -148,23 +199,26 @@ export function CreateOrderModal({ products }: { products: ProductOption[] }) {
       if (!res.ok || !json.success) throw new Error(json.error || "পার্স করতে ব্যর্থ হয়েছে");
       const data = json.data;
       if (data.name) setName(data.name);
-      if (data.phone) setPhone(data.phone);
-      if (data.isGift !== undefined) setIsGift(Boolean(data.isGift));
-      if (data.receiverName) setReceiverName(data.receiverName);
-      if (data.receiverPhone) setReceiverPhone(data.receiverPhone);
+      if (data.phone) {
+        handlePhoneLookup(data.phone);
+      }
       if (data.addressLine1) setAddressLine1(data.addressLine1);
       if (data.city) setCity(data.city);
       if (data.district) setDistrict(data.district);
       if (data.deliveryArea) setDeliveryArea(data.deliveryArea);
-      if (data.paymentMethod) setPaymentMethod(data.paymentMethod);
-      if (data.transactionId) setTransactionId(data.transactionId);
-      if (data.customerNotes) setCustomerNotes(data.customerNotes);
+
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       if (Array.isArray(data.items) && data.items.length > 0) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const parsedOrderItems: AdminOrderItem[] = data.items.map((it: any) => {
           const prod = products.find((p) => p._id === it.productId) || products[0];
-          return { productId: prod?._id || "", color: it.color || prod?.colors?.[0] || "", size: it.size || prod?.sizes?.[0] || "", quantity: Math.max(1, Number(it.quantity) || 1) };
+          return {
+            productId: prod?._id || "",
+            productTitle: it.productTitle || prod?.title || "",
+            color: it.color || prod?.colors?.[0] || "",
+            size: it.size || prod?.sizes?.[0] || "",
+            quantity: Math.max(1, Number(it.quantity) || 1),
+          };
         });
         setOrderItems(parsedOrderItems);
       }
@@ -196,6 +250,7 @@ export function CreateOrderModal({ products }: { products: ProductOption[] }) {
         senderNumber: paymentMethod === "mobile" ? senderNumber : undefined,
         transactionId: paymentMethod === "mobile" ? transactionId : undefined,
         customerNotes, channelSource, items: orderItems,
+        discount, vipPrivilege, advancePaid,
       });
       if (res.error) { toast.error(res.error); }
       else if (res.orderNumber) { toast.success(`অর্ডার #${res.orderNumber} সফলভাবে তৈরি হয়েছে!`); setOpen(false); router.refresh(); }
@@ -210,7 +265,6 @@ export function CreateOrderModal({ products }: { products: ProductOption[] }) {
   // ─── Reusable Manual Form Content ───────────────────────────────────────────
   const manualFormContent = (
     <div className="space-y-5 pt-2">
-      {/* Sales Channel */}
       <div>
         <Text strong style={{ fontSize: "12px", display: "block", marginBottom: 6 }}>
           সেলস চ্যানেল (Sales Channel)
@@ -223,17 +277,56 @@ export function CreateOrderModal({ products }: { products: ProductOption[] }) {
         />
       </div>
 
-      {/* Product Cart */}
+      {customerHistory && (
+        <div className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 p-3 rounded-xl space-y-2">
+          <Flex align="center" justify="space-between" wrap="wrap" gap={6}>
+            <Flex align="center" gap={6}>
+              <Tag color="gold" style={{ margin: 0, fontWeight: 900, fontSize: "11px" }}>
+                {customerHistory.totalOrders >= 3 ? "🌟 VIP Customer" : customerHistory.totalOrders >= 2 ? "🔁 Repeat Customer" : "✨ Returning Buyer"}
+              </Tag>
+              <Text strong style={{ fontSize: "12px", color: "#92400e" }}>
+                {customerHistory.totalOrders}টি অর্ডার করেছেন (মোট {formatPrice(customerHistory.totalSpent)})
+              </Text>
+            </Flex>
+            <Button
+              size="small"
+              type="primary"
+              icon={<CheckOutlined />}
+              onClick={handleAutoFillCustomerHistory}
+              style={{ fontWeight: 700, borderRadius: 6, background: "#d97706", borderColor: "#d97706" }}
+            >
+              📋 Auto-Fill Past Address
+            </Button>
+          </Flex>
+        </div>
+      )}
+
+      <div className="space-y-2">
+        <Text strong style={{ fontSize: "12px" }}>
+          <UserOutlined style={{ color: "#1677ff" }} /> কাস্টমার তথ্য
+        </Text>
+        <div className="grid sm:grid-cols-2 gap-3">
+          <Input placeholder="মোবাইল নম্বর *" value={phone} onChange={(e) => handlePhoneLookup(e.target.value)} style={{ height: 40, borderRadius: 10 }} />
+          <Input placeholder="কাস্টমার নাম *" value={name} onChange={(e) => setName(e.target.value)} style={{ height: 40, borderRadius: 10 }} />
+        </div>
+        <Checkbox checked={isGift} onChange={(e) => setIsGift(e.target.checked)}>
+          <span style={{ fontSize: "12px", fontWeight: 700 }}>
+            <GiftOutlined style={{ color: "#eb2f96" }} /> এটি একটি উপহার অর্ডার (Gift Order)
+          </span>
+        </Checkbox>
+        {isGift && (
+          <div className="grid sm:grid-cols-2 gap-3 bg-pink-50/50 p-3 rounded-xl border border-pink-100">
+            <Input placeholder="উপহার প্রাপকের নাম" value={receiverName} onChange={(e) => setReceiverName(e.target.value)} />
+            <Input placeholder="উপহার প্রাপকের ফোন" value={receiverPhone} onChange={(e) => setReceiverPhone(e.target.value)} />
+          </div>
+        )}
+      </div>
+
       <div className="space-y-3">
         <Flex align="center" justify="space-between" wrap="wrap" gap={8}>
-          <Flex align="center" gap={8}>
-            <Text strong style={{ fontSize: "13px" }}>
-              <ShoppingCartOutlined style={{ color: "#1677ff" }} /> কার্ট প্রোডাক্ট ({orderItems.length})
-            </Text>
-            <Tag color="cyan" style={{ margin: 0, fontWeight: 700, borderRadius: 6, fontSize: "11px" }}>
-              📦 {totalWeightGrams}g ({getWeightTierLabel(totalWeightGrams)})
-            </Tag>
-          </Flex>
+          <Text strong style={{ fontSize: "13px" }}>
+            <ShoppingCartOutlined style={{ color: "#1677ff" }} /> কার্ট প্রোডাক্ট ({orderItems.length})
+          </Text>
           <Button type="dashed" size="small" icon={<PlusOutlined />} onClick={handleAddItem} style={{ fontWeight: 700 }}>
             + Add Product
           </Button>
@@ -254,26 +347,65 @@ export function CreateOrderModal({ products }: { products: ProductOption[] }) {
                       <div className="w-full h-full flex items-center justify-center text-[10px] text-slate-400 font-bold">No Image</div>
                     )}
                   </div>
-                  <div style={{ flex: 1, minWidth: 200 }} className="space-y-2">
-                    <Select
-                      value={item.productId}
-                      onChange={(val) => handleUpdateItem(idx, "productId", val)}
-                      style={{ width: "100%" }}
-                      options={products.map((p) => ({ value: p._id, label: `${p.title} — ${formatPrice(p.salePrice || p.regularPrice)}` }))}
-                    />
-                    {hasColors && (
-                      <Flex align="center" gap={6} wrap="wrap">
-                        <Text type="secondary" style={{ fontSize: "11px", fontWeight: 700 }}>কালার:</Text>
-                        {prod.colors!.map((c) => {
-                          const isSelected = item.color?.toLowerCase() === c.toLowerCase();
-                          return (
-                            <Tag key={c} color={isSelected ? "blue" : "default"} onClick={() => handleUpdateItem(idx, "color", c)} style={{ cursor: "pointer", fontWeight: 700, borderRadius: 6 }}>
-                              {isSelected && <CheckOutlined />} {c}
-                            </Tag>
-                          );
-                        })}
+                  <div style={{ flex: 1, minWidth: 220 }} className="space-y-2.5">
+                    <div>
+                      <Text type="secondary" style={{ fontSize: "10px", fontWeight: 700, display: "block", marginBottom: 2 }}>
+                        📦 ক্যাটালগ প্রোডাক্ট:
+                      </Text>
+                      <Select
+                        value={item.productId}
+                        onChange={(val) => handleUpdateItem(idx, "productId", val)}
+                        style={{ width: "100%" }}
+                        options={products.map((p) => ({ value: p._id, label: `${p.title} — ${formatPrice(p.salePrice || p.regularPrice)}` }))}
+                      />
+                    </div>
+                    <div>
+                      <Flex align="center" justify="space-between" style={{ marginBottom: 2 }}>
+                        <Text type="secondary" style={{ fontSize: "10px", fontWeight: 700 }}>
+                          ✏️ ইনভয়েস/কুরিয়ার টাইটেল (এডিটযোগ্য):
+                        </Text>
+                        {prod && item.productTitle && item.productTitle !== prod.title && (
+                          <Tag color="orange" style={{ margin: 0, fontSize: "10px", borderRadius: 4, padding: "0 4px", fontWeight: 700 }}>
+                            কাস্টম টাইটেল
+                          </Tag>
+                        )}
                       </Flex>
-                    )}
+                      <Input
+                        value={item.productTitle}
+                        onChange={(e) => handleUpdateItem(idx, "productTitle", e.target.value)}
+                        suffix={
+                          <div style={{ display: "inline-flex", alignItems: "center", visibility: prod && item.productTitle !== prod.title ? "visible" : "hidden" }}>
+                            <Tooltip title="মূল ক্যাটালগ টাইটেলে রিসেট করুন">
+                              <Button
+                                type="text"
+                                size="small"
+                                icon={<UndoOutlined style={{ color: "#fa8c16", fontSize: "12px" }} />}
+                                onClick={() => prod?.title && handleUpdateItem(idx, "productTitle", prod.title)}
+                                style={{ padding: 0, height: "auto", minWidth: "auto" }}
+                              />
+                            </Tooltip>
+                          </div>
+                        }
+                        style={{ borderRadius: 8, fontSize: "12px", fontWeight: 600 }}
+                      />
+                    </div>
+                    <Flex align="center" gap={6} wrap="wrap">
+                      <Text type="secondary" style={{ fontSize: "11px", fontWeight: 700 }}>কালার:</Text>
+                      {hasColors && prod.colors!.map((c) => {
+                        const isSelected = item.color?.toLowerCase() === c.toLowerCase();
+                        return (
+                          <Tag key={c} color={isSelected ? "blue" : "default"} onClick={() => handleUpdateItem(idx, "color", c)} style={{ cursor: "pointer", fontWeight: 700, borderRadius: 6 }}>
+                            {isSelected && <CheckOutlined />} {c}
+                          </Tag>
+                        );
+                      })}
+                      <Input
+                        placeholder="কাস্টম কালার..."
+                        value={item.color || ""}
+                        onChange={(e) => handleUpdateItem(idx, "color", e.target.value)}
+                        style={{ width: 120, height: 28, fontSize: "11px", borderRadius: 6 }}
+                      />
+                    </Flex>
                   </div>
                   <Flex align="center" gap={12} style={{ marginLeft: "auto" }}>
                     <div>
@@ -296,29 +428,40 @@ export function CreateOrderModal({ products }: { products: ProductOption[] }) {
         </div>
       </div>
 
-      {/* Customer Info */}
-      <div className="space-y-2">
+      {/* Discounts & Advances */}
+      <div className="space-y-2 pt-1">
         <Text strong style={{ fontSize: "12px" }}>
-          <UserOutlined style={{ color: "#1677ff" }} /> কাস্টমার তথ্য
+          💰 বিশেষ সম্মাননা ছাড় ও অগ্রিম জমা
         </Text>
-        <div className="grid sm:grid-cols-2 gap-3">
-          <Input placeholder="কাস্টমার নাম *" value={name} onChange={(e) => setName(e.target.value)} style={{ height: 40, borderRadius: 10 }} />
-          <Input placeholder="ফোন নাম্বার *" value={phone} onChange={(e) => setPhone(e.target.value)} style={{ height: 40, borderRadius: 10 }} />
-        </div>
-        <Checkbox checked={isGift} onChange={(e) => setIsGift(e.target.checked)}>
-          <span style={{ fontSize: "12px", fontWeight: 700 }}>
-            <GiftOutlined style={{ color: "#eb2f96" }} /> এটি একটি উপহার অর্ডার (Gift Order)
-          </span>
-        </Checkbox>
-        {isGift && (
-          <div className="grid sm:grid-cols-2 gap-3 bg-pink-50/50 p-3 rounded-xl border border-pink-100">
-            <Input placeholder="উপহার প্রাপকের নাম" value={receiverName} onChange={(e) => setReceiverName(e.target.value)} />
-            <Input placeholder="উপহার প্রাপকের ফোন" value={receiverPhone} onChange={(e) => setReceiverPhone(e.target.value)} />
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <Text type="secondary" style={{ fontSize: "11px", fontWeight: 700, display: "block", marginBottom: 2 }}>
+              🌟 VIP Privilege (বিশেষ সম্মাননা ছাড় ৳):
+            </Text>
+            <InputNumber
+              min={0}
+              placeholder="0"
+              value={vipPrivilege}
+              onChange={(val) => setVipPrivilege(val || 0)}
+              style={{ width: "100%", borderRadius: 8 }}
+            />
           </div>
-        )}
+          <div>
+            <Text type="secondary" style={{ fontSize: "11px", fontWeight: 700, display: "block", marginBottom: 2 }}>
+              💳 অগ্রিম পরিশোধ (যদি বিকাশ/নগদে আগে দেয় ৳):
+            </Text>
+            <InputNumber
+              min={0}
+              placeholder="0"
+              value={advancePaid}
+              onChange={(val) => setAdvancePaid(val || 0)}
+              style={{ width: "100%", borderRadius: 8 }}
+            />
+          </div>
+        </div>
       </div>
 
-      {/* Delivery Address */}
+      {/* Delivery Address & Zone */}
       <div className="space-y-2">
         <Flex align="center" justify="space-between">
           <Text strong style={{ fontSize: "12px" }}>
@@ -372,11 +515,17 @@ export function CreateOrderModal({ products }: { products: ProductOption[] }) {
       <Card style={{ background: "#0f172a", borderRadius: 16, marginTop: 24 }} styles={{ body: { padding: 16 } }}>
         <div style={{ textAlign: "center" }}>
           <Text style={{ color: "#94a3b8", fontSize: "11px", display: "block", marginBottom: 2 }}>
-            {orderItems.reduce((s, i) => s + i.quantity, 0)} item(s) · {totalWeightGrams}g ({getWeightTierLabel(totalWeightGrams)}) · Subtotal {formatPrice(subtotal)} + Shipping {formatPrice(shippingCost)}
+            Subtotal {formatPrice(subtotal)}
+            {vipPrivilege > 0 && ` - VIP Honor ${formatPrice(vipPrivilege)}`}
+            {` + Delivery ${formatPrice(shippingCost)}`}
+            {advancePaid > 0 && ` - Advance ${formatPrice(advancePaid)}`}
           </Text>
-          <Title level={3} style={{ color: "#ffffff", margin: "0 0 12px", fontWeight: 900 }}>
-            {formatPrice(total)}
+          <Title level={3} style={{ color: "#ffffff", margin: "0 0 4px", fontWeight: 900 }}>
+            {formatPrice(codAmount)}
           </Title>
+          <Text style={{ color: "#38bdf8", fontSize: "11px", display: "block", marginBottom: 12, fontWeight: 700 }}>
+            {advancePaid > 0 ? `(COD কালেকশন মোট: ${formatPrice(codAmount)})` : "(ক্যাশ অন ডেলিভারি মোট)"}
+          </Text>
           <Button
             type="primary"
             size="large"

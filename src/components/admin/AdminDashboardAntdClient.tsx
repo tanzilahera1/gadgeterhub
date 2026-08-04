@@ -11,6 +11,9 @@ import {
   AppstoreOutlined,
   EyeOutlined,
   PlusOutlined,
+  RiseOutlined,
+  LineChartOutlined,
+  FireOutlined,
 } from "@ant-design/icons";
 import { formatPrice } from "@/lib/priceUtils";
 import { IOrder, CHANNEL_LABELS } from "@/types/order";
@@ -26,6 +29,10 @@ interface StatsData {
   totalProducts: number;
   pendingOrders: number;
   totalSales: number;
+  netProfit: number;
+  totalAdSpend: number;
+  todayRevenue: number;
+  todayOrders: number;
   recentOrders: IOrder[];
 }
 
@@ -161,6 +168,68 @@ export function AdminDashboardAntdClient({ stats }: { stats: StatsData }) {
         </Col>
       </Row>
 
+      {/* Finance Quick Summary Banner */}
+      <Link href="/admin/finance">
+        <div
+          style={{
+            background: "linear-gradient(135deg, #0f172a 0%, #1e3a5f 50%, #0f172a 100%)",
+            borderRadius: 16,
+            padding: "16px 20px",
+            cursor: "pointer",
+            transition: "opacity 0.2s",
+            border: "1px solid rgba(99,179,237,0.2)",
+          }}
+          className="hover:opacity-90"
+        >
+          <Flex align="center" justify="space-between" wrap="wrap" gap={12}>
+            <Flex align="center" gap={10}>
+              <LineChartOutlined style={{ fontSize: 22, color: "#63b3ed" }} />
+              <div>
+                <Text style={{ color: "#a0aec0", fontSize: "11px", display: "block", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                  Finance & Profit Summary
+                </Text>
+                <Text style={{ color: "#e2e8f0", fontSize: "12px" }}>Click to view detailed analytics →</Text>
+              </div>
+            </Flex>
+            <Row gutter={[24, 8]}>
+              <Col>
+                <Flex vertical align="center">
+                  <Text style={{ color: "#68d391", fontSize: "18px", fontWeight: 900 }}>
+                    {formatPrice(stats.todayRevenue)}
+                  </Text>
+                  <Flex align="center" gap={4}>
+                    <FireOutlined style={{ color: "#fc8181", fontSize: "10px" }} />
+                    <Text style={{ color: "#a0aec0", fontSize: "11px" }}>Today&apos;s Revenue ({stats.todayOrders} orders)</Text>
+                  </Flex>
+                </Flex>
+              </Col>
+              <Col>
+                <Flex vertical align="center">
+                  <Text style={{ color: "#f6e05e", fontSize: "18px", fontWeight: 900 }}>
+                    {formatPrice(stats.netProfit)}
+                  </Text>
+                  <Flex align="center" gap={4}>
+                    <RiseOutlined style={{ color: "#68d391", fontSize: "10px" }} />
+                    <Text style={{ color: "#a0aec0", fontSize: "11px" }}>Est. Net Profit</Text>
+                  </Flex>
+                </Flex>
+              </Col>
+              <Col>
+                <Flex vertical align="center">
+                  <Text style={{ color: "#fc8181", fontSize: "18px", fontWeight: 900 }}>
+                    {formatPrice(stats.totalAdSpend)}
+                  </Text>
+                  <Flex align="center" gap={4}>
+                    <DollarOutlined style={{ color: "#fc8181", fontSize: "10px" }} />
+                    <Text style={{ color: "#a0aec0", fontSize: "11px" }}>Total Ad Spend</Text>
+                  </Flex>
+                </Flex>
+              </Col>
+            </Row>
+          </Flex>
+        </div>
+      </Link>
+
       {/* Main Grid: Recent Orders (10 Items) & Quick Actions */}
       <Row gutter={[16, 16]}>
         <Col xs={24} lg={16}>
@@ -205,6 +274,16 @@ export function AdminDashboardAntdClient({ stats }: { stats: StatsData }) {
               <Link href="/admin/products/new">
                 <Button type="primary" block icon={<PlusOutlined />} size="large">
                   Add New Product
+                </Button>
+              </Link>
+              <Link href="/admin/finance">
+                <Button
+                  block
+                  size="large"
+                  icon={<LineChartOutlined />}
+                  style={{ background: "#0f172a", color: "#63b3ed", borderColor: "#1e3a5f", fontWeight: 700 }}
+                >
+                  Finance & Profit
                 </Button>
               </Link>
               <Link href="/admin/categories/new">

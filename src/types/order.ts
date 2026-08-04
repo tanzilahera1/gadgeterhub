@@ -82,6 +82,10 @@ export interface IOrderBase {
   shippingCost: Price;
   totalWeightGrams?: number;
   discount: Price;
+  vipPrivilege?: Price;
+  advancePaid?: Price;
+  purchaseCost?: Price;
+  courierCodFee?: Price;
   total: Price;
   paymentMethod: PaymentMethod;
   paymentStatus: PaymentStatus;

@@ -145,16 +145,21 @@ export function buildInvoiceText(
   const summaryLine = (label: string, value: string) =>
     `${padR(label, summaryWidth - value.length)}${value}`;
 
+  const vipDeduction = (order.vipPrivilege && order.vipPrivilege > 0) ? order.vipPrivilege : (order.discount || 0);
+
   const summary =
     `${summaryLine("Subtotal", `৳${order.subtotal}`)}\n` +
-    `${summaryLine("Shipping", `৳${order.shippingCost}`)}\n` +
-    (order.discount > 0
-      ? `${summaryLine("Discount", `-৳${order.discount}`)}\n`
+    (vipDeduction > 0
+      ? `${summaryLine("VIP Privilege", `-৳${vipDeduction}`)}\n`
       : "") +
+    (order.advancePaid && order.advancePaid > 0
+      ? `${summaryLine("Advance Paid", `-৳${order.advancePaid}`)}\n`
+      : "") +
+    `${summaryLine("Delevary Charge", `৳${order.shippingCost}`)}\n` +
     `${"━".repeat(summaryWidth)}\n` +
-    `${summaryLine("💰 CUSTOMER PAYABLE", `৳${order.total}`)}`;
+    `${summaryLine("💰 NET COD PAYABLE", `৳${Math.max(0, order.total - (order.advancePaid || 0))}`)}`;
 
-  const words = `কথায়: ${banglaNum(order.total)} টাকা মাত্র`;
+  const words = `কথায়: ${banglaNum(Math.max(0, order.total - (order.advancePaid || 0)))} টাকা মাত্র`;
 
   const notes = order.customerNotes
     ? `\n\n📝 CUSTOMER NOTE\n${order.customerNotes}`

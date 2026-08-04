@@ -5,7 +5,8 @@ import { useState } from "react";
 import Link from "next/link";
 import { Table, Tag, Input, Select, Button, Card, Space, Typography, Badge, Flex } from "antd";
 import type { ColumnsType } from "antd/es/table";
-import { SearchOutlined, EyeOutlined, ShoppingCartOutlined, AlertOutlined } from "@ant-design/icons";
+import { SearchOutlined, EyeOutlined, ShoppingCartOutlined, AlertOutlined, PrinterOutlined } from "@ant-design/icons";
+import { toast } from "sonner";
 import { IOrder, CHANNEL_LABELS } from "@/types/order";
 import { formatPrice } from "@/lib/priceUtils";
 import { format } from "date-fns";
@@ -79,16 +80,26 @@ export function AdminOrdersAntdClient({
     {
       title: "Customer",
       key: "customer",
-      render: (_, record) => (
-        <div>
-          <Text strong style={{ display: "block", fontSize: "13px" }}>
-            {record.shipping.name}
-          </Text>
-          <Text type="secondary" style={{ fontSize: "11px" }}>
-            {record.shipping.phone}
-          </Text>
-        </div>
-      ),
+      render: (_, record) => {
+        const vipDeduction = (record.vipPrivilege && record.vipPrivilege > 0) ? record.vipPrivilege : (record.discount || 0);
+        return (
+          <div>
+            <Flex align="center" gap={6}>
+              <Text strong style={{ display: "block", fontSize: "13px" }}>
+                {record.shipping.name}
+              </Text>
+              {vipDeduction > 0 && (
+                <Tag color="gold" style={{ margin: 0, fontSize: "10px", fontWeight: 900, padding: "0 4px" }}>
+                  🌟 VIP
+                </Tag>
+              )}
+            </Flex>
+            <Text type="secondary" style={{ fontSize: "11px" }}>
+              {record.shipping.phone}
+            </Text>
+          </div>
+        );
+      },
     },
     {
       title: "Date",
@@ -105,12 +116,19 @@ export function AdminOrdersAntdClient({
       ),
     },
     {
-      title: "Amount",
+      title: "Amount (COD)",
       key: "amount",
       render: (_, record) => (
-        <Text strong style={{ fontSize: "14px", color: "#0f172a" }}>
-          {formatPrice(record.total)}
-        </Text>
+        <div>
+          <Text strong style={{ fontSize: "14px", color: "#0f172a", display: "block" }}>
+            {formatPrice(Math.max(0, record.total - (record.advancePaid || 0)))}
+          </Text>
+          {Boolean(record.advancePaid && record.advancePaid > 0) && (
+            <Text type="secondary" style={{ fontSize: "10px", color: "#2563eb", fontWeight: 700 }}>
+              Adv Paid: {formatPrice(record.advancePaid || 0)}
+            </Text>
+          )}
+        </div>
       ),
     },
     {
@@ -157,7 +175,7 @@ export function AdminOrdersAntdClient({
           </Text>
         </div>
 
-        <Flex align="center" gap={16} wrap="wrap">
+        <Flex align="center" gap={12} wrap="wrap">
           <Badge count={pendingCount} overflowCount={99}>
             <Button
               icon={<AlertOutlined />}
@@ -171,6 +189,26 @@ export function AdminOrdersAntdClient({
               Pending Orders
             </Button>
           </Badge>
+
+          {pendingCount > 0 && (
+            <Button
+              icon={<PrinterOutlined />}
+              onClick={() => {
+                const pendingIds = orders
+                  .filter((o) => o.orderStatus === "pending")
+                  .map((o) => o._id.toString());
+
+                if (pendingIds.length === 0) return toast.error("কোনো পেন্ডিং অর্ডার নেই");
+
+                // Open first pending invoice or batch window
+                window.open(`/admin/orders/${pendingIds[0]}/invoice`, "_blank");
+              }}
+              style={{ fontWeight: 700 }}
+            >
+              Batch Print A5 ({pendingCount})
+            </Button>
+          )}
+
           <CreateOrderModal products={products} />
         </Flex>
       </div>

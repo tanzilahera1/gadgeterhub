@@ -48,10 +48,14 @@ import type { IOrderSerializable } from "@/types/order";
 import { CHANNEL_LABELS } from "@/types/order";
 import { format } from "date-fns";
 
+import { EditOrderModal, ProductOption } from "@/components/admin/EditOrderModal";
+import { ShareAltOutlined } from "@ant-design/icons";
+
 const { Title, Text } = Typography;
 
 interface Props {
   order: IOrderSerializable;
+  products?: ProductOption[];
 }
 
 const STAGE_STEPS = [
@@ -62,7 +66,7 @@ const STAGE_STEPS = [
   { title: "Delivered", key: "delivered", icon: <CheckCircleOutlined /> },
 ];
 
-export function OrderDetailsClient({ order }: Props) {
+export function OrderDetailsClient({ order, products = [] }: Props) {
   const router = useRouter();
   const [copiedField, setCopiedField] = useState<string | null>(null);
 
@@ -104,13 +108,37 @@ export function OrderDetailsClient({ order }: Props) {
 
   const fullAddressStr = addressParts.join(", ") || order.shipping.addressLine1;
 
+  const itemsText = order.items
+    .map(
+      (it) =>
+        `${it.productTitle}${it.color ? ` (${it.color})` : ""}${it.size ? ` (${it.size})` : ""} x ${it.itemQuantity}`
+    )
+    .join("\n");
+
+  const effectiveVipPrivilege = (order.vipPrivilege && order.vipPrivilege > 0) ? order.vipPrivilege : (order.discount || 0);
+  const codTotal = Math.max(0, order.total - (order.advancePaid || 0));
+
+  const courierText =
+    `Order ID: ${order.orderNumber}\n` +
+    `Name: ${order.shipping.name}\n` +
+    `Mobile: ${order.shipping.phone}\n` +
+    `Address: ${fullAddressStr}\n` +
+    `Zone: ${order.shipping.deliveryZone || "ISD (Inside Dhaka)"}\n` +
+    `SubTotal: ${order.subtotal}\n` +
+    (effectiveVipPrivilege > 0 ? `VIP Privilege: -${effectiveVipPrivilege}\n` : "") +
+    (order.advancePaid && order.advancePaid > 0 ? `Advance Paid: ${order.advancePaid}\n` : "") +
+    `Delevary Charge: ${order.shippingCost}\n` +
+    `Total: ${codTotal}` +
+    (order.customerNotes ? `\nNote: ${order.customerNotes}` : "");
+
   return (
     <div style={{ padding: 0 }} className="space-y-5">
       {/* Unified Top Header & Order Status Card */}
       <Card style={{ borderRadius: 16 }} styles={{ body: { padding: 16 } }}>
         <div className="space-y-4">
-          {/* Top Bar: Order Info & Actions (Center-aligned on Mobile, Top-aligned on Desktop) */}
-          <div className="flex flex-col sm:flex-row items-center sm:items-start justify-between gap-3 text-center sm:text-left">
+          {/* Top Bar: Order Info & Actions */}
+          {/* Top Bar: Order Info & Actions (Responsive for Mobile, Medium Tablet, and Large Desktop) */}
+          <div className="flex flex-col xl:flex-row items-center xl:items-start justify-between gap-4 text-center xl:text-left">
             <div className="flex flex-col sm:flex-row items-center sm:items-start gap-3">
               <Button
                 shape="circle"
@@ -139,20 +167,52 @@ export function OrderDetailsClient({ order }: Props) {
               </div>
             </div>
 
-            <div className="flex items-center justify-center sm:justify-end gap-2 wrap sm:pt-0.5">
+            <div className="grid grid-cols-2 sm:grid-cols-3 xl:flex xl:flex-row items-center gap-2 w-full xl:w-auto pt-2 xl:pt-0">
+              {/* Edit Order Modal */}
+              <div className="col-span-1">
+                <EditOrderModal order={order} products={products} />
+              </div>
+
+              {/* Share to Hub WhatsApp */}
+              <a
+                href={`https://api.whatsapp.com/send?text=${encodeURIComponent(courierText)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="col-span-1"
+              >
+                <Button
+                  block
+                  style={{ fontWeight: 700, borderColor: "#25D366", color: "#25D366", borderRadius: 8 }}
+                  icon={<MessageOutlined style={{ color: "#25D366" }} />}
+                >
+                  Share to Hub
+                </Button>
+              </a>
+
+              {/* Copy Courier Info */}
+              <Button
+                block
+                icon={copiedField === "courier" ? <CheckOutlined style={{ color: "#52c41a" }} /> : <CopyOutlined />}
+                onClick={() => handleCopy(courierText, "courier")}
+                style={{ fontWeight: 700, borderRadius: 8 }}
+                className="col-span-1"
+              >
+                Copy Info
+              </Button>
+
               {(() => {
                 const cleanPhone = order.shipping.phone.replace(/[^0-9]/g, "");
                 const waNumber = cleanPhone.startsWith("88") ? cleanPhone : `88${cleanPhone}`;
                 return (
-                  <Space.Compact>
+                  <Space.Compact className="col-span-1 sm:col-span-1 w-full">
                     <Button
+                      style={{ fontWeight: 700, width: "100%" }}
                       icon={<PhoneOutlined />}
                       onClick={() => {
                         window.location.href = `tel:${order.shipping.phone}`;
                       }}
-                      style={{ fontWeight: 700 }}
                     >
-                      Call Customer
+                      Call
                     </Button>
                     <Dropdown
                       menu={{
@@ -174,14 +234,14 @@ export function OrderDetailsClient({ order }: Props) {
                                 rel="noopener noreferrer"
                                 style={{ fontWeight: 700 }}
                               >
-                                💬 WhatsApp Chat
+                                💬 WhatsApp Customer
                               </a>
                             ),
                             icon: <MessageOutlined style={{ color: "#25D366" }} />,
                           },
                           {
                             key: "copy",
-                            label: "📋 Copy Number",
+                            label: "📋 Copy Phone",
                             icon: <CopyOutlined />,
                             onClick: () => handleCopy(order.shipping.phone, "phone_top"),
                           },
@@ -194,12 +254,14 @@ export function OrderDetailsClient({ order }: Props) {
                   </Space.Compact>
                 );
               })()}
+
               <Link
                 href={`/admin/orders/${order._id}/invoice`}
                 target="_blank"
                 rel="noopener"
+                className="col-span-2 sm:col-span-2 xl:col-span-1"
               >
-                <Button type="primary" icon={<PrinterOutlined />} style={{ fontWeight: 700 }}>
+                <Button block type="primary" icon={<PrinterOutlined />} style={{ fontWeight: 700, borderRadius: 8 }}>
                   Print Invoice
                 </Button>
               </Link>
@@ -374,29 +436,43 @@ export function OrderDetailsClient({ order }: Props) {
                   <Text type="secondary">Subtotal:</Text>
                   <Text strong>{formatPrice(order.subtotal)}</Text>
                 </Flex>
-                <Flex justify="space-between">
-                  <Text type="secondary">Shipping Fee:</Text>
-                  <Text strong>{formatPrice(order.shippingCost)}</Text>
-                </Flex>
 
-                {order.discount > 0 && (
+                {effectiveVipPrivilege > 0 && (
                   <Flex justify="space-between">
-                    <Text type="secondary">Discount:</Text>
-                    <Text strong style={{ color: "#52c41a" }}>
-                      -{formatPrice(order.discount)}
+                    <Text type="secondary" style={{ color: "#d97706", fontWeight: 700 }}>
+                      🌟 VIP Privilege:
+                    </Text>
+                    <Text strong style={{ color: "#d97706" }}>
+                      -{formatPrice(effectiveVipPrivilege)}
                     </Text>
                   </Flex>
                 )}
+
+                {Boolean(order.advancePaid && order.advancePaid > 0) && (
+                  <Flex justify="space-between">
+                    <Text type="secondary" style={{ color: "#2563eb", fontWeight: 700 }}>
+                      💳 Advance Paid:
+                    </Text>
+                    <Text strong style={{ color: "#2563eb" }}>
+                      -{formatPrice(order.advancePaid || 0)}
+                    </Text>
+                  </Flex>
+                )}
+
+                <Flex justify="space-between">
+                  <Text type="secondary">Delevary Charge:</Text>
+                  <Text strong>{formatPrice(order.shippingCost)}</Text>
+                </Flex>
 
                 <Divider style={{ margin: "8px 0" }} />
 
                 <Card style={{ background: "#0f172a", borderRadius: 12 }} styles={{ body: { padding: 12 } }}>
                   <Flex justify="space-between" align="center">
                     <Text style={{ color: "#94a3b8", fontSize: "11px", fontWeight: 700 }}>
-                      Customer Payable Total:
+                      {order.advancePaid && order.advancePaid > 0 ? "Net COD Collection Total:" : "Customer Payable Total:"}
                     </Text>
                     <Title level={4} style={{ color: "#ffffff", margin: 0, fontWeight: 900 }}>
-                      {formatPrice(order.total)}
+                      {formatPrice(Math.max(0, order.total - (order.advancePaid || 0)))}
                     </Title>
                   </Flex>
                 </Card>
