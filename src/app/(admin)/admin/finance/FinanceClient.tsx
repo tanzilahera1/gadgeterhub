@@ -300,27 +300,28 @@ export function FinanceClient({
           <Card
             style={{
               borderRadius: 16,
-              background: "linear-gradient(135deg, #059669 0%, #10b981 100%)",
+              background: "linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%)",
               color: "#fff",
-              boxShadow: "0 10px 25px -5px rgba(16, 185, 129, 0.4)",
+              border: "1px solid rgba(255, 255, 255, 0.1)",
+              boxShadow: "0 10px 25px -5px rgba(15, 23, 42, 0.4)",
               textAlign: "center",
             }}
           >
             <Flex align="center" justify="center" gap={6}>
-              <Text style={{ fontSize: "11px", fontWeight: 900, textTransform: "uppercase", color: "#ecfdf5" }}>
+              <Text style={{ fontSize: "11px", fontWeight: 900, textTransform: "uppercase", color: "#94a3b8", letterSpacing: "0.06em" }}>
                 💰 NET PROFIT
               </Text>
-              <ThunderboltOutlined style={{ color: "#fef08a", fontSize: "16px" }} />
+              <ThunderboltOutlined style={{ color: "#facc15", fontSize: "15px" }} />
             </Flex>
-            <Title level={2} style={{ margin: "4px 0 0", color: "#ffffff", fontWeight: 900 }}>
+            <Title level={2} style={{ margin: "4px 0 0", color: "#4ade80", fontWeight: 900, fontSize: "28px" }}>
               {summary ? formatPrice(summary.netProfit) : "৳0"}
             </Title>
-            <Flex align="center" justify="center" gap={12} style={{ marginTop: 4 }}>
-              <Tag color="gold" style={{ margin: 0, fontWeight: 900, fontSize: "10px" }}>
+            <Flex align="center" justify="center" gap={10} style={{ marginTop: 6 }}>
+              <Tag color="gold" style={{ margin: 0, fontWeight: 900, fontSize: "10px", borderRadius: 6 }}>
                 ROI: {summary ? `${summary.roiPercent.toFixed(1)}%` : "0%"}
               </Tag>
-              <Text style={{ fontSize: "10px", color: "#d1fae5", fontWeight: 700 }}>
-                Margin: {summary ? `${summary.profitMarginPercent.toFixed(1)}%` : "0%"}
+              <Text style={{ fontSize: "11px", color: "#94a3b8", fontWeight: 700 }}>
+                Margin: <span style={{ color: "#34d399", fontWeight: 800 }}>{summary ? `${summary.profitMarginPercent.toFixed(1)}%` : "0%"}</span>
               </Text>
             </Flex>
           </Card>

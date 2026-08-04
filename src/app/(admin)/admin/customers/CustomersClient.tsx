@@ -2,8 +2,8 @@
 "use client";
 
 import { useState } from "react";
-import { Table, Tag, Input, Card, Typography, Flex, Space, Button } from "antd";
-import { SearchOutlined, UserOutlined, PhoneOutlined, CrownOutlined, MessageOutlined } from "@ant-design/icons";
+import { Table, Tag, Input, Card, Typography, Flex, Button } from "antd";
+import { SearchOutlined, MessageOutlined } from "@ant-design/icons";
 import type { ColumnsType } from "antd/es/table";
 import { CustomerDirectoryItem } from "@/actions/customer";
 import { formatPrice } from "@/lib/priceUtils";
@@ -107,26 +107,14 @@ export function CustomersClient({ customers }: { customers: CustomerDirectoryIte
 
   return (
     <div className="space-y-6">
-      {/* Top Header & Search Bar */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left">
-        <div>
-          <Title level={3} style={{ margin: 0, fontWeight: 900 }}>
-            👑 Customer Directory & Analytics
-          </Title>
-          <Text type="secondary" style={{ fontSize: "12px" }}>
-            সমস্ত কাস্টমারদের ইতিহাস, লয়ালটি রিপিট কাউন্ট ও লাইফটাইম সেলস সামারি
-          </Text>
-        </div>
-
-        <Input
-          prefix={<SearchOutlined style={{ color: "#bfbfbf", marginRight: 4 }} />}
-          placeholder="নাম, ফোন বা ঠিকানা দিয়ে খুঁজুন..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          style={{ borderRadius: 10, height: 40 }}
-          className="w-full sm:w-80"
-          allowClear
-        />
+      {/* Top Header */}
+      <div className="text-center">
+        <Title level={3} style={{ margin: 0, fontWeight: 900 }}>
+          👑 Customer Directory & Analytics
+        </Title>
+        <Text type="secondary" style={{ fontSize: "12px" }}>
+          সমস্ত কাস্টমারদের ইতিহাস, লয়ালটি রিপিট কাউন্ট ও লাইফটাইম সেলস সামারি
+        </Text>
       </div>
 
       {/* Overview KPI Cards */}
@@ -158,6 +146,25 @@ export function CustomersClient({ customers }: { customers: CustomerDirectoryIte
           </Title>
         </Card>
       </div>
+
+      {/* Search Toolbar Card */}
+      <Card
+        style={{ borderRadius: 16 }}
+        styles={{ body: { padding: "12px 16px" } }}
+        className="border border-slate-200 bg-white shadow-sm"
+      >
+        <div className="flex items-center justify-between">
+          <Input
+            prefix={<SearchOutlined style={{ color: "#94a3b8", marginRight: 4 }} />}
+            placeholder="নাম, ফোন বা ঠিকানা দিয়ে খুঁজুন..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            style={{ borderRadius: 10 }}
+            className="w-full sm:w-80"
+            allowClear
+          />
+        </div>
+      </Card>
 
       {/* Mobile Cards View (block md:hidden) */}
       <div className="flex flex-col gap-3.5 md:hidden">
