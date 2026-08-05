@@ -94,6 +94,13 @@ const OrderSchema = new Schema<IOrder>(
     courierRiderPhone: { type: String, trim: true },
     courierLastUpdated: { type: Date },
     courierAttemptCount: { type: Number, default: 0 },
+    followUps: [
+      {
+        outcome: { type: String, required: true },
+        note: { type: String, trim: true },
+        createdAt: { type: Date, default: Date.now },
+      },
+    ],
   },
   { timestamps: true },
 );

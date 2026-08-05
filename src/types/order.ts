@@ -70,6 +70,22 @@ export const CHANNEL_LABELS: Record<ChannelSource, string> = {
   quora: "Quora",
 };
 
+export type FollowUpOutcome =
+  | "phone_off"
+  | "no_answer"
+  | "will_receive"
+  | "rescheduled"
+  | "refused"
+  | "contacted"
+  | "other";
+
+export interface IFollowUpEntry {
+  _id?: string;
+  outcome: FollowUpOutcome;
+  note?: string;
+  createdAt: Date | string;
+}
+
 export interface IOrderBase {
   orderNumber: string;
   brandCode?: string;
@@ -107,6 +123,7 @@ export interface IOrderBase {
   courierRiderPhone?: string;
   courierLastUpdated?: string;
   courierAttemptCount?: number;
+  followUps?: IFollowUpEntry[];
 }
 
 export interface IOrder extends IOrderBase, Document {

@@ -53,6 +53,7 @@ import { PathaoTrackingModal } from "@/components/admin/PathaoTrackingModal";
 
 import { EditOrderModal, ProductOption } from "@/components/admin/EditOrderModal";
 import { ShareAltOutlined, CarOutlined, SaveOutlined, EyeOutlined } from "@ant-design/icons";
+import FollowUpPanel from "@/components/admin/FollowUpPanel";
 
 const { Title, Text } = Typography;
 
@@ -481,6 +482,23 @@ export function OrderDetailsClient({ order, products = [] }: Props) {
             )}
           </Flex>
         </Flex>
+      </Card>
+
+      {/* Customer Follow-up Notes */}
+      <Card
+        title={
+          <Flex align="center" gap={8}>
+            <PhoneOutlined style={{ color: "#6366f1" }} />
+            <Text strong style={{ fontSize: "14px" }}>Customer Follow-up</Text>
+          </Flex>
+        }
+        style={{ borderRadius: 16 }}
+        styles={{ body: { padding: "16px" } }}
+      >
+        <FollowUpPanel
+          orderId={order._id}
+          initialFollowUps={order.followUps ?? []}
+        />
       </Card>
 
       {/* Main Grid: Left Items List, Right Customer & Payment Details */}

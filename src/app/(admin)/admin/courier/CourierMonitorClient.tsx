@@ -18,6 +18,7 @@ import {
   Tabs,
   Alert,
   Tooltip,
+  Popover,
 } from "antd";
 import type { ColumnsType } from "antd/es/table";
 import {
@@ -31,15 +32,50 @@ import {
   ExportOutlined,
   EyeOutlined,
   CheckCircleOutlined,
+  PlusOutlined,
 } from "@ant-design/icons";
-import type { IOrderSerializable } from "@/types/order";
+import type { IOrderSerializable, IFollowUpEntry } from "@/types/order";
 import { refreshActiveShipments } from "@/actions/pathaoTracking";
 import { PathaoTrackingModal } from "@/components/admin/PathaoTrackingModal";
+import FollowUpPanel, { OUTCOME_CONFIG } from "@/components/admin/FollowUpPanel";
 import { formatPrice } from "@/lib/priceUtils";
 import { toast } from "sonner";
 import { format } from "date-fns";
 
 const { Title, Text } = Typography;
+
+// ── Last follow-up preview ─────────────────────────────────────────────────────
+function LastFollowUp({ followUps }: { followUps?: IFollowUpEntry[] }) {
+  if (!followUps || followUps.length === 0) return null;
+  const last = followUps[0];
+  const cfg = OUTCOME_CONFIG[last.outcome] ?? OUTCOME_CONFIG.other;
+  return (
+    <div style={{ marginTop: 4, display: "flex", alignItems: "center", gap: 4, flexWrap: "wrap" }}>
+      <span style={{ fontSize: 10, color: "#94a3b8" }}>Last:</span>
+      <span
+        style={{
+          display: "inline-flex",
+          alignItems: "center",
+          gap: 3,
+          background: cfg.color + "18",
+          border: `1px solid ${cfg.color}44`,
+          color: cfg.color,
+          borderRadius: 6,
+          padding: "1px 7px",
+          fontSize: 10,
+          fontWeight: 700,
+        }}
+      >
+        {cfg.icon} {cfg.label}
+      </span>
+      {last.note && (
+        <Text type="secondary" style={{ fontSize: 10, fontStyle: "italic" }}>
+          &ldquo;{last.note.slice(0, 22)}{last.note.length > 22 ? "…" : ""}&rdquo;
+        </Text>
+      )}
+    </div>
+  );
+}
 
 interface Props {
   initialOrders: IOrderSerializable[];
@@ -261,6 +297,7 @@ export function CourierMonitorClient({ initialOrders }: Props) {
                 Reason: {record.courierReason}
               </Text>
             )}
+            <LastFollowUp followUps={record.followUps} />
           </div>
         );
       },
@@ -298,18 +335,53 @@ export function CourierMonitorClient({ initialOrders }: Props) {
     {
       title: "Actions",
       key: "actions",
-      align: "center",
-      render: (_, record) => (
-        <Button
-          type="primary"
-          size="small"
-          icon={<EyeOutlined />}
-          onClick={() => openTrackingModal(record.courierTrackingId!, record.orderNumber)}
-          style={{ fontWeight: 700, borderRadius: 8, border: "none", boxShadow: "none" }}
-        >
-          Track Live
-        </Button>
-      ),
+      align: "center" as const,
+      render: (_, record) => {
+        const followUps = record.followUps ?? [];
+        return (
+          <Flex vertical gap={6} align="center">
+            <Button
+              type="primary"
+              size="small"
+              icon={<EyeOutlined />}
+              onClick={() => openTrackingModal(record.courierTrackingId!, record.orderNumber)}
+              style={{ fontWeight: 700, borderRadius: 8, border: "none", boxShadow: "none" }}
+            >
+              Track Live
+            </Button>
+            <Popover
+              trigger="click"
+              placement="leftTop"
+              overlayStyle={{ width: 340 }}
+              title={
+                <Flex align="center" gap={6}>
+                  <PlusOutlined style={{ color: "#6366f1" }} />
+                  <span style={{ fontWeight: 700, fontSize: 13 }}>#{record.orderNumber}</span>
+                </Flex>
+              }
+              content={
+                <FollowUpPanel
+                  orderId={record._id}
+                  initialFollowUps={followUps}
+                  compact
+                />
+              }
+            >
+              <Button
+                size="small"
+                icon={<PlusOutlined />}
+                style={{ borderRadius: 8, fontWeight: 700, fontSize: 11 }}
+              >
+                Follow-up{followUps.length > 0 && (
+                  <span style={{ marginLeft: 4, background: "#6366f1", color: "#fff", borderRadius: 8, padding: "0 5px", fontSize: 10, fontWeight: 900 }}>
+                    {followUps.length}
+                  </span>
+                )}
+              </Button>
+            </Popover>
+          </Flex>
+        );
+      },
     },
   ];
 
@@ -587,18 +659,74 @@ export function CourierMonitorClient({ initialOrders }: Props) {
                     </div>
                   )}
 
-                  {/* Footer Action */}
-                  <div className="pt-2 border-t border-slate-100 flex items-center justify-end gap-2">
-                    <Button
-                      type="primary"
-                      ghost
-                      size="small"
-                      icon={<EyeOutlined />}
-                      onClick={() => openTrackingModal(item.courierTrackingId!, item.orderNumber)}
-                      style={{ borderRadius: 8, fontWeight: 700 }}
-                    >
-                      Track Live Details ➜
-                    </Button>
+                  {/* Footer */}
+                  <div className="pt-2 border-t border-slate-100 space-y-2">
+                    {/* Last follow-up preview — shows even without clicking */}
+                    {(item.followUps?.length ?? 0) > 0 && (
+                      <div
+                        style={{
+                          background: "#f5f3ff",
+                          border: "1px solid #e0e7ff",
+                          borderRadius: 10,
+                          padding: "6px 10px",
+                        }}
+                      >
+                        <div style={{ fontSize: 10, color: "#94a3b8", marginBottom: 3, fontWeight: 600 }}>
+                          📋 Last Follow-up
+                        </div>
+                        <LastFollowUp followUps={item.followUps} />
+                      </div>
+                    )}
+
+                    {/* Action Buttons */}
+                    <div className="flex items-center justify-between gap-2">
+                      <Popover
+                        trigger="click"
+                        placement="topLeft"
+                        overlayStyle={{ width: 320 }}
+                        title={
+                          <Flex align="center" gap={6}>
+                            <PlusOutlined style={{ color: "#6366f1" }} />
+                            <span style={{ fontWeight: 700, fontSize: 13 }}>#{item.orderNumber}</span>
+                          </Flex>
+                        }
+                        content={
+                          <FollowUpPanel
+                            orderId={item._id}
+                            initialFollowUps={item.followUps ?? []}
+                            compact
+                          />
+                        }
+                      >
+                        <Button
+                          size="small"
+                          icon={<PlusOutlined />}
+                          style={{
+                            borderRadius: 8,
+                            fontWeight: 700,
+                            fontSize: 11,
+                            borderColor: "#6366f1",
+                            color: "#6366f1",
+                          }}
+                        >
+                          {(item.followUps?.length ?? 0) === 0 ? "Add Follow-up" : "Follow-up"}
+                          {(item.followUps?.length ?? 0) > 0 && (
+                            <span style={{ marginLeft: 4, background: "#6366f1", color: "#fff", borderRadius: 8, padding: "0 5px", fontSize: 10, fontWeight: 900 }}>
+                              {item.followUps!.length}
+                            </span>
+                          )}
+                        </Button>
+                      </Popover>
+                      <Button
+                        type="primary"
+                        size="small"
+                        icon={<EyeOutlined />}
+                        onClick={() => openTrackingModal(item.courierTrackingId!, item.orderNumber)}
+                        style={{ borderRadius: 8, fontWeight: 700, border: "none", boxShadow: "none" }}
+                      >
+                        Track Live ➜
+                      </Button>
+                    </div>
                   </div>
                 </div>
               </Card>
