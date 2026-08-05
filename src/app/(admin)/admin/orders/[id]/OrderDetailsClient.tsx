@@ -14,6 +14,7 @@ import {
   Steps,
   Tag,
   Button,
+  Input,
   Typography,
   Flex,
   Space,
@@ -47,9 +48,11 @@ import { StatusUpdater } from "@/components/admin/StatusUpdater";
 import type { IOrderSerializable } from "@/types/order";
 import { CHANNEL_LABELS } from "@/types/order";
 import { format } from "date-fns";
+import { updateOrderTrackingId } from "@/actions/pathaoTracking";
+import { PathaoTrackingModal } from "@/components/admin/PathaoTrackingModal";
 
 import { EditOrderModal, ProductOption } from "@/components/admin/EditOrderModal";
-import { ShareAltOutlined } from "@ant-design/icons";
+import { ShareAltOutlined, CarOutlined, SaveOutlined, EyeOutlined } from "@ant-design/icons";
 
 const { Title, Text } = Typography;
 
@@ -69,6 +72,39 @@ const STAGE_STEPS = [
 export function OrderDetailsClient({ order, products = [] }: Props) {
   const router = useRouter();
   const [copiedField, setCopiedField] = useState<string | null>(null);
+
+  // Pathao Tracking State
+  const [consignmentInput, setConsignmentInput] = useState(order.courierTrackingId || "");
+  const [activeTrackingId, setActiveTrackingId] = useState(order.courierTrackingId || "");
+  const [courierStatusState, setCourierStatusState] = useState(order.courierStatus || "");
+  const [courierReasonState, setCourierReasonState] = useState(order.courierReason || "");
+  const [courierAttemptState, setCourierAttemptState] = useState(order.courierAttemptCount || 0);
+  const [savingTracking, setSavingTracking] = useState(false);
+  const [trackingModalOpen, setTrackingModalOpen] = useState(false);
+
+  const handleSaveTracking = async () => {
+    if (!consignmentInput.trim()) {
+      return toast.warning("Please enter a valid Pathao Consignment ID");
+    }
+    setSavingTracking(true);
+    try {
+      const res = await updateOrderTrackingId(order._id, consignmentInput);
+      if (res.success && res.order) {
+        setActiveTrackingId(res.order.courierTrackingId || consignmentInput.trim());
+        setCourierStatusState(res.order.courierStatus || "Booked (Pending Sync)");
+        setCourierReasonState(res.order.courierReason || "");
+        setCourierAttemptState(res.order.courierAttemptCount || 0);
+        toast.success("Pathao Consignment ID saved and live status synced!");
+        router.refresh();
+      } else {
+        toast.error(res.error || "Failed to save Consignment ID");
+      }
+    } catch {
+      toast.error("Error saving Consignment ID");
+    } finally {
+      setSavingTracking(false);
+    }
+  };
 
   const isGiftOrder = Boolean(
     order.customerPhone && order.customerPhone !== order.shipping.phone,
@@ -344,6 +380,107 @@ export function OrderDetailsClient({ order, products = [] }: Props) {
             />
           )}
         </div>
+      </Card>
+
+      {/* Pathao Courier Tracking Card */}
+      <Card style={{ borderRadius: 16 }} styles={{ body: { padding: 16 } }} className="border border-red-100 bg-gradient-to-r from-slate-50 to-red-50/20 shadow-sm">
+        <Flex align="center" justify="space-between" wrap="wrap" gap={12}>
+          <div>
+            <Flex align="center" gap={8}>
+              <CarOutlined style={{ color: "#e11d48", fontSize: 18 }} />
+              <Text strong style={{ fontSize: "14px", color: "#0f172a" }}>
+                Pathao Courier Tracking
+              </Text>
+              {courierStatusState && (
+                (() => {
+                  const attempts = courierAttemptState || (
+                    (courierReasonState && courierStatusState.toLowerCase().includes("ready")) ? 2 : 0
+                  );
+
+                  return (
+                    <Tag
+                      color={
+                        courierStatusState.toLowerCase().includes("hold")
+                          ? "warning"
+                          : courierStatusState.toLowerCase().includes("return")
+                          ? "error"
+                          : courierStatusState.toLowerCase().includes("delivered")
+                          ? "success"
+                          : "processing"
+                      }
+                      style={{
+                        fontWeight: 900,
+                        fontSize: "12px",
+                        borderRadius: 6,
+                        margin: 0,
+                        padding: "2px 8px",
+                        display: "inline-flex",
+                        alignItems: "center",
+                      }}
+                    >
+                      <span>{courierStatusState}</span>
+                      {attempts > 1 && (
+                        <span
+                          style={{
+                            backgroundColor: "#ef4444",
+                            color: "#ffffff",
+                            fontSize: "10px",
+                            fontWeight: 900,
+                            borderRadius: "10px",
+                            padding: "1px 6px",
+                            marginLeft: "6px",
+                            display: "inline-block",
+                            lineHeight: "14px",
+                            boxShadow: "0 1px 3px rgba(239, 68, 68, 0.3)",
+                          }}
+                        >
+                          {attempts}
+                        </span>
+                      )}
+                    </Tag>
+                  );
+                })()
+              )}
+            </Flex>
+            {courierReasonState && (
+              <Text type="secondary" style={{ fontSize: "12px", display: "block", marginTop: 4, color: "#b45309" }}>
+                Reason: {courierReasonState}
+              </Text>
+            )}
+          </div>
+
+          <Flex align="center" gap={8} wrap="wrap">
+            <div className="flex items-center gap-1.5">
+              <Input
+                placeholder="Enter Consignment ID (e.g. SG030...)"
+                value={consignmentInput}
+                onChange={(e) => setConsignmentInput(e.target.value)}
+                style={{ borderRadius: 8, width: 220 }}
+                allowClear
+              />
+              <Button
+                type="primary"
+                icon={<SaveOutlined />}
+                loading={savingTracking}
+                onClick={handleSaveTracking}
+                style={{ borderRadius: 8, fontWeight: 700 }}
+              >
+                Save
+              </Button>
+            </div>
+
+            {activeTrackingId && (
+              <Button
+                type="default"
+                icon={<EyeOutlined />}
+                onClick={() => setTrackingModalOpen(true)}
+                style={{ borderRadius: 8, fontWeight: 700 }}
+              >
+                Live Track ➜
+              </Button>
+            )}
+          </Flex>
+        </Flex>
       </Card>
 
       {/* Main Grid: Left Items List, Right Customer & Payment Details */}
@@ -699,6 +836,13 @@ export function OrderDetailsClient({ order, products = [] }: Props) {
           </Card>
         </Col>
       </Row>
+
+      <PathaoTrackingModal
+        open={trackingModalOpen}
+        onClose={() => setTrackingModalOpen(false)}
+        consignmentId={order.courierTrackingId}
+        orderNumber={order.orderNumber}
+      />
     </div>
   );
 }

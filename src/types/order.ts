@@ -100,6 +100,13 @@ export interface IOrderBase {
   customerNotes?: string;
   adminNotes?: string;
   couponCode?: string;
+  courierTrackingId?: string;
+  courierStatus?: string;
+  courierReason?: string;
+  courierRiderName?: string;
+  courierRiderPhone?: string;
+  courierLastUpdated?: string;
+  courierAttemptCount?: number;
 }
 
 export interface IOrder extends IOrderBase, Document {

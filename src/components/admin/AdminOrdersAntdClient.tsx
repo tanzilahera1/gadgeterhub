@@ -3,9 +3,10 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Table, Tag, Input, Select, Button, Card, Space, Typography, Badge, Flex } from "antd";
+import { useRouter } from "next/navigation";
+import { Table, Tag, Input, Select, Button, Card, Space, Typography, Badge, Flex, Tooltip, Modal } from "antd";
 import type { ColumnsType } from "antd/es/table";
-import { SearchOutlined, EyeOutlined, ShoppingCartOutlined, AlertOutlined, PrinterOutlined } from "@ant-design/icons";
+import { SearchOutlined, EyeOutlined, ShoppingCartOutlined, AlertOutlined, PrinterOutlined, EditOutlined, SaveOutlined, CarOutlined, ReloadOutlined } from "@ant-design/icons";
 import { toast } from "sonner";
 import { IOrder, CHANNEL_LABELS } from "@/types/order";
 import { formatPrice } from "@/lib/priceUtils";
@@ -13,6 +14,8 @@ import { format } from "date-fns";
 import { getZoneBadgeInfo } from "@/lib/shipping";
 import { StatusUpdater } from "@/components/admin/StatusUpdater";
 import { CreateOrderModal } from "@/components/admin/CreateOrderModal";
+import { PathaoTrackingModal } from "@/components/admin/PathaoTrackingModal";
+import { updateOrderTrackingId } from "@/actions/pathaoTracking";
 
 import { AdminOrderMobileCard } from "@/components/admin/AdminOrderMobileCard";
 
@@ -35,9 +38,76 @@ export function AdminOrdersAntdClient({
   orders: IOrder[];
   products: ProductOption[];
 }) {
+  const router = useRouter();
   const [searchText, setSearchText] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [channelFilter, setChannelFilter] = useState<string>("all");
+
+  // Pathao Tracking Modal State
+  const [trackingModalOpen, setTrackingModalOpen] = useState(false);
+  const [activeConsignmentId, setActiveConsignmentId] = useState("");
+  const [activeOrderNumber, setActiveOrderNumber] = useState("");
+
+  // Edit Consignment ID Modal State
+  const [editConsignmentModalOpen, setEditConsignmentModalOpen] = useState(false);
+  const [editingOrderId, setEditingOrderId] = useState("");
+  const [editingOrderNumber, setEditingOrderNumber] = useState("");
+  const [inputConsignmentId, setInputConsignmentId] = useState("");
+  const [savingConsignment, setSavingConsignment] = useState(false);
+
+  // Per-row sync state
+  const [syncingOrderId, setSyncingOrderId] = useState("");
+
+  const openTrackingModal = (cid: string, orderNum: string) => {
+    setActiveConsignmentId(cid);
+    setActiveOrderNumber(orderNum);
+    setTrackingModalOpen(true);
+  };
+
+  const openEditConsignmentModal = (orderId: string, orderNum: string, currentId?: string) => {
+    setEditingOrderId(orderId);
+    setEditingOrderNumber(orderNum);
+    setInputConsignmentId(currentId || "");
+    setEditConsignmentModalOpen(true);
+  };
+
+  const syncSingleOrderStatus = async (orderId: string, consignmentId: string) => {
+    setSyncingOrderId(orderId);
+    try {
+      const res = await updateOrderTrackingId(orderId, consignmentId);
+      if (res.success) {
+        toast.success("লাইভ স্ট্যাটাস আপডেট হয়েছে!");
+        router.refresh();
+      } else {
+        toast.error(res.error || "স্ট্যাটাস আপডেট করা যায়নি");
+      }
+    } catch {
+      toast.error("স্ট্যাটাস আপডেট করতে সমস্যা হয়েছে");
+    } finally {
+      setSyncingOrderId("");
+    }
+  };
+
+  const handleSaveConsignmentModal = async () => {
+    if (!inputConsignmentId.trim()) {
+      return toast.warning("Please enter a Consignment ID");
+    }
+    setSavingConsignment(true);
+    try {
+      const res = await updateOrderTrackingId(editingOrderId, inputConsignmentId);
+      if (res.success) {
+        toast.success("Pathao Consignment ID saved and live status synced!");
+        setEditConsignmentModalOpen(false);
+        router.refresh();
+      } else {
+        toast.error(res.error || "Failed to save Consignment ID");
+      }
+    } catch {
+      toast.error("Error saving Consignment ID");
+    } finally {
+      setSavingConsignment(false);
+    }
+  };
 
   const filteredOrders = orders.filter((order) => {
     const matchesSearch =
@@ -156,6 +226,117 @@ export function AdminOrdersAntdClient({
           {record.paymentMethod?.toUpperCase()}
         </Tag>
       ),
+    },
+    {
+      title: "Courier Status",
+      key: "courier",
+      render: (_, record) => {
+        if (!record.courierTrackingId) {
+          return (
+            <Button
+              size="small"
+              type="dashed"
+              style={{ fontSize: "11px", borderRadius: 6, fontWeight: 700 }}
+              onClick={() => openEditConsignmentModal(record._id.toString(), record.orderNumber)}
+            >
+              + Add Pathao ID
+            </Button>
+          );
+        }
+
+        const stLower = (record.courierStatus || "").toLowerCase();
+        const isHold = stLower.includes("hold");
+        const isReturned = stLower.includes("return");
+        const isDelivered = stLower.includes("delivered");
+
+        // Local per-row syncing state
+        const isSyncing = syncingOrderId === record._id.toString();
+
+        return (
+          <div className="space-y-1">
+            <Flex align="center" gap={4}>
+              <Text code style={{ fontSize: "11px", fontWeight: 900 }}>
+                {record.courierTrackingId}
+              </Text>
+              <Tooltip title="Edit Consignment ID">
+                <Button
+                  size="small"
+                  type="text"
+                  icon={<EditOutlined style={{ fontSize: "11px", color: "#64748b" }} />}
+                  onClick={() =>
+                    openEditConsignmentModal(
+                      record._id.toString(),
+                      record.orderNumber,
+                      record.courierTrackingId
+                    )
+                  }
+                />
+              </Tooltip>
+              <Tooltip title="Sync live Pathao status now">
+                <Button
+                  size="small"
+                  type="text"
+                  loading={isSyncing}
+                  icon={<ReloadOutlined style={{ fontSize: "11px", color: "#3b82f6" }} />}
+                  onClick={() => syncSingleOrderStatus(record._id.toString(), record.courierTrackingId!)}
+                />
+              </Tooltip>
+            </Flex>
+            {(() => {
+              const attempts = record.courierAttemptCount || (
+                (record.courierReason && stLower.includes("ready")) ? 2 : 0
+              );
+
+              return (
+                <Tag
+                  color={
+                    isHold
+                      ? "warning"
+                      : isReturned
+                      ? "error"
+                      : isDelivered
+                      ? "success"
+                      : "processing"
+                  }
+                  style={{
+                    fontWeight: 900,
+                    fontSize: "10px",
+                    margin: 0,
+                    borderRadius: 4,
+                    cursor: "pointer",
+                    padding: "1px 6px",
+                    display: "inline-flex",
+                    alignItems: "center",
+                  }}
+                  onClick={() => openTrackingModal(record.courierTrackingId!, record.orderNumber)}
+                >
+                  <span>
+                    {isHold ? "⚠️ ON HOLD" : isReturned ? "🚨 RETURNED" : record.courierStatus || "In Transit"}
+                  </span>
+                  {attempts > 1 && (
+                    <span
+                      style={{
+                        backgroundColor: "#ef4444",
+                        color: "#ffffff",
+                        fontSize: "9px",
+                        fontWeight: 900,
+                        borderRadius: "8px",
+                        padding: "0 5px",
+                        marginLeft: "4px",
+                        display: "inline-block",
+                        lineHeight: "12px",
+                        boxShadow: "0 1px 2px rgba(239, 68, 68, 0.3)",
+                      }}
+                    >
+                      {attempts}
+                    </span>
+                  )}
+                </Tag>
+              );
+            })()}
+          </div>
+        );
+      },
     },
     {
       title: "Status",
@@ -324,6 +505,44 @@ export function AdminOrdersAntdClient({
           </Card>
         )}
       </div>
+
+      <PathaoTrackingModal
+        open={trackingModalOpen}
+        onClose={() => setTrackingModalOpen(false)}
+        consignmentId={activeConsignmentId}
+        orderNumber={activeOrderNumber}
+      />
+
+      {/* Quick Edit Consignment ID Modal */}
+      <Modal
+        title={
+          <Flex align="center" gap={8}>
+            <CarOutlined style={{ color: "#e11d48", fontSize: 18 }} />
+            <span>Pathao Consignment ID (Order #{editingOrderNumber})</span>
+          </Flex>
+        }
+        open={editConsignmentModalOpen}
+        onCancel={() => setEditConsignmentModalOpen(false)}
+        onOk={handleSaveConsignmentModal}
+        confirmLoading={savingConsignment}
+        okText="Save & Sync Live Status"
+        cancelText="Cancel"
+        style={{ borderRadius: 16 }}
+        styles={{ body: { padding: "16px 0 8px 0" } }}
+      >
+        <div className="space-y-3">
+          <Text type="secondary" style={{ fontSize: "12px", display: "block" }}>
+            পাঠাও হাব থেকে বুকিং করার পর পাওয়া Consignment ID (যেমন: <Text code>SG030826FV2JHW</Text>) নিচে লিখুন।
+          </Text>
+          <Input
+            placeholder="e.g. SG030826FV2JHW"
+            value={inputConsignmentId}
+            onChange={(e) => setInputConsignmentId(e.target.value)}
+            style={{ borderRadius: 10, height: 40 }}
+            allowClear
+          />
+        </div>
+      </Modal>
     </div>
   );
 }

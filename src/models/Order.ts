@@ -87,6 +87,13 @@ const OrderSchema = new Schema<IOrder>(
     customerNotes: { type: String },
     adminNotes: { type: String },
     couponCode: { type: String, trim: true },
+    courierTrackingId: { type: String, trim: true },
+    courierStatus: { type: String, trim: true },
+    courierReason: { type: String, trim: true },
+    courierRiderName: { type: String, trim: true },
+    courierRiderPhone: { type: String, trim: true },
+    courierLastUpdated: { type: Date },
+    courierAttemptCount: { type: Number, default: 0 },
   },
   { timestamps: true },
 );
