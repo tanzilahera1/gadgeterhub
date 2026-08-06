@@ -34,9 +34,11 @@ interface ProductOption {
 export function AdminOrdersAntdClient({
   orders,
   products,
+  isDashboard = false,
 }: {
   orders: IOrder[];
   products: ProductOption[];
+  isDashboard?: boolean;
 }) {
   const router = useRouter();
   const [searchText, setSearchText] = useState("");
@@ -313,7 +315,7 @@ export function AdminOrdersAntdClient({
                   <span>
                     {isHold ? "⚠️ ON HOLD" : isReturned ? "🚨 RETURNED" : record.courierStatus || "In Transit"}
                   </span>
-                  {attempts > 1 && (
+                  {!isDelivered && attempts > 1 && (
                     <span
                       style={{
                         backgroundColor: "#ef4444",
@@ -362,8 +364,9 @@ export function AdminOrdersAntdClient({
 
   return (
     <div style={{ padding: 0 }} className="space-y-4">
-      {/* Header Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-4 sm:p-6 rounded-2xl border border-slate-200 shadow-sm">
+      {/* Header Bar - Hidden in Dashboard */}
+      {!isDashboard && (
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-4 sm:p-6 rounded-2xl border border-slate-200 shadow-sm">
         <div style={{ textAlign: "center" }}>
           <Title level={3} style={{ margin: 0, fontWeight: 900 }}>
             Orders Management
@@ -373,7 +376,7 @@ export function AdminOrdersAntdClient({
           </Text>
         </div>
 
-        <Flex align="center" gap={12} wrap="wrap">
+        <div className="flex flex-wrap items-center justify-center sm:justify-end gap-3 w-full sm:w-auto">
           <Badge count={pendingCount} overflowCount={99}>
             <Button
               icon={<AlertOutlined />}
@@ -408,15 +411,17 @@ export function AdminOrdersAntdClient({
           )}
 
           <CreateOrderModal products={products} />
-        </Flex>
+        </div>
       </div>
+      )}
 
-      {/* Filters Toolbar */}
-      <Card
-        style={{ borderRadius: 16 }}
-        styles={{ body: { padding: "12px 16px" } }}
-        className="border border-slate-200 bg-white shadow-sm"
-      >
+      {/* Filters Toolbar - Hidden in Dashboard */}
+      {!isDashboard && (
+        <Card
+          style={{ borderRadius: 16 }}
+          styles={{ body: { padding: "12px 16px" } }}
+          className="border border-slate-200 bg-white shadow-sm"
+        >
         <div className="flex flex-col sm:flex-row items-center justify-between gap-3 w-full">
           <Input
             placeholder="Search by Order ID or Name..."
@@ -460,16 +465,17 @@ export function AdminOrdersAntdClient({
           </Space>
         </div>
       </Card>
+      )}
 
       {/* DESKTOP VIEW: Antd Data Table */}
       <div className="hidden md:block">
-        <Card style={{ borderRadius: 16, overflow: "hidden" }} styles={{ body: { padding: 0 } }}>
+        <Card style={{ borderRadius: isDashboard ? 0 : 16, overflow: "hidden", border: isDashboard ? 'none' : undefined }} styles={{ body: { padding: 0 } }}>
           <Table
             columns={columns}
             dataSource={filteredOrders}
             rowKey={(record) => record._id.toString()}
             scroll={{ x: 800 }}
-            pagination={{ pageSize: 10, showSizeChanger: true }}
+            pagination={isDashboard ? false : { pageSize: 10, showSizeChanger: true }}
             locale={{
               emptyText: (
                 <div style={{ padding: "40px 0", textAlign: "center" }}>
@@ -492,6 +498,7 @@ export function AdminOrdersAntdClient({
               key={order._id.toString()}
               order={order}
               marginBottom={8}
+              onAddPathaoId={openEditConsignmentModal}
             />
           ))
         ) : (

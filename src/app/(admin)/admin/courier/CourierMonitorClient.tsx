@@ -33,6 +33,7 @@ import {
   EyeOutlined,
   CheckCircleOutlined,
   PlusOutlined,
+  ClockCircleOutlined,
 } from "@ant-design/icons";
 import type { IOrderSerializable, IFollowUpEntry } from "@/types/order";
 import { refreshActiveShipments } from "@/actions/pathaoTracking";
@@ -92,6 +93,17 @@ export function CourierMonitorClient({ initialOrders }: Props) {
   const [trackingModalOpen, setTrackingModalOpen] = useState(false);
   const [activeConsignmentId, setActiveConsignmentId] = useState("");
   const [activeOrderNumber, setActiveOrderNumber] = useState("");
+
+  // Update parent state when a follow-up is added so it persists across popover open/close
+  const handleFollowUpAdded = (orderId: string, newEntry: import("@/types/order").IFollowUpEntry) => {
+    setOrders((prev) =>
+      prev.map((o) =>
+        o._id === orderId
+          ? { ...o, followUps: [newEntry, ...(o.followUps ?? [])] }
+          : o
+      )
+    );
+  };
 
   const handleRefreshAll = async () => {
     setRefreshing(true);
@@ -167,6 +179,7 @@ export function CourierMonitorClient({ initialOrders }: Props) {
     {
       title: "Order & Customer",
       key: "order",
+      className: "align-top",
       render: (_, record) => {
         const cleanPhone = (record.shipping?.phone || record.customerPhone).replace(/[^0-9]/g, "");
         const waNumber = cleanPhone.startsWith("88") ? cleanPhone : `88${cleanPhone}`;
@@ -174,10 +187,10 @@ export function CourierMonitorClient({ initialOrders }: Props) {
           <div className="space-y-1">
             <Link
               href={`/admin/orders/${record._id}`}
-              style={{ fontWeight: 800, color: "#1677ff", fontSize: "14px" }}
-              className="hover:underline"
             >
-              #{record.orderNumber}
+              <Text code style={{ fontWeight: 800, fontSize: "13px", color: "#1677ff" }} className="hover:underline">
+                {record.orderNumber}
+              </Text>
             </Link>
             <Text strong style={{ display: "block", fontSize: "13px" }}>
               {record.shipping?.name}
@@ -197,10 +210,11 @@ export function CourierMonitorClient({ initialOrders }: Props) {
     {
       title: "Pathao Consignment ID",
       key: "consignment",
+      className: "align-top",
       render: (_, record) => (
         <div className="space-y-1">
-          <Flex align="center" gap={6}>
-            <Text code style={{ fontWeight: 900, fontSize: "13px" }}>
+          <Flex align="center" gap={4}>
+            <Text code style={{ fontWeight: 900, fontSize: "11px" }}>
               {record.courierTrackingId}
             </Text>
             <Tooltip title="Copy Consignment ID">
@@ -226,6 +240,7 @@ export function CourierMonitorClient({ initialOrders }: Props) {
     {
       title: "Live Status & Issues",
       key: "status",
+      className: "align-top",
       render: (_, record) => {
         const stLower = (record.courierStatus || "").toLowerCase();
         const isHold = stLower.includes("hold");
@@ -255,10 +270,10 @@ export function CourierMonitorClient({ initialOrders }: Props) {
                 }
                 style={{
                   fontWeight: 900,
-                  fontSize: "12px",
-                  borderRadius: 6,
+                  fontSize: "10px",
+                  borderRadius: 4,
                   margin: 0,
-                  padding: "2px 8px",
+                  padding: "1px 6px",
                   display: "inline-flex",
                   alignItems: "center",
                 }}
@@ -271,14 +286,14 @@ export function CourierMonitorClient({ initialOrders }: Props) {
                     style={{
                       backgroundColor: "#ef4444",
                       color: "#ffffff",
-                      fontSize: "10px",
+                      fontSize: "9px",
                       fontWeight: 900,
-                      borderRadius: "10px",
-                      padding: "1px 6px",
-                      marginLeft: "6px",
+                      borderRadius: "8px",
+                      padding: "0 5px",
+                      marginLeft: "4px",
                       display: "inline-block",
-                      lineHeight: "14px",
-                      boxShadow: "0 1px 3px rgba(239, 68, 68, 0.3)",
+                      lineHeight: "12px",
+                      boxShadow: "0 1px 2px rgba(239, 68, 68, 0.3)",
                     }}
                   >
                     {attempts}
@@ -287,7 +302,8 @@ export function CourierMonitorClient({ initialOrders }: Props) {
               </Tag>
               {lastUpdated && (
                 <Text type="secondary" style={{ fontSize: "10px", whiteSpace: "nowrap" }}>
-                  🕐 {lastUpdated}
+                  <ClockCircleOutlined style={{ fontSize: "9px", marginRight: 2 }} />
+                  {lastUpdated}
                 </Text>
               )}
             </div>
@@ -305,6 +321,7 @@ export function CourierMonitorClient({ initialOrders }: Props) {
     {
       title: "Rider Contact",
       key: "rider",
+      className: "align-top",
       render: (_, record) => {
         if (!record.courierRiderPhone && !record.courierRiderName) {
           return <Text type="secondary" style={{ fontSize: "11px" }}>Not Assigned Yet</Text>;
@@ -335,7 +352,9 @@ export function CourierMonitorClient({ initialOrders }: Props) {
     {
       title: "Actions",
       key: "actions",
+      onCell: () => ({ style: { verticalAlign: 'top' } }),
       align: "center" as const,
+      className: "align-top",
       render: (_, record) => {
         const followUps = record.followUps ?? [];
         return (
@@ -343,9 +362,10 @@ export function CourierMonitorClient({ initialOrders }: Props) {
             <Button
               type="primary"
               size="small"
+              shape="round"
               icon={<EyeOutlined />}
+              style={{ fontSize: "11px", fontWeight: 700 }}
               onClick={() => openTrackingModal(record.courierTrackingId!, record.orderNumber)}
-              style={{ fontWeight: 700, borderRadius: 8, border: "none", boxShadow: "none" }}
             >
               Track Live
             </Button>
@@ -364,6 +384,7 @@ export function CourierMonitorClient({ initialOrders }: Props) {
                   orderId={record._id}
                   initialFollowUps={followUps}
                   compact
+                  onAdded={(entry) => handleFollowUpAdded(record._id, entry)}
                 />
               }
             >
@@ -410,57 +431,47 @@ export function CourierMonitorClient({ initialOrders }: Props) {
       </div>
 
       {/* KPI Stats Grid */}
-      <Row gutter={[12, 12]}>
-        <Col xs={12} sm={6} md={4.8}>
-          <Card style={{ borderRadius: 16 }} styles={{ body: { padding: 14 } }} className="text-center bg-amber-50/50 border-amber-200">
-            <Statistic
-              title={<Text style={{ fontSize: "11px", fontWeight: 700, color: "#b45309" }}>⚠️ ON HOLD (ALERT)</Text>}
-              value={onHoldCount}
-              styles={{ content: { fontWeight: 900, fontSize: "22px", color: "#d97706" } }}
-            />
-          </Card>
-        </Col>
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+        <Card style={{ borderRadius: 16 }} styles={{ body: { padding: 14 } }} className="text-center bg-amber-50/50 border-amber-200">
+          <Statistic
+            title={<Text style={{ fontSize: "11px", fontWeight: 700, color: "#b45309" }}>⚠️ ON HOLD (ALERT)</Text>}
+            value={onHoldCount}
+            styles={{ content: { fontWeight: 900, fontSize: "22px", color: "#d97706" } }}
+          />
+        </Card>
 
-        <Col xs={12} sm={6} md={4.8}>
-          <Card style={{ borderRadius: 16 }} styles={{ body: { padding: 14 } }} className="text-center bg-blue-50/50 border-blue-200">
-            <Statistic
-              title={<Text style={{ fontSize: "11px", fontWeight: 700, color: "#1d4ed8" }}>🚴 READY / OUT</Text>}
-              value={readyCount}
-              styles={{ content: { fontWeight: 900, fontSize: "22px", color: "#2563eb" } }}
-            />
-          </Card>
-        </Col>
+        <Card style={{ borderRadius: 16 }} styles={{ body: { padding: 14 } }} className="text-center bg-blue-50/50 border-blue-200">
+          <Statistic
+            title={<Text style={{ fontSize: "11px", fontWeight: 700, color: "#1d4ed8" }}>🚴 READY / OUT</Text>}
+            value={readyCount}
+            styles={{ content: { fontWeight: 900, fontSize: "22px", color: "#2563eb" } }}
+          />
+        </Card>
 
-        <Col xs={12} sm={6} md={4.8}>
-          <Card style={{ borderRadius: 16 }} styles={{ body: { padding: 14 } }} className="text-center">
-            <Statistic
-              title={<Text type="secondary" style={{ fontSize: "11px", fontWeight: 700 }}>📦 IN TRANSIT</Text>}
-              value={transitCount}
-              styles={{ content: { fontWeight: 900, fontSize: "22px", color: "#0284c7" } }}
-            />
-          </Card>
-        </Col>
+        <Card style={{ borderRadius: 16 }} styles={{ body: { padding: 14 } }} className="text-center">
+          <Statistic
+            title={<Text type="secondary" style={{ fontSize: "11px", fontWeight: 700 }}>📦 IN TRANSIT</Text>}
+            value={transitCount}
+            styles={{ content: { fontWeight: 900, fontSize: "22px", color: "#0284c7" } }}
+          />
+        </Card>
 
-        <Col xs={12} sm={6} md={4.8}>
-          <Card style={{ borderRadius: 16 }} styles={{ body: { padding: 14 } }} className="text-center bg-red-50/50 border-red-200">
-            <Statistic
-              title={<Text style={{ fontSize: "11px", fontWeight: 700, color: "#b91c1c" }}>🚨 RETURNED</Text>}
-              value={returnedCount}
-              styles={{ content: { fontWeight: 900, fontSize: "22px", color: "#dc2626" } }}
-            />
-          </Card>
-        </Col>
+        <Card style={{ borderRadius: 16 }} styles={{ body: { padding: 14 } }} className="text-center bg-red-50/50 border-red-200">
+          <Statistic
+            title={<Text style={{ fontSize: "11px", fontWeight: 700, color: "#b91c1c" }}>🚨 RETURNED</Text>}
+            value={returnedCount}
+            styles={{ content: { fontWeight: 900, fontSize: "22px", color: "#dc2626" } }}
+          />
+        </Card>
 
-        <Col xs={24} sm={12} md={4.8}>
-          <Card style={{ borderRadius: 16 }} styles={{ body: { padding: 14 } }} className="text-center bg-emerald-50/50 border-emerald-200">
-            <Statistic
-              title={<Text style={{ fontSize: "11px", fontWeight: 700, color: "#047857" }}>✅ DELIVERED</Text>}
-              value={deliveredCount}
-              styles={{ content: { fontWeight: 900, fontSize: "22px", color: "#059669" } }}
-            />
-          </Card>
-        </Col>
-      </Row>
+        <Card style={{ borderRadius: 16 }} styles={{ body: { padding: 14 } }} className="text-center bg-emerald-50/50 border-emerald-200 col-span-2 sm:col-span-1 lg:col-span-1">
+          <Statistic
+            title={<Text style={{ fontSize: "11px", fontWeight: 700, color: "#047857" }}>✅ DELIVERED</Text>}
+            value={deliveredCount}
+            styles={{ content: { fontWeight: 900, fontSize: "22px", color: "#059669" } }}
+          />
+        </Card>
+      </div>
 
       {/* Filter Tabs & Search Card */}
       <Card style={{ borderRadius: 16 }} styles={{ body: { padding: "0 16px 12px 16px" } }} className="shadow-sm">
@@ -594,7 +605,8 @@ export function CourierMonitorClient({ initialOrders }: Props) {
                           </Tag>
                           {lastUpdated && (
                             <Text type="secondary" style={{ fontSize: "10px", whiteSpace: "nowrap" }}>
-                              🕐 {lastUpdated}
+                              <ClockCircleOutlined style={{ fontSize: "9px", marginRight: 2 }} />
+                              {lastUpdated}
                             </Text>
                           )}
                         </div>
@@ -695,6 +707,7 @@ export function CourierMonitorClient({ initialOrders }: Props) {
                             orderId={item._id}
                             initialFollowUps={item.followUps ?? []}
                             compact
+                            onAdded={(entry) => handleFollowUpAdded(item._id, entry)}
                           />
                         }
                       >
@@ -720,9 +733,10 @@ export function CourierMonitorClient({ initialOrders }: Props) {
                       <Button
                         type="primary"
                         size="small"
+                        shape="round"
                         icon={<EyeOutlined />}
+                        style={{ fontSize: "11px", fontWeight: 700 }}
                         onClick={() => openTrackingModal(item.courierTrackingId!, item.orderNumber)}
-                        style={{ borderRadius: 8, fontWeight: 700, border: "none", boxShadow: "none" }}
                       >
                         Track Live ➜
                       </Button>

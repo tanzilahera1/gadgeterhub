@@ -14,11 +14,13 @@ const { Text } = Typography;
 interface AdminOrderMobileCardProps {
   order: IOrder;
   marginBottom?: number;
+  onAddPathaoId?: (orderId: string, orderNumber: string) => void;
 }
 
 export function AdminOrderMobileCard({
   order,
   marginBottom = 8,
+  onAddPathaoId,
 }: AdminOrderMobileCardProps) {
   const channelKey = order.channelSource || "web";
   const channelLabel = CHANNEL_LABELS[channelKey] || "Website";
@@ -128,22 +130,50 @@ export function AdminOrderMobileCard({
           );
         })()}
 
-        {/* Bottom Footer: Date (Left) | Details Action (Right) */}
+        {/* Bottom Footer: Date (Left) | Courier Status (Center) | Details Action (Right) */}
         <div className="flex items-center justify-between pt-0.5 gap-2">
-          <Text type="secondary" style={{ fontSize: "11px", whiteSpace: "nowrap" }}>
+          <Text type="secondary" style={{ fontSize: "11px", whiteSpace: "nowrap", flex: 1 }}>
             {order.createdAt
               ? format(new Date(order.createdAt), "dd MMM, hh:mm a")
               : ""}
           </Text>
 
+          {/* Courier Status (Center) */}
+          <div style={{ flex: 1, textAlign: "center" }}>
+            {order.courierTrackingId ? (
+              order.courierStatus && (
+                <Tag color={
+                  order.courierStatus.toLowerCase().includes("delivered") ? "success" :
+                  order.courierStatus.toLowerCase().includes("return") ? "error" :
+                  order.courierStatus.toLowerCase().includes("hold") ? "warning" : "processing"
+                } style={{ margin: 0, fontSize: "10px", fontWeight: 700, borderRadius: 4 }}>
+                  {order.courierStatus}
+                </Tag>
+              )
+            ) : (
+              onAddPathaoId && orderIdStr && (
+                <Button
+                  size="small"
+                  type="dashed"
+                  style={{ fontSize: "10px", borderRadius: 4, fontWeight: 700 }}
+                  onClick={() => onAddPathaoId(orderIdStr, order.orderNumber)}
+                >
+                  + Add Pathao ID
+                </Button>
+              )
+            )}
+          </div>
+
           {/* Details Action */}
-          {orderIdStr && (
-            <Link href={`/admin/orders/${orderIdStr}`} className="shrink-0">
-              <Button size="small" type="primary" style={{ fontSize: "11px", fontWeight: 700, borderRadius: 6 }}>
-                Details →
-              </Button>
-            </Link>
-          )}
+          <div style={{ flex: 1, textAlign: "right" }}>
+            {orderIdStr && (
+              <Link href={`/admin/orders/${orderIdStr}`} className="shrink-0">
+                <Button size="small" type="primary" style={{ fontSize: "11px", fontWeight: 700, borderRadius: 6 }}>
+                  Details →
+                </Button>
+              </Link>
+            )}
+          </div>
         </div>
       </div>
     </Card>
