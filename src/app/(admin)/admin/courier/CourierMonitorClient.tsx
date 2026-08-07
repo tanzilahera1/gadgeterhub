@@ -94,6 +94,18 @@ export function CourierMonitorClient({ initialOrders }: Props) {
   const [activeConsignmentId, setActiveConsignmentId] = useState("");
   const [activeOrderNumber, setActiveOrderNumber] = useState("");
 
+  const isOrderAssigned = (o: IOrderSerializable) => {
+    const lastDesc = (o.courierLastLogDesc || "").toLowerCase();
+    if (lastDesc && lastDesc.includes("assigned to")) {
+      return true;
+    }
+    const statusLower = (o.courierStatus || "").toLowerCase();
+    return (
+      statusLower.includes("assign") ||
+      (statusLower.includes("ready") && Boolean(o.courierRiderPhone || o.courierRiderName))
+    );
+  };
+
   // Update parent state when a follow-up is added so it persists across popover open/close
   const handleFollowUpAdded = (orderId: string, newEntry: import("@/types/order").IFollowUpEntry) => {
     setOrders((prev) =>
@@ -137,9 +149,10 @@ export function CourierMonitorClient({ initialOrders }: Props) {
       if (!matchesSearch) return false;
 
       const statusLower = (o.courierStatus || "").toLowerCase();
-      if (activeTab === "on_hold") return statusLower.includes("hold");
-      if (activeTab === "ready") return statusLower.includes("ready");
-      if (activeTab === "in_transit") return statusLower.includes("transit") || statusLower.includes("picked");
+      if (activeTab === "assigned") return isOrderAssigned(o);
+      if (activeTab === "on_hold") return statusLower.includes("hold") && !isOrderAssigned(o);
+      if (activeTab === "ready") return statusLower.includes("ready") && !isOrderAssigned(o);
+      if (activeTab === "in_transit") return (statusLower.includes("transit") || statusLower.includes("picked")) && !isOrderAssigned(o);
       if (activeTab === "returned") return statusLower.includes("return");
       if (activeTab === "delivered") return statusLower.includes("delivered");
 
@@ -154,6 +167,7 @@ export function CourierMonitorClient({ initialOrders }: Props) {
     });
 
   // KPI Stats
+  const assignedCount = orders.filter(isOrderAssigned).length;
   const onHoldCount = orders.filter((o) => (o.courierStatus || "").toLowerCase().includes("hold")).length;
   const readyCount = orders.filter((o) => (o.courierStatus || "").toLowerCase().includes("ready")).length;
   const transitCount = orders.filter((o) => {
@@ -431,7 +445,15 @@ export function CourierMonitorClient({ initialOrders }: Props) {
       </div>
 
       {/* KPI Stats Grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+        <Card style={{ borderRadius: 16 }} styles={{ body: { padding: 14 } }} className="text-center bg-indigo-50/60 border-indigo-200">
+          <Statistic
+            title={<Text style={{ fontSize: "11px", fontWeight: 700, color: "#4338ca" }}>🎯 ASSIGNED</Text>}
+            value={assignedCount}
+            styles={{ content: { fontWeight: 900, fontSize: "22px", color: "#4f46e5" } }}
+          />
+        </Card>
+
         <Card style={{ borderRadius: 16 }} styles={{ body: { padding: 14 } }} className="text-center bg-amber-50/50 border-amber-200">
           <Statistic
             title={<Text style={{ fontSize: "11px", fontWeight: 700, color: "#b45309" }}>⚠️ ON HOLD (ALERT)</Text>}
@@ -475,7 +497,7 @@ export function CourierMonitorClient({ initialOrders }: Props) {
 
       {/* Filter Tabs & Search Card */}
       <Card style={{ borderRadius: 16 }} styles={{ body: { padding: "0 16px 12px 16px" } }} className="shadow-sm">
-        {/* Tabs — full width so Antd's native overflow/more-menu kicks in */}
+        {/* Tabs — All Shipments is 1st, Assigned is 2nd */}
         <Tabs
           activeKey={activeTab}
           onChange={setActiveTab}
@@ -484,6 +506,7 @@ export function CourierMonitorClient({ initialOrders }: Props) {
           tabBarGutter={8}
           items={[
             { key: "all", label: `All Shipments (${orders.length})` },
+            { key: "assigned", label: `🎯 Assigned (${assignedCount})` },
             { key: "on_hold", label: `⚠️ On Hold (${onHoldCount})` },
             { key: "ready", label: `🚴 Ready (${readyCount})` },
             { key: "in_transit", label: `📦 In Transit (${transitCount})` },
@@ -632,7 +655,7 @@ export function CourierMonitorClient({ initialOrders }: Props) {
                   )}
 
                   {/* Customer Info */}
-                  <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100 space-y-1">
+                  <div className="border border-dashed border-slate-200 p-2.5 rounded-xl space-y-1">
                     <Text strong style={{ fontSize: "13px", display: "block" }}>
                       👤 {item.shipping?.name}
                     </Text>

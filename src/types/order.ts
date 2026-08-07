@@ -121,6 +121,7 @@ export interface IOrderBase {
   courierReason?: string;
   courierRiderName?: string;
   courierRiderPhone?: string;
+  courierLastLogDesc?: string;
   courierLastUpdated?: string;
   courierAttemptCount?: number;
   followUps?: IFollowUpEntry[];

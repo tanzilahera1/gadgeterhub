@@ -302,7 +302,8 @@ export interface AdminManualOrderInput {
   addressLine2?: string;
   city?: string;
   district?: string;
-  deliveryArea: DeliveryZone;
+  deliveryArea: DeliveryZone | "custom";
+  customShippingCost?: number;
   paymentMethod: "cod" | "mobile";
   paymentProvider?: "bkash" | "nagad" | "rocket";
   senderNumber?: string;
@@ -357,7 +358,10 @@ export async function createAdminManualOrder(data: AdminManualOrderInput) {
     });
   }
 
-  const shippingCost = calculateShippingCost(data.deliveryArea, totalWeightGrams);
+  const shippingCost =
+    data.deliveryArea === "custom"
+      ? Math.max(0, data.customShippingCost || 0)
+      : calculateShippingCost(data.deliveryArea as DeliveryZone, totalWeightGrams);
   const discount = Math.max(0, data.discount || 0);
   const vipPrivilege = Math.max(0, data.vipPrivilege || 0);
   const advancePaid = Math.max(0, data.advancePaid || 0);
@@ -366,7 +370,10 @@ export async function createAdminManualOrder(data: AdminManualOrderInput) {
   // COD fee: courier charges ~1% of COD collection amount for cash-on-delivery
   const codCollectionAmount = Math.max(0, total - advancePaid);
   const courierCodFee = data.paymentMethod === "cod" ? Math.round(codCollectionAmount * 0.01) : 0;
-  const deliveryZone = DELIVERY_ZONES[data.deliveryArea]?.badgeLabel || "ISD (Inside Dhaka)";
+  const deliveryZone =
+    data.deliveryArea === "custom"
+      ? `Custom Charge (৳${shippingCost})`
+      : DELIVERY_ZONES[data.deliveryArea as DeliveryZone]?.badgeLabel || "ISD (Inside Dhaka)";
 
   const channelSource = data.channelSource || "web";
   const brandCode = "GH";

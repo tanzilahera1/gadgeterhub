@@ -1,12 +1,14 @@
 "use client";
 
+import Link from "next/link";
 import { AntdRegistry } from "@ant-design/nextjs-registry";
 import { ConfigProvider } from "antd";
 import { AdminSidebar } from "@/components/layout/AdminSidebar";
 import UserMenuButton from "@/components/layout/UserMenuButton";
 import { SidebarProvider, useSidebar } from "@/hooks/use-sidebar";
+import { CreateOrderModal } from "@/components/admin/CreateOrderModal";
 import { cn } from "@/lib/utils";
-import { Menu } from "lucide-react";
+import { Menu, Package, Truck, ShoppingBag } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const customAntdTheme = {
@@ -34,8 +36,8 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
         {/* Background Pattern */}
         <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-[0.03] pointer-events-none" />
 
-        {/* Top Header */}
-        <header className="sticky top-0 z-30 h-16 border-b border-slate-200 bg-white/80 backdrop-blur-md px-3 sm:px-6 flex items-center justify-between">
+        {/* Top Header — Fixed & Sticky */}
+        <header className="sticky top-0 z-40 h-16 border-b border-slate-200 bg-white/90 backdrop-blur-md px-3 sm:px-6 flex items-center justify-between shadow-xs">
           <div className="flex items-center gap-3">
             <Button
               variant="ghost"

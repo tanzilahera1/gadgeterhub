@@ -25,6 +25,7 @@ export interface PathaoTrackingResult {
     riderPhone?: string;
     reason?: string;
     attemptCount?: number;
+    lastLogDesc?: string;
     timeline: PathaoLogItem[];
   };
   error?: string;
@@ -81,6 +82,7 @@ export async function getPublicPathaoTracking(
     const orderData = json.data.order;
     const logs: PathaoLogItem[] = json.data.log || [];
     const stateName = json.data.state?.name || orderData.transfer_status || "Unknown";
+    const lastLogDesc = logs.length > 0 ? (logs[logs.length - 1].desc || "") : "";
 
     let riderName = orderData.agent?.name || "";
     let riderPhone = "";
@@ -103,6 +105,12 @@ export async function getPublicPathaoTracking(
       }
     }
 
+    // If the latest log is an assignment, clear any previous hold reasons!
+    const isLastLogAssigned = lastLogDesc.toLowerCase().includes("assigned to");
+    if (isLastLogAssigned) {
+      holdReason = "";
+    }
+
     return {
       success: true,
       data: {
@@ -115,6 +123,7 @@ export async function getPublicPathaoTracking(
         riderPhone,
         reason: holdReason,
         attemptCount,
+        lastLogDesc,
         timeline: logs,
       },
     };
@@ -152,6 +161,7 @@ export async function updateOrderTrackingId(
         order.courierReason = tracking.data.reason || "";
         order.courierRiderName = tracking.data.riderName || "";
         order.courierRiderPhone = tracking.data.riderPhone || "";
+        order.courierLastLogDesc = tracking.data.lastLogDesc || "";
         order.courierAttemptCount = tracking.data.attemptCount || 0;
         order.courierLastUpdated = new Date();
 
@@ -173,6 +183,7 @@ export async function updateOrderTrackingId(
       order.courierReason = "";
       order.courierRiderName = "";
       order.courierRiderPhone = "";
+      order.courierLastLogDesc = "";
       order.courierAttemptCount = 0;
     }
 
@@ -214,6 +225,7 @@ export async function refreshActiveShipments(): Promise<{
         ord.courierReason = tracking.data.reason || "";
         ord.courierRiderName = tracking.data.riderName || "";
         ord.courierRiderPhone = tracking.data.riderPhone || "";
+        ord.courierLastLogDesc = tracking.data.lastLogDesc || "";
         ord.courierAttemptCount = tracking.data.attemptCount || 0;
         ord.courierLastUpdated = new Date();
 

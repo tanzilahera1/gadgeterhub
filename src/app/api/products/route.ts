@@ -48,16 +48,25 @@ export async function GET(request: Request) {
       if (maxPrice) query.price.$lte = parseFloat(maxPrice);
     }
 
-    let sortQuery: Record<string, 1 | -1> = { createdAt: -1 };
+    let sortQuery: Record<string, 1 | -1> | undefined = undefined;
     if (sort === "price-asc") sortQuery = { price: 1 };
     if (sort === "price-desc") sortQuery = { price: -1 };
     if (sort === "newest") sortQuery = { createdAt: -1 };
 
-    const productsDocs = await Product.find(query)
-      .populate("category", "name slug")
-      .sort(sortQuery)
-      .limit(20)
-      .lean();
+    let mongoQuery = Product.find(query).populate("category", "name slug");
+    if (sortQuery) {
+      mongoQuery = mongoQuery.sort(sortQuery);
+    }
+
+    const limitParam = searchParams.get("limit");
+    if (limitParam) {
+      const limitVal = parseInt(limitParam, 10);
+      if (!isNaN(limitVal) && limitVal > 0) {
+        mongoQuery = mongoQuery.limit(limitVal);
+      }
+    }
+
+    const productsDocs = await mongoQuery.lean();
 
     // Safe mapping without any
     const products = (productsDocs as unknown as PopulatedProductDoc[]).map(

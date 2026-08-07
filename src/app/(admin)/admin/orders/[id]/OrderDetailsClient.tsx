@@ -177,15 +177,15 @@ export function OrderDetailsClient({ order, products = [] }: Props) {
         <div className="space-y-4">
           {/* Top Bar: Order Info & Actions */}
           {/* Top Bar: Order Info & Actions (Responsive for Mobile, Medium Tablet, and Large Desktop) */}
-          <div className="flex flex-col xl:flex-row items-center xl:items-start justify-between gap-4 text-center xl:text-left">
-            <div className="flex flex-col sm:flex-row items-center sm:items-start gap-3">
+          <div className="flex flex-col xl:flex-row items-start justify-between gap-4 text-left">
+            <div className="flex flex-row items-start gap-3 w-full sm:w-auto">
               <Button
                 shape="circle"
                 icon={<ArrowLeftOutlined />}
                 onClick={() => router.back()}
-                className="shrink-0"
+                className="shrink-0 mt-0.5"
               />
-              <div className="flex flex-col items-center sm:items-start gap-1 text-center sm:text-left">
+              <div className="flex flex-col items-start gap-1 text-left">
                 {/* Row 1: Order ID */}
                 <Title level={4} style={{ margin: 0, fontWeight: 900 }}>
                   Order ID: {order.orderNumber}
@@ -212,9 +212,9 @@ export function OrderDetailsClient({ order, products = [] }: Props) {
                 <EditOrderModal order={order} products={products} />
               </div>
 
-              {/* Share to Hub WhatsApp */}
+              {/* Share to Hub WhatsApp (Fixed number 01648107659) */}
               <a
-                href={`https://api.whatsapp.com/send?text=${encodeURIComponent(courierText)}`}
+                href={`https://api.whatsapp.com/send?phone=8801648107659&text=${encodeURIComponent(courierText)}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="col-span-1"

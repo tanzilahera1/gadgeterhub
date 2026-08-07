@@ -21,6 +21,7 @@ import { StatusUpdater } from "@/components/admin/StatusUpdater";
 import { format } from "date-fns";
 import { getZoneBadgeInfo } from "@/lib/shipping";
 import { AdminOrdersAntdClient } from "@/components/admin/AdminOrdersAntdClient";
+import { CreateOrderModal } from "@/components/admin/CreateOrderModal";
 
 const { Title, Text } = Typography;
 
@@ -193,37 +194,32 @@ export function AdminDashboardAntdClient({ stats }: { stats: StatsData }) {
 
       {/* Quick Actions (Top) */}
       <Card title={<Text strong>Quick Actions</Text>} styles={{ header: { textAlign: "center" } }} style={{ borderRadius: 16 }}>
-        <Row gutter={[16, 16]}>
-          <Col xs={12} sm={12} md={6}>
+        <Row gutter={[12, 12]}>
+          <Col xs={24} sm={8} md={8}>
+            <CreateOrderModal
+              triggerText="+ Create / 🤖 AI Order"
+              triggerType="primary"
+              triggerBlock={true}
+              triggerSize="large"
+              triggerStyle={{ background: "#1677ff", fontWeight: 800, borderRadius: 12 }}
+            />
+          </Col>
+          <Col xs={12} sm={8} md={8}>
             <Link href="/admin/products/new">
-              <Button type="primary" block icon={<PlusOutlined />} size="large">
+              <Button type="default" block icon={<PlusOutlined />} size="large" style={{ fontWeight: 700, borderRadius: 12 }}>
                 Add New Product
               </Button>
             </Link>
           </Col>
-          <Col xs={12} sm={12} md={6}>
+          <Col xs={12} sm={8} md={8}>
             <Link href="/admin/finance">
               <Button
                 block
                 size="large"
                 icon={<LineChartOutlined />}
-                style={{ background: "#0f172a", color: "#63b3ed", borderColor: "#1e3a5f", fontWeight: 700 }}
+                style={{ background: "#0f172a", color: "#63b3ed", borderColor: "#1e3a5f", fontWeight: 700, borderRadius: 12 }}
               >
                 Finance & Profit
-              </Button>
-            </Link>
-          </Col>
-          <Col xs={12} sm={12} md={6}>
-            <Link href="/admin/categories/new">
-              <Button block size="large">
-                Create Category
-              </Button>
-            </Link>
-          </Col>
-          <Col xs={12} sm={12} md={6}>
-            <Link href="/admin/brands/new">
-              <Button block size="large">
-                Create Brand
               </Button>
             </Link>
           </Col>

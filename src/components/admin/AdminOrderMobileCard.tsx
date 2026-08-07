@@ -90,7 +90,7 @@ export function AdminOrderMobileCard({
           const displayLabel = districtName ? `📍 ${districtName}` : zoneBadge.label;
 
           return (
-            <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100 flex items-center justify-between gap-2">
+            <div className="border border-dashed border-slate-200 p-2.5 rounded-xl flex items-center justify-between gap-2">
               <div className="min-w-0">
                 <Flex align="center" gap={6} wrap="wrap">
                   <Text strong style={{ display: "block", fontSize: "13px" }}>

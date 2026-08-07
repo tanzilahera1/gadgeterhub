@@ -92,6 +92,7 @@ const OrderSchema = new Schema<IOrder>(
     courierReason: { type: String, trim: true },
     courierRiderName: { type: String, trim: true },
     courierRiderPhone: { type: String, trim: true },
+    courierLastLogDesc: { type: String, trim: true },
     courierLastUpdated: { type: Date },
     courierAttemptCount: { type: Number, default: 0 },
     followUps: [

@@ -6,6 +6,12 @@ import Product from "@/models/Product";
 
 export const dynamic = "force-dynamic";
 
+function convertBengaliToEnglishDigits(str: string): string {
+  if (!str) return "";
+  const bnDigits = ["০", "১", "২", "৩", "৪", "৫", "৬", "৭", "৮", "৯"];
+  return str.replace(/[০-৯]/g, (w) => bnDigits.indexOf(w).toString());
+}
+
 export async function POST(req: Request) {
   try {
     const session = await auth();
@@ -13,13 +19,16 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { rawText } = await req.json();
-    if (!rawText || typeof rawText !== "string" || rawText.trim().length === 0) {
+    const { rawText: inputRawText } = await req.json();
+    if (!inputRawText || typeof inputRawText !== "string" || inputRawText.trim().length === 0) {
       return NextResponse.json(
         { error: "টেক্সট প্রদান করুন" },
         { status: 400 },
       );
     }
+
+    // Convert any Bengali numerals (০-৯) in input text to English numerals (0-9)
+    const rawText = convertBengaliToEnglishDigits(inputRawText);
 
     await dbConnect();
     const storeProducts = await Product.find(
@@ -41,9 +50,9 @@ Return ONLY valid JSON matching this exact TypeScript schema:
   "isGift": boolean,
   "receiverName": string | null,
   "receiverPhone": string | null,
-  "addressLine1": string, // Area / Road / Village (e.g. "পানিশাইল বাজার")
-  "city": string | null, // Thana / Upazila (e.g. "সিংগার")
-  "district": string | null, // District (e.g. "মানিকগঞ্জ")
+  "addressLine1": string, // Area / Road / Village (e.g. "উত্তর বালাশুর", "পানিশাইল বাজার")
+  "city": string | null, // Thana / Upazila (e.g. "শ্রীনগর", "সিংগার")
+  "district": string | null, // District (e.g. "মুন্সীগঞ্জ", "মানিকগঞ্জ")
   "deliveryArea": "dhaka" | "outside",
   "items": [
     {
@@ -61,12 +70,14 @@ Return ONLY valid JSON matching this exact TypeScript schema:
 }
 
 CRITICAL RULES FOR BANGLADESH GEOGRAPHY & ADDRESS:
-- "addressLine1": Area, Road, House, or Village name (e.g. "পানিশাইল বাজার", "বাসা ১২, রোড ৫").
-- "city": Upazila or Thana name (e.g. "সিংগার", "মিরপুর").
-- "district": District / Zila name (e.g. "মানিকগঞ্জ", "ঢাকা", "গাজীপুর").
+- Handle both English colons ":" and Bengali Visarga "ঃ" (e.g. "মোবাইলঃ", "নামঃ", "গ্রামঃ", "উপজেলাঃ", "জেলাঃ", "জেলঃ").
+- "name": Extract customer name after "নামঃ", "নাম:", "Name:", or from text.
+- "phone": 11-digit Bangladesh phone number starting with 01. Strip labels like "মোবাইলঃ".
+- "addressLine1": Village / Area / Road name ONLY (e.g. "উত্তর বালাশুর"). Do NOT include name or phone!
+- "city": Upazila or Thana name (e.g. "শ্রীনগর", "সিংগার", "মিরপুর").
+- "district": District / Zila name (e.g. "মুন্সীগঞ্জ", "মানিকগঞ্জ", "ঢাকা", "গাজীপুর").
 - "deliveryArea": Set to "dhaka" ONLY IF district/location is strictly inside Dhaka Metropolitan area (e.g. Mirpur, Dhanmondi, Uttara, Gulshan, Banani, Motijheel, Mohammadpur, Badda, Rampura, Jatrabari, Old Dhaka, etc.).
-- "deliveryArea": Set to "outside" IF district/location is outside Dhaka Metropolitan OR in any other district (e.g. Manikganj, Singair, Gazipur, Savar, Narayanganj, Keraniganj, Chittagong, Sylhet, Rajshahi, Khulna, Barisal, Rangpur, Mymensingh, Comilla, etc.).
-- Phone numbers in Bangladesh always start with 01 (e.g. 01712345678, 01824837956). Formatted phone should be 11 digits without hyphens.
+- "deliveryArea": Set to "outside" IF district/location is outside Dhaka Metropolitan OR in any other district (e.g. Munshiganj, Srinagar, Manikganj, Singair, Gazipur, Savar, Narayanganj, Keraniganj, Chittagong, Sylhet, Rajshahi, Khulna, Barisal, Rangpur, Mymensingh, Comilla, etc.).
 - Multiple items: If the customer orders more than 1 product, include each product in the "items" array!
 - Do NOT output markdown codeblocks, output raw JSON only.`;
 
@@ -170,28 +181,36 @@ function fallbackRegexParse(text: string) {
   const phoneMatch = text.match(/01[3-9]\d{8}/);
   const phone = phoneMatch ? phoneMatch[0] : "";
 
-  const nameMatch =
-    text.match(/নাম\s*[:=\-]\s*([^\n\r,]+)/i) ||
-    text.match(/name\s*[:=\-]\s*([^\n\r,]+)/i);
-  const name = nameMatch ? nameMatch[1].trim() : "Customer";
+  const nameMatch = text.match(/(?:নাম|name)\s*[:=\-ঃ]\s*([^\n\r,]+)/i);
+  let name = nameMatch ? nameMatch[1].trim() : "";
 
-  const isOutside = /মানিকগঞ্জ|গাজীপুর|সাভার|নারায়ণগঞ্জ|সিংগার|চট্টগ্রাম|সিলেট|রাজশাহী|খুলনা|বরিশাল|রংপুর|কুমিল্লা|outside|osd/i.test(
+  const areaMatch = text.match(/(?:ঠিকানা|এরিয়া|গ্রাম|বাসা|রোড)\s*[:=\-ঃ]\s*([^\n\r,]+)/i);
+  const upazilaMatch = text.match(/(?:উপজেলা|থানা|upazila|thana)\s*[:=\-ঃ]\s*([^\n\r,]+)/i);
+  const districtMatch = text.match(/(?:জেলা|জেল|zila|district)\s*[:=\-ঃ]\s*([^\n\r,]+)/i);
+
+  const isOutside = /(?:মুন্সীগঞ্জ|মানিকগঞ্জ|গাজীপুর|সাভার|নারায়ণগঞ্জ|সিংগার|চট্টগ্রাম|সিলেট|রাজশাহী|খুলনা|বরিশাল|রংপুর|কুমিল্লা|outside|osd)/i.test(
     text,
-  );
+  ) || (districtMatch && !/ঢাকা|dhaka/i.test(districtMatch[1]));
 
-  const areaMatch = text.match(/(?:ঠিকানা|এরিয়া|গ্রাম)\s*[:=\-]\s*([^\n\r,]+)/i);
-  const upazilaMatch = text.match(/(?:উপজেলা|থানা)\s*[:=\-]\s*([^\n\r,]+)/i);
-  const districtMatch = text.match(/(?:জেলা|Zila)\s*[:=\-]\s*([^\n\r,]+)/i);
-
-  const addressLine1 = areaMatch ? areaMatch[1].trim() : text.slice(0, 50);
+  const addressLine1 = areaMatch ? areaMatch[1].trim() : (name || phone ? "" : text.slice(0, 50));
   const city = upazilaMatch ? upazilaMatch[1].trim() : "";
   const district = districtMatch ? districtMatch[1].trim() : (isOutside ? "Outside Dhaka" : "Dhaka");
 
-  const trxMatch = text.match(/trxid\s*[:=\-]?\s*([a-z0-9]+)/i);
+  if (!name) {
+    const lines = text.split(/[\n\r]+/).map((l) => l.trim()).filter(Boolean);
+    for (const l of lines) {
+      if (!l.match(/01[3-9]\d{8}/) && !l.match(/(?:গ্রাম|উপজেলা|জেলা|জেল|ঠিকানা|মোবাইল)/i)) {
+        name = l.replace(/^(?:নাম|name)\s*[:=\-ঃ]\s*/i, "").trim();
+        if (name) break;
+      }
+    }
+  }
+
+  const trxMatch = text.match(/trxid\s*[:=\-ঃ]?\s*([a-z0-9]+)/i);
   const trxId = trxMatch ? trxMatch[1] : null;
 
   return {
-    name,
+    name: name || "Customer",
     phone,
     isGift: false,
     receiverName: null,

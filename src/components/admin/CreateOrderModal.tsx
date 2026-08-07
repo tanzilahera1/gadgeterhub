@@ -1,7 +1,7 @@
 // src/components/admin/CreateOrderModal.tsx
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { toast } from "sonner";
@@ -52,6 +52,8 @@ const { Text, Title } = Typography;
 interface ProductOption {
   _id: string;
   title: string;
+  slug?: string;
+  sku?: string;
   thumbnail?: string;
   colors?: string[];
   sizes?: string[];
@@ -69,24 +71,84 @@ export interface AdminOrderItem {
   unitPrice?: number;
 }
 
-export function CreateOrderModal({ products }: { products: ProductOption[] }) {
+export function CreateOrderModal({
+  products: initialProducts,
+  triggerText = "+ Create / 🤖 AI Order",
+  triggerType = "primary",
+  triggerClassName,
+  triggerBlock = false,
+  triggerSize = "middle",
+  triggerStyle,
+}: {
+  products?: ProductOption[];
+  triggerText?: string;
+  triggerType?: "primary" | "default" | "dashed" | "link" | "text";
+  triggerClassName?: string;
+  triggerBlock?: boolean;
+  triggerSize?: "large" | "middle" | "small";
+  triggerStyle?: React.CSSProperties;
+}) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
+  const [productList, setProductList] = useState<ProductOption[]>(initialProducts || []);
   const [activeTab, setActiveTab] = useState<"ai" | "manual">("ai");
   const [aiText, setAiText] = useState("");
   const [isParsing, setIsParsing] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Helper to get default product (strictly the 1st product in database order)
+  const getDefaultProduct = (list: ProductOption[]) => {
+    if (!list || list.length === 0) return null;
+    return list[0];
+  };
+
+  // Auto fetch products if not provided
+  useEffect(() => {
+    if (open && (!productList || productList.length === 0)) {
+      fetch("/api/products")
+        .then((res) => res.json())
+        .then((data) => {
+          const fetched = Array.isArray(data) ? data : data.products || [];
+          if (fetched.length > 0) {
+            setProductList(fetched);
+          }
+        })
+        .catch((err) => console.error("Error fetching products:", err));
+    }
+  }, [open, productList]);
+
+  // Keep productList updated if initialProducts changes
+  useEffect(() => {
+    if (initialProducts && initialProducts.length > 0) {
+      setProductList(initialProducts);
+    }
+  }, [initialProducts]);
+
   const [channelSource, setChannelSource] = useState<ChannelSource>("facebook_page");
-  const [orderItems, setOrderItems] = useState<AdminOrderItem[]>([
-    {
-      productId: products[0]?._id || "",
-      productTitle: products[0]?.title || "",
-      color: products[0]?.colors?.[0] || "",
-      size: products[0]?.sizes?.[0] || "",
-      quantity: 1,
-    },
-  ]);
+  const [orderItems, setOrderItems] = useState<AdminOrderItem[]>([]);
+
+  // Auto-populate default product when productList is loaded
+  useEffect(() => {
+    if (productList.length > 0) {
+      setOrderItems((prev) => {
+        if (prev.length === 0 || (prev.length === 1 && !prev[0].productId)) {
+          const def = getDefaultProduct(productList);
+          if (def) {
+            return [
+              {
+                productId: def._id,
+                productTitle: def.title,
+                color: def.colors?.[0] || "",
+                size: def.sizes?.[0] || "",
+                quantity: 1,
+              },
+            ];
+          }
+        }
+        return prev;
+      });
+    }
+  }, [productList]);
 
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
@@ -96,7 +158,8 @@ export function CreateOrderModal({ products }: { products: ProductOption[] }) {
   const [addressLine1, setAddressLine1] = useState("");
   const [city, setCity] = useState("");
   const [district, setDistrict] = useState("");
-  const [deliveryArea, setDeliveryArea] = useState<DeliveryZone>("dhaka");
+  const [deliveryArea, setDeliveryArea] = useState<DeliveryZone | "custom">("outside");
+  const [customShippingCost, setCustomShippingCost] = useState<number>(0);
   const [paymentMethod, setPaymentMethod] = useState<"cod" | "mobile">("cod");
   const [paymentProvider, setPaymentProvider] = useState<"bkash" | "nagad" | "rocket">("bkash");
   const [senderNumber, setSenderNumber] = useState("");
@@ -110,10 +173,17 @@ export function CreateOrderModal({ products }: { products: ProductOption[] }) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [customerHistory, setCustomerHistory] = useState<any>(null);
 
+  const convertBengaliToEnglishDigits = (str: string) => {
+    if (!str) return "";
+    const bnDigits = ["০", "১", "২", "৩", "৪", "৫", "৬", "৭", "৮", "৯"];
+    return str.replace(/[০-৯]/g, (w) => bnDigits.indexOf(w).toString());
+  };
+
   const handlePhoneLookup = async (val: string) => {
-    setPhone(val);
-    if (val.trim().length >= 6) {
-      const res = await lookupCustomerHistory(val);
+    const cleanVal = convertBengaliToEnglishDigits(val);
+    setPhone(cleanVal);
+    if (cleanVal.trim().length >= 6) {
+      const res = await lookupCustomerHistory(cleanVal);
       if (res.success && res.history) {
         setCustomerHistory(res.history);
       } else {
@@ -136,23 +206,26 @@ export function CreateOrderModal({ products }: { products: ProductOption[] }) {
   };
 
   const totalWeightGrams = orderItems.reduce((sum, item) => {
-    const prod = products.find((p) => p._id === item.productId);
+    const prod = productList.find((p) => p._id === item.productId);
     const w = prod?.weight || 500;
     return sum + w * item.quantity;
   }, 0);
 
   const subtotal = orderItems.reduce((sum, item) => {
-    const prod = products.find((p) => p._id === item.productId);
+    const prod = productList.find((p) => p._id === item.productId);
     const price = prod ? prod.salePrice || prod.regularPrice : 0;
     return sum + price * item.quantity;
   }, 0);
 
-  const shippingCost = calculateShippingCost(deliveryArea, totalWeightGrams);
+  const shippingCost =
+    deliveryArea === "custom"
+      ? Math.max(0, customShippingCost)
+      : calculateShippingCost(deliveryArea as DeliveryZone, totalWeightGrams);
   const total = Math.max(0, subtotal + shippingCost - discount - vipPrivilege);
   const codAmount = Math.max(0, total - advancePaid);
 
   const handleAddItem = () => {
-    const defaultProduct = products[0];
+    const defaultProduct = getDefaultProduct(productList) || productList[0];
     setOrderItems((prev) => [
       {
         productId: defaultProduct?._id || "",
@@ -170,13 +243,12 @@ export function CreateOrderModal({ products }: { products: ProductOption[] }) {
     setOrderItems((prev) => prev.filter((_, i) => i !== index));
   };
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleUpdateItem = (index: number, field: keyof AdminOrderItem, value: any) => {
     setOrderItems((prev) => {
       const updated = [...prev];
       const target = { ...updated[index], [field]: value };
       if (field === "productId") {
-        const prod = products.find((p) => p._id === value);
+        const prod = productList.find((p) => p._id === value);
         target.productTitle = prod?.title || "";
         target.color = prod?.colors?.[0] || "";
         target.size = prod?.sizes?.[0] || "";
@@ -207,11 +279,9 @@ export function CreateOrderModal({ products }: { products: ProductOption[] }) {
       if (data.district) setDistrict(data.district);
       if (data.deliveryArea) setDeliveryArea(data.deliveryArea);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       if (Array.isArray(data.items) && data.items.length > 0) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const parsedOrderItems: AdminOrderItem[] = data.items.map((it: any) => {
-          const prod = products.find((p) => p._id === it.productId) || products[0];
+          const prod = productList.find((p) => p._id === it.productId) || getDefaultProduct(productList) || productList[0];
           return {
             productId: prod?._id || "",
             productTitle: it.productTitle || prod?.title || "",
@@ -222,52 +292,60 @@ export function CreateOrderModal({ products }: { products: ProductOption[] }) {
         });
         setOrderItems(parsedOrderItems);
       }
-      toast.success("✨ Gemini AI পার্স সম্পন্ন হয়েছে! তথ্যগুলো চেক করে সাবমিট করুন।");
+      toast.success("AI পার্সিং সফল হয়েছে! তথ্যাদি ম্যানুয়াল ফর্মে লোড হয়েছে।");
       setActiveTab("manual");
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
-      toast.error(err.message || "AI Parse ব্যর্থ হয়েছে");
+      toast.error(err.message || "AI পার্স করতে ব্যর্থ হয়েছে");
     } finally {
       setIsParsing(false);
     }
   };
 
   const handleSubmit = async () => {
-    if (!name.trim()) return toast.error("কাস্টমার নাম দিন");
-    if (!phone.trim()) return toast.error("ফোন নাম্বার দিন");
-    if (!addressLine1.trim()) return toast.error("এরিয়া / ঠিকানা দিন");
-    if (orderItems.length === 0) return toast.error("কমপক্ষে একটি প্রোডাক্ট যোগ করুন");
+    if (!name.trim()) return toast.error("কাস্টমারের নাম লিখুন");
+    if (!phone.trim()) return toast.error("কাস্টমারের মোবাইল নম্বর লিখুন");
+    if (!addressLine1.trim()) return toast.error("কাস্টমারের ঠিকানা লিখুন");
+    if (orderItems.length === 0) return toast.error("কমপক্ষে ১টি প্রোডাক্ট যোগ করুন");
+
     setIsSubmitting(true);
     try {
       const res = await createAdminManualOrder({
-        name, phone, isGift,
+        channelSource,
+        name,
+        phone,
+        isGift,
         receiverName: isGift ? receiverName : undefined,
         receiverPhone: isGift ? receiverPhone : undefined,
-        addressLine1, city: city || undefined,
+        addressLine1,
+        city: city || undefined,
         district: district || (deliveryArea === "dhaka" ? "Dhaka" : "Outside Dhaka"),
-        deliveryArea, paymentMethod,
+        deliveryArea,
+        customShippingCost: deliveryArea === "custom" ? customShippingCost : undefined,
+        paymentMethod,
         paymentProvider: paymentMethod === "mobile" ? paymentProvider : undefined,
         senderNumber: paymentMethod === "mobile" ? senderNumber : undefined,
         transactionId: paymentMethod === "mobile" ? transactionId : undefined,
-        customerNotes, channelSource, items: orderItems,
-        discount, vipPrivilege, advancePaid,
+        customerNotes,
+        items: orderItems,
+        discount,
+        vipPrivilege,
+        advancePaid,
       });
+
       if (res.error) { toast.error(res.error); }
       else if (res.orderNumber) { toast.success(`অর্ডার #${res.orderNumber} সফলভাবে তৈরি হয়েছে!`); setOpen(false); router.refresh(); }
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
-      toast.error("অর্ডার তৈরি করতে সমস্যা হয়েছে");
+      toast.error("অর্ডার সেভ করতে সমস্যা হয়েছে");
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  // ─── Reusable Manual Form Content ───────────────────────────────────────────
   const manualFormContent = (
-    <div className="space-y-5 pt-2">
+    <div className="space-y-4 pt-1 max-h-[70vh] overflow-y-auto pr-2">
       <div>
         <Text strong style={{ fontSize: "12px", display: "block", marginBottom: 6 }}>
-          সেলস চ্যানেল (Sales Channel)
+          ১. সেলস চ্যানেল / অর্ডার সোর্স
         </Text>
         <Select
           value={channelSource}
@@ -277,72 +355,65 @@ export function CreateOrderModal({ products }: { products: ProductOption[] }) {
         />
       </div>
 
-      {customerHistory && (
-        <div className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 p-3 rounded-xl space-y-2">
-          <Flex align="center" justify="space-between" wrap="wrap" gap={6}>
-            <Flex align="center" gap={6}>
-              <Tag color="gold" style={{ margin: 0, fontWeight: 900, fontSize: "11px" }}>
-                {customerHistory.totalOrders >= 3 ? "🌟 VIP Customer" : customerHistory.totalOrders >= 2 ? "🔁 Repeat Customer" : "✨ Returning Buyer"}
-              </Tag>
-              <Text strong style={{ fontSize: "12px", color: "#92400e" }}>
-                {customerHistory.totalOrders}টি অর্ডার করেছেন (মোট {formatPrice(customerHistory.totalSpent)})
-              </Text>
-            </Flex>
-            <Button
-              size="small"
-              type="primary"
-              icon={<CheckOutlined />}
-              onClick={handleAutoFillCustomerHistory}
-              style={{ fontWeight: 700, borderRadius: 6, background: "#d97706", borderColor: "#d97706" }}
-            >
-              📋 Auto-Fill Past Address
-            </Button>
-          </Flex>
-        </div>
-      )}
-
       <div className="space-y-2">
-        <Text strong style={{ fontSize: "12px" }}>
-          <UserOutlined style={{ color: "#1677ff" }} /> কাস্টমার তথ্য
+        <Text strong style={{ fontSize: "12px", display: "block" }}>
+          <UserOutlined style={{ color: "#1677ff" }} /> ২. কাস্টমারের ফোন ও নাম
         </Text>
-        <div className="grid sm:grid-cols-2 gap-3">
-          <Input placeholder="মোবাইল নম্বর *" value={phone} onChange={(e) => handlePhoneLookup(e.target.value)} style={{ height: 40, borderRadius: 10 }} />
-          <Input placeholder="কাস্টমার নাম *" value={name} onChange={(e) => setName(e.target.value)} style={{ height: 40, borderRadius: 10 }} />
-        </div>
-        <Checkbox checked={isGift} onChange={(e) => setIsGift(e.target.checked)}>
-          <span style={{ fontSize: "12px", fontWeight: 700 }}>
-            <GiftOutlined style={{ color: "#eb2f96" }} /> এটি একটি উপহার অর্ডার (Gift Order)
-          </span>
-        </Checkbox>
-        {isGift && (
-          <div className="grid sm:grid-cols-2 gap-3 bg-pink-50/50 p-3 rounded-xl border border-pink-100">
-            <Input placeholder="উপহার প্রাপকের নাম" value={receiverName} onChange={(e) => setReceiverName(e.target.value)} />
-            <Input placeholder="উপহার প্রাপকের ফোন" value={receiverPhone} onChange={(e) => setReceiverPhone(e.target.value)} />
+        <div className="grid sm:grid-cols-2 gap-2">
+          <div>
+            <Input
+              placeholder="মোবাইল নম্বর *"
+              value={phone}
+              onChange={(e) => handlePhoneLookup(e.target.value)}
+              style={{ height: 40, borderRadius: 10 }}
+            />
+            {customerHistory && (
+              <div style={{ marginTop: 4 }}>
+                <Tag color="cyan" style={{ fontSize: "10px", fontWeight: 700 }}>
+                  আগের অর্ডার: {customerHistory.totalOrders} টি
+                </Tag>
+                {customerHistory.lastShipping && (
+                  <Button
+                    type="link"
+                    size="small"
+                    style={{ fontSize: "11px", padding: 0, height: "auto" }}
+                    onClick={handleAutoFillCustomerHistory}
+                  >
+                    ⚡ কাস্টমার তথ্য অটো-ফিল করুন
+                  </Button>
+                )}
+              </div>
+            )}
           </div>
-        )}
+          <Input
+            placeholder="কাস্টমারের নাম *"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            style={{ height: 40, borderRadius: 10 }}
+          />
+        </div>
       </div>
 
-      <div className="space-y-3">
-        <Flex align="center" justify="space-between" wrap="wrap" gap={8}>
-          <Text strong style={{ fontSize: "13px" }}>
-            <ShoppingCartOutlined style={{ color: "#1677ff" }} /> কার্ট প্রোডাক্ট ({orderItems.length})
+      <div className="space-y-2">
+        <Flex align="center" justify="space-between">
+          <Text strong style={{ fontSize: "12px" }}>
+            <ShoppingCartOutlined style={{ color: "#1677ff" }} /> ৩. অর্ডারকৃত প্রোডাক্টসমূহ ({orderItems.length})
           </Text>
-          <Button type="dashed" size="small" icon={<PlusOutlined />} onClick={handleAddItem} style={{ fontWeight: 700 }}>
-            + Add Product
+          <Button size="small" type="dashed" icon={<PlusOutlined />} onClick={handleAddItem} style={{ borderRadius: 8, fontWeight: 700 }}>
+            + প্রোডাক্ট যোগ করুন
           </Button>
         </Flex>
+
         <div className="space-y-3">
           {orderItems.map((item, idx) => {
-            const prod = products.find((p) => p._id === item.productId);
-            const price = prod ? prod.salePrice || prod.regularPrice : 0;
-            const itemTotal = price * item.quantity;
-            const hasColors = prod?.colors && prod.colors.length > 0;
+            const prod = productList.find((p) => p._id === item.productId);
+            const hasColors = Boolean(prod?.colors && prod.colors.length > 0);
             return (
-              <Card key={idx} style={{ borderRadius: 14, border: "1px solid #e2e8f0" }} styles={{ body: { padding: 12 } }}>
-                <Flex gap={12} align="center" wrap="wrap">
-                  <div style={{ width: 64, height: 64, borderRadius: 10, overflow: "hidden", background: "#f1f5f9", position: "relative", flexShrink: 0 }}>
+              <Card key={idx} style={{ borderRadius: 14 }} styles={{ body: { padding: 12 } }} className="border border-slate-200 bg-slate-50/50">
+                <Flex align="start" gap={12} wrap="wrap">
+                  <div style={{ width: 44, height: 44, borderRadius: 8, overflow: "hidden", background: "#e2e8f0", flexShrink: 0, position: "relative" }}>
                     {prod?.thumbnail ? (
-                      <Image src={prod.thumbnail} alt={prod.title} fill className="object-cover" sizes="64px" />
+                      <Image src={prod.thumbnail} alt={prod.title} fill style={{ objectFit: "cover" }} />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center text-[10px] text-slate-400 font-bold">No Image</div>
                     )}
@@ -356,42 +427,24 @@ export function CreateOrderModal({ products }: { products: ProductOption[] }) {
                         value={item.productId}
                         onChange={(val) => handleUpdateItem(idx, "productId", val)}
                         style={{ width: "100%" }}
-                        options={products.map((p) => ({ value: p._id, label: `${p.title} — ${formatPrice(p.salePrice || p.regularPrice)}` }))}
+                        options={productList.map((p) => ({ value: p._id, label: `${p.title} — ${formatPrice(p.salePrice || p.regularPrice)}` }))}
                       />
                     </div>
                     <div>
                       <Flex align="center" justify="space-between" style={{ marginBottom: 2 }}>
                         <Text type="secondary" style={{ fontSize: "10px", fontWeight: 700 }}>
-                          ✏️ ইনভয়েস/কুরিয়ার টাইটেল (এডিটযোগ্য):
+                          ✏️ ইনভয়েস টাইটেল (এডিটযোগ্য):
                         </Text>
-                        {prod && item.productTitle && item.productTitle !== prod.title && (
-                          <Tag color="orange" style={{ margin: 0, fontSize: "10px", borderRadius: 4, padding: "0 4px", fontWeight: 700 }}>
-                            কাস্টম টাইটেল
-                          </Tag>
-                        )}
                       </Flex>
                       <Input
                         value={item.productTitle}
                         onChange={(e) => handleUpdateItem(idx, "productTitle", e.target.value)}
-                        suffix={
-                          <div style={{ display: "inline-flex", alignItems: "center", visibility: prod && item.productTitle !== prod.title ? "visible" : "hidden" }}>
-                            <Tooltip title="মূল ক্যাটালগ টাইটেলে রিসেট করুন">
-                              <Button
-                                type="text"
-                                size="small"
-                                icon={<UndoOutlined style={{ color: "#fa8c16", fontSize: "12px" }} />}
-                                onClick={() => prod?.title && handleUpdateItem(idx, "productTitle", prod.title)}
-                                style={{ padding: 0, height: "auto", minWidth: "auto" }}
-                              />
-                            </Tooltip>
-                          </div>
-                        }
                         style={{ borderRadius: 8, fontSize: "12px", fontWeight: 600 }}
                       />
                     </div>
                     <Flex align="center" gap={6} wrap="wrap">
                       <Text type="secondary" style={{ fontSize: "11px", fontWeight: 700 }}>কালার:</Text>
-                      {hasColors && prod.colors!.map((c) => {
+                      {hasColors && prod!.colors!.map((c) => {
                         const isSelected = item.color?.toLowerCase() === c.toLowerCase();
                         return (
                           <Tag key={c} color={isSelected ? "blue" : "default"} onClick={() => handleUpdateItem(idx, "color", c)} style={{ cursor: "pointer", fontWeight: 700, borderRadius: 6 }}>
@@ -407,18 +460,15 @@ export function CreateOrderModal({ products }: { products: ProductOption[] }) {
                       />
                     </Flex>
                   </div>
-                  <Flex align="center" gap={12} style={{ marginLeft: "auto" }}>
-                    <div>
-                      <Text type="secondary" style={{ fontSize: "10px", display: "block" }}>{formatPrice(price)} x {item.quantity}</Text>
-                      <Text strong style={{ fontSize: "14px" }}>{formatPrice(itemTotal)}</Text>
-                    </div>
-                    <Space>
+                  <Flex align="center" gap={8} className="shrink-0 pt-2 sm:pt-0">
+                    <Text type="secondary" style={{ fontSize: "11px", fontWeight: 700 }}>পরিমাণ:</Text>
+                    <Space.Compact>
                       <Button size="small" onClick={() => handleUpdateItem(idx, "quantity", Math.max(1, item.quantity - 1))}>-</Button>
                       <Text strong>{item.quantity}</Text>
                       <Button size="small" onClick={() => handleUpdateItem(idx, "quantity", item.quantity + 1)}>+</Button>
-                    </Space>
+                    </Space.Compact>
                     {orderItems.length > 1 && (
-                      <Button danger type="text" icon={<DeleteOutlined />} onClick={() => handleRemoveItem(idx)} />
+                      <Button danger type="text" size="small" icon={<DeleteOutlined />} onClick={() => handleRemoveItem(idx)} />
                     )}
                   </Flex>
                 </Flex>
@@ -428,70 +478,70 @@ export function CreateOrderModal({ products }: { products: ProductOption[] }) {
         </div>
       </div>
 
-      {/* Discounts & Advances */}
       <div className="space-y-2 pt-1">
-        <Text strong style={{ fontSize: "12px" }}>
-          💰 বিশেষ সম্মাননা ছাড় ও অগ্রিম জমা
-        </Text>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <div>
-            <Text type="secondary" style={{ fontSize: "11px", fontWeight: 700, display: "block", marginBottom: 2 }}>
-              🌟 VIP Privilege (বিশেষ সম্মাননা ছাড় ৳):
-            </Text>
-            <InputNumber
-              min={0}
-              placeholder="0"
-              value={vipPrivilege}
-              onChange={(val) => setVipPrivilege(val || 0)}
-              style={{ width: "100%", borderRadius: 8 }}
-            />
-          </div>
-          <div>
-            <Text type="secondary" style={{ fontSize: "11px", fontWeight: 700, display: "block", marginBottom: 2 }}>
-              💳 অগ্রিম পরিশোধ (যদি বিকাশ/নগদে আগে দেয় ৳):
-            </Text>
-            <InputNumber
-              min={0}
-              placeholder="0"
-              value={advancePaid}
-              onChange={(val) => setAdvancePaid(val || 0)}
-              style={{ width: "100%", borderRadius: 8 }}
-            />
-          </div>
+        <Text strong style={{ fontSize: "12px" }}>💰 বিশেষ সম্মাননা ও অগ্রিম জমা</Text>
+        <div className="grid grid-cols-2 gap-3">
+          <InputNumber min={0} placeholder="VIP ছাড় ৳" value={vipPrivilege} onChange={(val) => setVipPrivilege(val || 0)} style={{ width: "100%", borderRadius: 8 }} />
+          <InputNumber min={0} placeholder="অগ্রিম জমা ৳" value={advancePaid} onChange={(val) => setAdvancePaid(val || 0)} style={{ width: "100%", borderRadius: 8 }} />
         </div>
       </div>
 
-      {/* Delivery Address & Zone */}
       <div className="space-y-2">
         <Flex align="center" justify="space-between">
-          <Text strong style={{ fontSize: "12px" }}>
-            <EnvironmentOutlined style={{ color: "#1677ff" }} /> ডেলিভারি ঠিকানা ও জোন
-          </Text>
-          <Text type="secondary" style={{ fontSize: "11px", fontWeight: 700 }}>
-            ওজন: {totalWeightGrams}g ({getWeightTierLabel(totalWeightGrams)})
-          </Text>
+          <Text strong style={{ fontSize: "12px" }}><EnvironmentOutlined style={{ color: "#1677ff" }} /> ডেলিভারি ঠিকানা</Text>
+          <Text type="secondary" style={{ fontSize: "11px", fontWeight: 700 }}>ওজন: {totalWeightGrams}g</Text>
         </Flex>
         <div className="grid sm:grid-cols-3 gap-2">
           <Input placeholder="এরিয়া / গ্রাম *" value={addressLine1} onChange={(e) => setAddressLine1(e.target.value)} style={{ height: 40, borderRadius: 10 }} />
           <Input placeholder="উপজেলা / থানা" value={city} onChange={(e) => setCity(e.target.value)} style={{ height: 40, borderRadius: 10 }} />
           <Input placeholder="জেলা" value={district} onChange={(e) => setDistrict(e.target.value)} style={{ height: 40, borderRadius: 10 }} />
         </div>
-        <Radio.Group value={deliveryArea} onChange={(e) => setDeliveryArea(e.target.value)} style={{ width: "100%" }}>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1">
-            <Radio.Button value="dhaka" style={{ textAlign: "center", borderRadius: 8, fontSize: "11px" }}>
-              ISD (Inside Dhaka) — ৳{calculateShippingCost("dhaka", totalWeightGrams)}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1 items-center">
+          <Radio.Group
+            value={deliveryArea}
+            onChange={(e) => setDeliveryArea(e.target.value)}
+            style={{ display: "contents" }}
+          >
+            <Radio.Button
+              value="dhaka"
+              style={{ textAlign: "center", borderRadius: 8, fontSize: "11px", height: 38, lineHeight: "36px", width: "100%" }}
+            >
+              ISD (Inside)
             </Radio.Button>
-            <Radio.Button value="suburbs" style={{ textAlign: "center", borderRadius: 8, fontSize: "11px" }}>
-              SUB (Suburbs) — ৳{calculateShippingCost("suburbs", totalWeightGrams)}
+            <Radio.Button
+              value="suburbs"
+              style={{ textAlign: "center", borderRadius: 8, fontSize: "11px", height: 38, lineHeight: "36px", width: "100%" }}
+            >
+              SUB (Suburbs)
             </Radio.Button>
-            <Radio.Button value="outside" style={{ textAlign: "center", borderRadius: 8, fontSize: "11px" }}>
-              OSD (Outside Dhaka) — ৳{calculateShippingCost("outside", totalWeightGrams)}
+            <Radio.Button
+              value="outside"
+              style={{ textAlign: "center", borderRadius: 8, fontSize: "11px", height: 38, lineHeight: "36px", width: "100%" }}
+            >
+              OSD (Outside)
             </Radio.Button>
-          </div>
-        </Radio.Group>
+          </Radio.Group>
+
+          <InputNumber
+            min={0}
+            placeholder="Custom / ৳0"
+            value={deliveryArea === "custom" ? customShippingCost : undefined}
+            onFocus={() => setDeliveryArea("custom")}
+            onChange={(val) => {
+              setDeliveryArea("custom");
+              setCustomShippingCost(val !== null && val !== undefined ? val : 0);
+            }}
+            style={{
+              width: "100%",
+              borderRadius: 8,
+              height: 38,
+              borderColor: deliveryArea === "custom" ? "#1677ff" : "#d9d9d9",
+              borderWidth: deliveryArea === "custom" ? 2 : 1,
+            }}
+          />
+        </div>
       </div>
 
-      {/* Payment Info */}
       <div className="space-y-2" style={{ marginTop: 12, paddingBottom: 8 }}>
         <Text strong style={{ fontSize: "12px" }}>
           <CreditCardOutlined style={{ color: "#1677ff" }} /> পেমেন্ট তথ্য
@@ -544,13 +594,15 @@ export function CreateOrderModal({ products }: { products: ProductOption[] }) {
   return (
     <>
       <Button
-        type="primary"
-        size="large"
+        type={triggerType}
+        size={triggerSize}
+        block={triggerBlock}
         icon={<ThunderboltOutlined />}
         onClick={() => setOpen(true)}
-        style={{ fontWeight: 700, borderRadius: 10 }}
+        style={{ fontWeight: 700, borderRadius: 10, ...triggerStyle }}
+        className={triggerClassName}
       >
-        + New / 🤖 AI
+        {triggerText}
       </Button>
 
       <Modal

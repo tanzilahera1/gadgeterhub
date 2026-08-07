@@ -412,7 +412,7 @@ export function AdminOrdersAntdClient({
             </Button>
           )}
 
-          <CreateOrderModal products={products} />
+          <CreateOrderModal products={products} triggerText="+ Create / 🤖 AI Order" />
         </div>
       </div>
       )}
