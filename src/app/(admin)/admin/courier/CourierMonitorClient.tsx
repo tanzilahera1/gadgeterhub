@@ -16,6 +16,7 @@ import {
   Typography,
   Flex,
   Tabs,
+  Select,
   Alert,
   Tooltip,
   Popover,
@@ -34,6 +35,7 @@ import {
   CheckCircleOutlined,
   PlusOutlined,
   ClockCircleOutlined,
+  EllipsisOutlined,
 } from "@ant-design/icons";
 import type { IOrderSerializable, IFollowUpEntry } from "@/types/order";
 import { refreshActiveShipments } from "@/actions/pathaoTracking";
@@ -486,7 +488,7 @@ export function CourierMonitorClient({ initialOrders }: Props) {
           />
         </Card>
 
-        <Card style={{ borderRadius: 16 }} styles={{ body: { padding: 14 } }} className="text-center bg-emerald-50/50 border-emerald-200 col-span-2 sm:col-span-1 lg:col-span-1">
+        <Card style={{ borderRadius: 16 }} styles={{ body: { padding: 14 } }} className="text-center bg-emerald-50/50 border-emerald-200">
           <Statistic
             title={<Text style={{ fontSize: "11px", fontWeight: 700, color: "#047857" }}>✅ DELIVERED</Text>}
             value={deliveredCount}
@@ -496,24 +498,47 @@ export function CourierMonitorClient({ initialOrders }: Props) {
       </div>
 
       {/* Filter Tabs & Search Card */}
-      <Card style={{ borderRadius: 16 }} styles={{ body: { padding: "0 16px 12px 16px" } }} className="shadow-sm">
-        {/* Tabs — All Shipments is 1st, Assigned is 2nd */}
-        <Tabs
-          activeKey={activeTab}
-          onChange={setActiveTab}
-          style={{ marginBottom: 0 }}
-          tabBarStyle={{ marginBottom: 0 }}
-          tabBarGutter={8}
-          items={[
-            { key: "all", label: `All Shipments (${orders.length})` },
-            { key: "assigned", label: `🎯 Assigned (${assignedCount})` },
-            { key: "on_hold", label: `⚠️ On Hold (${onHoldCount})` },
-            { key: "ready", label: `🚴 Ready (${readyCount})` },
-            { key: "in_transit", label: `📦 In Transit (${transitCount})` },
-            { key: "returned", label: `🚨 Returned (${returnedCount})` },
-            { key: "delivered", label: `✅ Delivered (${deliveredCount})` },
-          ]}
-        />
+      <Card style={{ borderRadius: 16 }} styles={{ body: { padding: "12px 16px 12px 16px" } }} className="shadow-sm">
+        {/* Mobile View: Clean Antd Select Dropdown */}
+        <div className="block sm:hidden mb-2.5">
+          <Text type="secondary" style={{ fontSize: "11px", fontWeight: 700, display: "block", marginBottom: 4 }}>
+            FILTER BY STATUS:
+          </Text>
+          <Select
+            value={activeTab}
+            onChange={setActiveTab}
+            style={{ width: "100%" }}
+            size="large"
+            options={[
+              { value: "all", label: `All Shipments (${orders.length})` },
+              { value: "assigned", label: `🎯 Assigned (${assignedCount})` },
+              { value: "on_hold", label: `⚠️ On Hold (${onHoldCount})` },
+              { value: "ready", label: `🚴 Ready (${readyCount})` },
+              { value: "in_transit", label: `📦 In Transit (${transitCount})` },
+              { value: "returned", label: `🚨 Returned (${returnedCount})` },
+              { value: "delivered", label: `✅ Delivered (${deliveredCount})` },
+            ]}
+          />
+        </div>
+
+        {/* Desktop / Tablet View: Standard Antd Tabs */}
+        <div className="hidden sm:block">
+          <Tabs
+            activeKey={activeTab}
+            onChange={setActiveTab}
+            style={{ marginBottom: 0 }}
+            tabBarStyle={{ marginBottom: 0 }}
+            items={[
+              { key: "all", label: `All Shipments (${orders.length})` },
+              { key: "assigned", label: `🎯 Assigned (${assignedCount})` },
+              { key: "on_hold", label: `⚠️ On Hold (${onHoldCount})` },
+              { key: "ready", label: `🚴 Ready (${readyCount})` },
+              { key: "in_transit", label: `📦 In Transit (${transitCount})` },
+              { key: "returned", label: `🚨 Returned (${returnedCount})` },
+              { key: "delivered", label: `✅ Delivered (${deliveredCount})` },
+            ]}
+          />
+        </div>
 
         {/* Search — below tabs */}
         <Input
@@ -564,30 +589,100 @@ export function CourierMonitorClient({ initialOrders }: Props) {
               <Card
                 key={item._id}
                 style={{ borderRadius: 16, marginBottom: 0, border: "1px solid #e2e8f0" }}
-                styles={{ body: { padding: 14 } }}
-                className="shadow-sm"
+                styles={{ body: { padding: 16 } }}
+                className="shadow-sm hover:shadow-md transition-shadow"
               >
                 <div className="space-y-3">
-                  {/* Top Row: Order # | Status Tag | Date */}
-                  <div className="flex items-center justify-between gap-2 w-full">
-                    <div style={{ flex: 1, textAlign: "left" }}>
-                      <Link
-                        href={`/admin/orders/${item._id}`}
-                      >
-                        <Text code style={{ fontWeight: 800, fontSize: "13px", color: "#1677ff" }} className="hover:underline">
-                          {item.orderNumber}
+                  {/* 3:2 Grid Ratio Layout — 3/5 Left Column, 2/5 Right Column */}
+                  <div className="grid grid-cols-5 gap-2 pt-1 items-start">
+                    {/* Column 1 (Left): 3/5 Width (60%) */}
+                    <div className="col-span-3 space-y-3.5 text-left min-w-0">
+                      {/* Order ID Badge with bottom margin */}
+                      <div className="mb-2">
+                        <Link href={`/admin/orders/${item._id}`}>
+                          <Text code style={{ fontWeight: 900, fontSize: "14px", color: "#1677ff", margin: 0 }} className="hover:underline">
+                            {item.orderNumber}
+                          </Text>
+                        </Link>
+                      </div>
+
+                      {/* Customer Info */}
+                      <div>
+                        <Text strong style={{ fontSize: "14px", display: "block", color: "#0f172a" }}>
+                          👤 {item.shipping?.name}
                         </Text>
-                      </Link>
+                        <Text type="secondary" style={{ fontSize: "12px", display: "block", marginTop: 1 }}>
+                          📞 {item.shipping?.phone || item.customerPhone}
+                        </Text>
+                      </div>
+
+                      {/* Rider Info if available */}
+                      {item.courierRiderPhone && (
+                        <div className="text-xs pt-0.5">
+                          <span className="text-slate-700 font-medium">
+                            🚴 Rider: <Text strong style={{ color: "#1e3a8a" }}>{item.courierRiderName || "Rider"}</Text> ({item.courierRiderPhone})
+                          </span>
+                        </div>
+                      )}
+
+                      {/* Last Follow-up preview if available */}
+                      {(item.followUps?.length ?? 0) > 0 && (
+                        <div className="pt-0.5">
+                          <Text type="secondary" style={{ fontSize: 10, fontWeight: 700, display: "block", marginBottom: 2 }}>
+                            📋 LAST FOLLOW-UP:
+                          </Text>
+                          <LastFollowUp followUps={item.followUps} />
+                        </div>
+                      )}
+
+                      {/* Add Follow-up button */}
+                      <div className="pt-1">
+                        <Popover
+                          trigger="click"
+                          placement="topLeft"
+                          overlayStyle={{ width: 320 }}
+                          title={
+                            <Flex align="center" gap={6}>
+                              <PlusOutlined style={{ color: "#6366f1" }} />
+                              <span style={{ fontWeight: 700, fontSize: 13 }}>#{item.orderNumber}</span>
+                            </Flex>
+                          }
+                          content={
+                            <FollowUpPanel
+                              orderId={item._id}
+                              initialFollowUps={item.followUps ?? []}
+                              compact
+                              onAdded={(entry) => handleFollowUpAdded(item._id, entry)}
+                            />
+                          }
+                        >
+                          <Button
+                            type="text"
+                            size="small"
+                            icon={<PlusOutlined style={{ color: "#6366f1" }} />}
+                            style={{
+                              fontWeight: 700,
+                              color: "#6366f1",
+                              fontSize: "12px",
+                              padding: "0 4px",
+                            }}
+                          >
+                            Add Follow-up
+                          </Button>
+                        </Popover>
+                      </div>
                     </div>
 
-                    {(() => {
-                      const attempts = item.courierAttemptCount || (
-                        (item.courierReason && stLower.includes("ready")) ? 2 : 0
-                      );
+                    {/* Column 2 (Right): 2/5 Width (40%) with Left Padding */}
+                    <div className="col-span-2 space-y-3.5 text-left min-w-0 flex flex-col items-start pl-3">
+                      {/* Status Tag with bottom margin */}
+                      <div className="mb-2">
+                        {(() => {
+                          const attempts = item.courierAttemptCount || (
+                            (item.courierReason && stLower.includes("ready")) ? 2 : 0
+                          );
 
-                      return (
-                        <>
-                          <div style={{ flex: 1, textAlign: "center" }}>
+                          return (
                             <Tag
                               color={
                                 isHold
@@ -600,12 +695,10 @@ export function CourierMonitorClient({ initialOrders }: Props) {
                               }
                               style={{
                                 fontWeight: 900,
-                                fontSize: "10px",
-                                borderRadius: 4,
+                                fontSize: "11px",
+                                borderRadius: 6,
                                 margin: 0,
-                                padding: "1px 6px",
-                                display: "inline-flex",
-                                alignItems: "center",
+                                padding: "2px 8px",
                                 cursor: "pointer",
                               }}
                               onClick={() => openTrackingModal(item.courierTrackingId!, item.orderNumber)}
@@ -625,158 +718,67 @@ export function CourierMonitorClient({ initialOrders }: Props) {
                                     marginLeft: "4px",
                                     display: "inline-block",
                                     lineHeight: "12px",
-                                    boxShadow: "0 1px 2px rgba(239, 68, 68, 0.3)",
                                   }}
                                 >
                                   {attempts}
                                 </span>
                               )}
                             </Tag>
-                          </div>
-                          
-                          <div style={{ flex: 1, textAlign: "right" }}>
-                            {lastUpdated && (
-                              <Text type="secondary" style={{ fontSize: "10px", whiteSpace: "nowrap" }}>
-                                <ClockCircleOutlined style={{ fontSize: "9px", marginRight: 2 }} />
-                                {lastUpdated}
-                              </Text>
-                            )}
-                          </div>
-                        </>
-                      );
-                    })()}
-                  </div>
-
-                  {/* Clean Reason without border box or extra icon */}
-                  {!isDelivered && item.courierReason && (
-                    <Text type="secondary" style={{ fontSize: "11px", color: "#b45309", display: "block", marginTop: -2 }}>
-                      Reason: {item.courierReason}
-                    </Text>
-                  )}
-
-                  {/* Customer Info */}
-                  <div className="border border-dashed border-slate-200 p-2.5 rounded-xl space-y-1">
-                    <Text strong style={{ fontSize: "13px", display: "block" }}>
-                      👤 {item.shipping?.name}
-                    </Text>
-                    <Flex align="center" justify="space-between">
-                      <Text type="secondary" style={{ fontSize: "12px" }}>
-                        📞 {item.shipping?.phone || item.customerPhone}
-                      </Text>
-                      <a href={`https://wa.me/${waNumber}`} target="_blank" rel="noopener noreferrer">
-                        <Button
-                          size="small"
-                          icon={<MessageOutlined style={{ fontSize: "11px" }} />}
-                          style={{ background: "#25D366", borderColor: "#25D366", color: "#fff", borderRadius: 6, fontSize: "11px", fontWeight: 700 }}
-                        >
-                          WhatsApp
-                        </Button>
-                      </a>
-                    </Flex>
-                  </div>
-
-                  {/* Consignment ID */}
-                  <div className="flex items-center justify-between text-xs bg-slate-100/70 p-2 rounded-xl">
-                    <Text
-                      code
-                      style={{ fontWeight: 900, cursor: "pointer" }}
-                      onClick={() => openTrackingModal(item.courierTrackingId!, item.orderNumber)}
-                    >
-                      {item.courierTrackingId}
-                    </Text>
-                    <Button
-                      size="small"
-                      type="text"
-                      icon={<CopyOutlined style={{ color: "#3b82f6" }} />}
-                      onClick={() => copyToClipboard(item.courierTrackingId!)}
-                    >
-                      Copy
-                    </Button>
-                  </div>
-
-                  {/* Rider Info if available */}
-                  {item.courierRiderPhone && (
-                    <div className="bg-blue-50 border border-blue-200 p-2.5 rounded-xl flex items-center justify-between text-xs">
-                      <Text strong style={{ color: "#1e3a8a" }}>
-                        🚴 {item.courierRiderName || "Rider"}: {item.courierRiderPhone}
-                      </Text>
-                      <a href={`tel:${item.courierRiderPhone}`}>
-                        <Button size="small" type="primary" icon={<PhoneOutlined />} style={{ borderRadius: 6 }}>
-                          Call
-                        </Button>
-                      </a>
-                    </div>
-                  )}
-
-                  {/* Footer */}
-                  <div className="pt-2 border-t border-slate-100 space-y-2">
-                    {/* Last follow-up preview — shows even without clicking */}
-                    {(item.followUps?.length ?? 0) > 0 && (
-                      <div
-                        style={{
-                          background: "#f5f3ff",
-                          border: "1px solid #e0e7ff",
-                          borderRadius: 10,
-                          padding: "6px 10px",
-                        }}
-                      >
-                        <div style={{ fontSize: 10, color: "#94a3b8", marginBottom: 3, fontWeight: 600 }}>
-                          📋 Last Follow-up
-                        </div>
-                        <LastFollowUp followUps={item.followUps} />
+                          );
+                        })()}
                       </div>
-                    )}
 
-                    {/* Action Buttons */}
-                    <div className="flex items-center justify-between gap-2">
-                      <Popover
-                        trigger="click"
-                        placement="topLeft"
-                        overlayStyle={{ width: 320 }}
-                        title={
-                          <Flex align="center" gap={6}>
-                            <PlusOutlined style={{ color: "#6366f1" }} />
-                            <span style={{ fontWeight: 700, fontSize: 13 }}>#{item.orderNumber}</span>
-                          </Flex>
-                        }
-                        content={
-                          <FollowUpPanel
-                            orderId={item._id}
-                            initialFollowUps={item.followUps ?? []}
-                            compact
-                            onAdded={(entry) => handleFollowUpAdded(item._id, entry)}
-                          />
-                        }
-                      >
-                        <Button
-                          size="small"
-                          icon={<PlusOutlined />}
-                          style={{
-                            borderRadius: 8,
-                            fontWeight: 700,
-                            fontSize: 11,
-                            borderColor: "#6366f1",
-                            color: "#6366f1",
-                          }}
-                        >
-                          {(item.followUps?.length ?? 0) === 0 ? "Add Follow-up" : "Follow-up"}
-                          {(item.followUps?.length ?? 0) > 0 && (
-                            <span style={{ marginLeft: 4, background: "#6366f1", color: "#fff", borderRadius: 8, padding: "0 5px", fontSize: 10, fontWeight: 900 }}>
-                              {item.followUps!.length}
-                            </span>
-                          )}
-                        </Button>
-                      </Popover>
-                      <Button
-                        type="primary"
-                        size="small"
-                        shape="round"
-                        icon={<EyeOutlined />}
-                        style={{ fontSize: "11px", fontWeight: 700 }}
-                        onClick={() => openTrackingModal(item.courierTrackingId!, item.orderNumber)}
-                      >
-                        Track Live ➜
-                      </Button>
+                      {/* Clean Reason text */}
+                      {!isDelivered && item.courierReason && (
+                        <Text type="secondary" style={{ fontSize: "12px", color: "#b45309", display: "block" }}>
+                          ⚠️ Reason: {item.courierReason}
+                        </Text>
+                      )}
+
+                      {/* Consignment ID Block */}
+                      <div>
+                        <Text type="secondary" style={{ fontSize: "11px", fontWeight: 600, display: "block", color: "#64748b" }}>
+                          Consignment ID:
+                        </Text>
+                        <div className="flex items-center justify-start gap-1.5 mt-0.5">
+                          <Text
+                            code
+                            style={{ fontWeight: 800, fontSize: "12px", color: "#1677ff", cursor: "pointer", margin: 0 }}
+                            onClick={() => openTrackingModal(item.courierTrackingId!, item.orderNumber)}
+                          >
+                            {item.courierTrackingId}
+                          </Text>
+                          <Tooltip title="Copy Consignment ID">
+                            <Button
+                              size="small"
+                              type="text"
+                              icon={<CopyOutlined style={{ color: "#3b82f6", fontSize: 13 }} />}
+                              onClick={() => copyToClipboard(item.courierTrackingId!)}
+                              style={{ height: 22, width: 22, padding: 0 }}
+                            />
+                          </Tooltip>
+                        </div>
+                      </div>
+
+                      {/* WhatsApp Button */}
+                      <div className="pt-1">
+                        <a href={`https://wa.me/${waNumber}`} target="_blank" rel="noopener noreferrer">
+                          <Button
+                            size="small"
+                            icon={<MessageOutlined style={{ fontSize: "11px" }} />}
+                            style={{
+                              background: "#25D366",
+                              borderColor: "#25D366",
+                              color: "#fff",
+                              borderRadius: 6,
+                              fontSize: "12px",
+                              fontWeight: 700,
+                            }}
+                          >
+                            WhatsApp
+                          </Button>
+                        </a>
+                      </div>
                     </div>
                   </div>
                 </div>

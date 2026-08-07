@@ -124,7 +124,7 @@ export function CreateOrderModal({
     }
   }, [initialProducts]);
 
-  const [channelSource, setChannelSource] = useState<ChannelSource>("facebook_page");
+  const [channelSource, setChannelSource] = useState<ChannelSource>("facebook_marketplace");
   const [orderItems, setOrderItems] = useState<AdminOrderItem[]>([]);
 
   // Auto-populate default product when productList is loaded
@@ -397,7 +397,7 @@ export function CreateOrderModal({
       <div className="space-y-2">
         <Flex align="center" justify="space-between">
           <Text strong style={{ fontSize: "12px" }}>
-            <ShoppingCartOutlined style={{ color: "#1677ff" }} /> ৩. অর্ডারকৃত প্রোডাক্টসমূহ ({orderItems.length})
+            <ShoppingCartOutlined style={{ color: "#1677ff" }} /> ৩. প্রোডাক্টসমূহ ({orderItems.length})
           </Text>
           <Button size="small" type="dashed" icon={<PlusOutlined />} onClick={handleAddItem} style={{ borderRadius: 8, fontWeight: 700 }}>
             + প্রোডাক্ট যোগ করুন
@@ -410,68 +410,83 @@ export function CreateOrderModal({
             const hasColors = Boolean(prod?.colors && prod.colors.length > 0);
             return (
               <Card key={idx} style={{ borderRadius: 14 }} styles={{ body: { padding: 12 } }} className="border border-slate-200 bg-slate-50/50">
-                <Flex align="start" gap={12} wrap="wrap">
-                  <div style={{ width: 44, height: 44, borderRadius: 8, overflow: "hidden", background: "#e2e8f0", flexShrink: 0, position: "relative" }}>
-                    {prod?.thumbnail ? (
-                      <Image src={prod.thumbnail} alt={prod.title} fill style={{ objectFit: "cover" }} />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-[10px] text-slate-400 font-bold">No Image</div>
-                    )}
+                <div className="space-y-2.5">
+                  <div>
+                    <Text type="secondary" style={{ fontSize: "10px", fontWeight: 700, display: "block", marginBottom: 2 }}>
+                      📦 ক্যাটালগ প্রোডাক্ট:
+                    </Text>
+                    <Select
+                      value={item.productId}
+                      onChange={(val) => handleUpdateItem(idx, "productId", val)}
+                      style={{ width: "100%" }}
+                      options={productList.map((p) => ({ value: p._id, label: `${p.title} — ${formatPrice(p.salePrice || p.regularPrice)}` }))}
+                    />
                   </div>
-                  <div style={{ flex: 1, minWidth: 220 }} className="space-y-2.5">
-                    <div>
-                      <Text type="secondary" style={{ fontSize: "10px", fontWeight: 700, display: "block", marginBottom: 2 }}>
-                        📦 ক্যাটালগ প্রোডাক্ট:
+                  <div>
+                    <Flex align="center" justify="space-between" style={{ marginBottom: 2 }}>
+                      <Text type="secondary" style={{ fontSize: "10px", fontWeight: 700 }}>
+                        ✏️ ইনভয়েস টাইটেল (এডিটযোগ্য):
                       </Text>
-                      <Select
-                        value={item.productId}
-                        onChange={(val) => handleUpdateItem(idx, "productId", val)}
-                        style={{ width: "100%" }}
-                        options={productList.map((p) => ({ value: p._id, label: `${p.title} — ${formatPrice(p.salePrice || p.regularPrice)}` }))}
-                      />
-                    </div>
-                    <div>
-                      <Flex align="center" justify="space-between" style={{ marginBottom: 2 }}>
-                        <Text type="secondary" style={{ fontSize: "10px", fontWeight: 700 }}>
-                          ✏️ ইনভয়েস টাইটেল (এডিটযোগ্য):
-                        </Text>
-                      </Flex>
-                      <Input
-                        value={item.productTitle}
-                        onChange={(e) => handleUpdateItem(idx, "productTitle", e.target.value)}
-                        style={{ borderRadius: 8, fontSize: "12px", fontWeight: 600 }}
-                      />
-                    </div>
-                    <Flex align="center" gap={6} wrap="wrap">
-                      <Text type="secondary" style={{ fontSize: "11px", fontWeight: 700 }}>কালার:</Text>
-                      {hasColors && prod!.colors!.map((c) => {
-                        const isSelected = item.color?.toLowerCase() === c.toLowerCase();
-                        return (
-                          <Tag key={c} color={isSelected ? "blue" : "default"} onClick={() => handleUpdateItem(idx, "color", c)} style={{ cursor: "pointer", fontWeight: 700, borderRadius: 6 }}>
-                            {isSelected && <CheckOutlined />} {c}
-                          </Tag>
-                        );
-                      })}
-                      <Input
-                        placeholder="কাস্টম কালার..."
-                        value={item.color || ""}
-                        onChange={(e) => handleUpdateItem(idx, "color", e.target.value)}
-                        style={{ width: 120, height: 28, fontSize: "11px", borderRadius: 6 }}
-                      />
                     </Flex>
+                    <Input
+                      value={item.productTitle}
+                      onChange={(e) => handleUpdateItem(idx, "productTitle", e.target.value)}
+                      style={{ borderRadius: 8, fontSize: "12px", fontWeight: 600 }}
+                    />
                   </div>
-                  <Flex align="center" gap={8} className="shrink-0 pt-2 sm:pt-0">
-                    <Text type="secondary" style={{ fontSize: "11px", fontWeight: 700 }}>পরিমাণ:</Text>
-                    <Space.Compact>
-                      <Button size="small" onClick={() => handleUpdateItem(idx, "quantity", Math.max(1, item.quantity - 1))}>-</Button>
-                      <Text strong>{item.quantity}</Text>
-                      <Button size="small" onClick={() => handleUpdateItem(idx, "quantity", item.quantity + 1)}>+</Button>
-                    </Space.Compact>
+                  <Flex align="center" gap={6} wrap="wrap">
+                    <Text type="secondary" style={{ fontSize: "11px", fontWeight: 700 }}>কালার:</Text>
+                    {hasColors && prod!.colors!.map((c) => {
+                      const isSelected = item.color?.toLowerCase() === c.toLowerCase();
+                      return (
+                        <Tag key={c} color={isSelected ? "blue" : "default"} onClick={() => handleUpdateItem(idx, "color", c)} style={{ cursor: "pointer", fontWeight: 700, borderRadius: 6 }}>
+                          {isSelected && <CheckOutlined />} {c}
+                        </Tag>
+                      );
+                    })}
+                    <Input
+                      placeholder="কাস্টম কালার..."
+                      value={item.color || ""}
+                      onChange={(e) => handleUpdateItem(idx, "color", e.target.value)}
+                      style={{ width: 120, height: 28, fontSize: "11px", borderRadius: 6 }}
+                    />
+                  </Flex>
+
+                  <Flex align="center" gap={10} className="w-full justify-between pt-2 border-t border-slate-200/60">
+                    <Flex align="center" gap={8}>
+                      <Text type="secondary" style={{ fontSize: "12px", fontWeight: 700 }}>
+                        পরিমাণ:
+                      </Text>
+                      <div className="flex items-center border border-slate-300 rounded-lg bg-white overflow-hidden">
+                        <Button
+                          size="small"
+                          type="text"
+                          onClick={() => handleUpdateItem(idx, "quantity", Math.max(1, item.quantity - 1))}
+                          style={{ width: 28, height: 28, padding: 0, fontWeight: 900, borderRadius: 0 }}
+                        >
+                          -
+                        </Button>
+                        <Text strong style={{ fontSize: "13px", padding: "0 12px", minWidth: 28, textAlign: "center", display: "inline-block" }}>
+                          {item.quantity}
+                        </Text>
+                        <Button
+                          size="small"
+                          type="text"
+                          onClick={() => handleUpdateItem(idx, "quantity", item.quantity + 1)}
+                          style={{ width: 28, height: 28, padding: 0, fontWeight: 900, borderRadius: 0 }}
+                        >
+                          +
+                        </Button>
+                      </div>
+                    </Flex>
+
                     {orderItems.length > 1 && (
-                      <Button danger type="text" size="small" icon={<DeleteOutlined />} onClick={() => handleRemoveItem(idx)} />
+                      <Button danger type="text" size="small" icon={<DeleteOutlined />} onClick={() => handleRemoveItem(idx)}>
+                        মুছুন
+                      </Button>
                     )}
                   </Flex>
-                </Flex>
+                </div>
               </Card>
             );
           })}

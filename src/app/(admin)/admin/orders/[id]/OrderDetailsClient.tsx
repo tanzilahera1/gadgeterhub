@@ -158,15 +158,15 @@ export function OrderDetailsClient({ order, products = [] }: Props) {
   const codTotal = Math.max(0, order.total - (order.advancePaid || 0));
 
   const courierText =
-    `Order ID: ${order.orderNumber}\n` +
     `Name: ${order.shipping.name}\n` +
     `Mobile: ${order.shipping.phone}\n` +
     `Address: ${fullAddressStr}\n` +
     `Zone: ${order.shipping.deliveryZone || "ISD (Inside Dhaka)"}\n` +
     `SubTotal: ${order.subtotal}\n` +
     (effectiveVipPrivilege > 0 ? `VIP Privilege: -${effectiveVipPrivilege}\n` : "") +
-    (order.advancePaid && order.advancePaid > 0 ? `Advance Paid: ${order.advancePaid}\n` : "") +
     `Delevary Charge: ${order.shippingCost}\n` +
+    (order.advancePaid && order.advancePaid > 0 ? `Advance Paid: ${order.advancePaid}\n` : "") +
+    `------------------------------------\n` +
     `Total: ${codTotal}` +
     (order.customerNotes ? `\nNote: ${order.customerNotes}` : "");
 
