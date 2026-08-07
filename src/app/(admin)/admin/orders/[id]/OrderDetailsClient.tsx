@@ -84,18 +84,20 @@ export function OrderDetailsClient({ order, products = [] }: Props) {
   const [trackingModalOpen, setTrackingModalOpen] = useState(false);
 
   const handleSaveTracking = async () => {
-    if (!consignmentInput.trim()) {
-      return toast.warning("Please enter a valid Pathao Consignment ID");
-    }
+    const isClearing = !consignmentInput.trim();
     setSavingTracking(true);
     try {
       const res = await updateOrderTrackingId(order._id, consignmentInput);
       if (res.success && res.order) {
-        setActiveTrackingId(res.order.courierTrackingId || consignmentInput.trim());
-        setCourierStatusState(res.order.courierStatus || "Booked (Pending Sync)");
+        setActiveTrackingId(res.order.courierTrackingId || "");
+        setCourierStatusState(res.order.courierStatus || "");
         setCourierReasonState(res.order.courierReason || "");
         setCourierAttemptState(res.order.courierAttemptCount || 0);
-        toast.success("Pathao Consignment ID saved and live status synced!");
+        if (isClearing) {
+          toast.success("Pathao Consignment ID removed successfully!");
+        } else {
+          toast.success("Pathao Consignment ID saved and live status synced!");
+        }
         router.refresh();
       } else {
         toast.error(res.error || "Failed to save Consignment ID");
@@ -504,7 +506,8 @@ export function OrderDetailsClient({ order, products = [] }: Props) {
       {/* Main Grid: Left Items List, Right Customer & Payment Details */}
       <Row gutter={[16, 16]}>
         {/* LEFT COLUMN: Products Table & Payable Summary */}
-        <Col xs={24} lg={15} className="space-y-4">
+        <Col xs={24} lg={15}>
+          <div className="flex flex-col gap-4">
           <Card
             title={
               <Flex align="center" justify="space-between">
@@ -645,10 +648,12 @@ export function OrderDetailsClient({ order, products = [] }: Props) {
               style={{ borderRadius: 14, background: "#fffbeb", borderColor: "#fef3c7" }}
             />
           )}
+          </div>
         </Col>
 
         {/* RIGHT COLUMN: Customer Details, Payment & Activity Timeline */}
-        <Col xs={24} lg={9} className="space-y-4">
+        <Col xs={24} lg={9}>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 gap-4">
           {/* Customer & Shipping Card */}
           <Card
             title={
@@ -765,6 +770,7 @@ export function OrderDetailsClient({ order, products = [] }: Props) {
 
           {/* Activity Timeline Card */}
           <Card
+            className="md:col-span-2 lg:col-span-1"
             title={
               <Text strong style={{ fontSize: "14px" }}>
                 <CalendarOutlined style={{ color: "#1677ff", marginRight: 6 }} />
@@ -852,6 +858,7 @@ export function OrderDetailsClient({ order, products = [] }: Props) {
               ].filter(Boolean) as any}
             />
           </Card>
+          </div>
         </Col>
       </Row>
 

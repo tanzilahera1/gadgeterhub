@@ -504,7 +504,7 @@ export function CourierMonitorClient({ initialOrders }: Props) {
       </Card>
 
       {/* Desktop Table View */}
-      <div className="hidden md:block">
+      <div className="hidden lg:block">
         <Card style={{ borderRadius: 16 }} styles={{ body: { padding: 0 } }}>
           <Table
             columns={columns}
@@ -516,7 +516,7 @@ export function CourierMonitorClient({ initialOrders }: Props) {
       </div>
 
       {/* Mobile Cards View */}
-      <div className="flex flex-col gap-3.5 md:hidden mt-3.5">
+      <div className="flex flex-col gap-3.5 lg:hidden mt-3.5">
         {filtered.length === 0 ? (
           <Card style={{ borderRadius: 16 }} styles={{ body: { padding: 30 } }}>
             <div className="text-center text-slate-400 text-xs font-medium">
@@ -545,14 +545,17 @@ export function CourierMonitorClient({ initialOrders }: Props) {
                 className="shadow-sm"
               >
                 <div className="space-y-3">
-                  {/* Top Row: Order # & Status Tag + Date */}
-                  <div className="flex items-center justify-between gap-2 flex-wrap">
-                    <Link
-                      href={`/admin/orders/${item._id}`}
-                      style={{ fontWeight: 800, color: "#1677ff", fontSize: "14px" }}
-                    >
-                      #{item.orderNumber}
-                    </Link>
+                  {/* Top Row: Order # | Status Tag | Date */}
+                  <div className="flex items-center justify-between gap-2 w-full">
+                    <div style={{ flex: 1, textAlign: "left" }}>
+                      <Link
+                        href={`/admin/orders/${item._id}`}
+                      >
+                        <Text code style={{ fontWeight: 800, fontSize: "13px", color: "#1677ff" }} className="hover:underline">
+                          {item.orderNumber}
+                        </Text>
+                      </Link>
+                    </div>
 
                     {(() => {
                       const attempts = item.courierAttemptCount || (
@@ -560,56 +563,63 @@ export function CourierMonitorClient({ initialOrders }: Props) {
                       );
 
                       return (
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <Tag
-                            color={
-                              isHold
-                                ? "warning"
-                                : isReturned
-                                ? "error"
-                                : isDelivered
-                                ? "success"
-                                : "processing"
-                            }
-                            style={{
-                              fontWeight: 900,
-                              fontSize: "11px",
-                              borderRadius: 6,
-                              margin: 0,
-                              padding: "2px 8px",
-                              display: "inline-flex",
-                              alignItems: "center",
-                            }}
-                          >
-                            <span>
-                              {isHold ? "⚠️ ON HOLD" : isReturned ? "🚨 RETURNED" : item.courierStatus || "In Transit"}
-                            </span>
-                            {!isDelivered && attempts > 1 && (
-                              <span
-                                style={{
-                                  backgroundColor: "#ef4444",
-                                  color: "#ffffff",
-                                  fontSize: "10px",
-                                  fontWeight: 900,
-                                  borderRadius: "10px",
-                                  padding: "1px 6px",
-                                  marginLeft: "6px",
-                                  display: "inline-block",
-                                  lineHeight: "14px",
-                                  boxShadow: "0 1px 3px rgba(239, 68, 68, 0.3)",
-                                }}
-                              >
-                                {attempts}
+                        <>
+                          <div style={{ flex: 1, textAlign: "center" }}>
+                            <Tag
+                              color={
+                                isHold
+                                  ? "warning"
+                                  : isReturned
+                                  ? "error"
+                                  : isDelivered
+                                  ? "success"
+                                  : "processing"
+                              }
+                              style={{
+                                fontWeight: 900,
+                                fontSize: "10px",
+                                borderRadius: 4,
+                                margin: 0,
+                                padding: "1px 6px",
+                                display: "inline-flex",
+                                alignItems: "center",
+                                cursor: "pointer",
+                              }}
+                              onClick={() => openTrackingModal(item.courierTrackingId!, item.orderNumber)}
+                            >
+                              <span>
+                                {isHold ? "⚠️ ON HOLD" : isReturned ? "🚨 RETURNED" : item.courierStatus || "In Transit"}
                               </span>
+                              {!isDelivered && attempts > 1 && (
+                                <span
+                                  style={{
+                                    backgroundColor: "#ef4444",
+                                    color: "#ffffff",
+                                    fontSize: "9px",
+                                    fontWeight: 900,
+                                    borderRadius: "8px",
+                                    padding: "0 5px",
+                                    marginLeft: "4px",
+                                    display: "inline-block",
+                                    lineHeight: "12px",
+                                    boxShadow: "0 1px 2px rgba(239, 68, 68, 0.3)",
+                                  }}
+                                >
+                                  {attempts}
+                                </span>
+                              )}
+                            </Tag>
+                          </div>
+                          
+                          <div style={{ flex: 1, textAlign: "right" }}>
+                            {lastUpdated && (
+                              <Text type="secondary" style={{ fontSize: "10px", whiteSpace: "nowrap" }}>
+                                <ClockCircleOutlined style={{ fontSize: "9px", marginRight: 2 }} />
+                                {lastUpdated}
+                              </Text>
                             )}
-                          </Tag>
-                          {lastUpdated && (
-                            <Text type="secondary" style={{ fontSize: "10px", whiteSpace: "nowrap" }}>
-                              <ClockCircleOutlined style={{ fontSize: "9px", marginRight: 2 }} />
-                              {lastUpdated}
-                            </Text>
-                          )}
-                        </div>
+                          </div>
+                        </>
                       );
                     })()}
                   </div>
@@ -644,7 +654,11 @@ export function CourierMonitorClient({ initialOrders }: Props) {
 
                   {/* Consignment ID */}
                   <div className="flex items-center justify-between text-xs bg-slate-100/70 p-2 rounded-xl">
-                    <Text code style={{ fontWeight: 900 }}>
+                    <Text
+                      code
+                      style={{ fontWeight: 900, cursor: "pointer" }}
+                      onClick={() => openTrackingModal(item.courierTrackingId!, item.orderNumber)}
+                    >
                       {item.courierTrackingId}
                     </Text>
                     <Button

@@ -96,22 +96,11 @@ export function InvoiceClient({ order }: Props) {
       >
         💡 <strong>Tip:</strong> Print dialog-এ Paper size{" "}
         <strong>A5</strong>, Margins <strong>None</strong>, Background graphics{" "}
-        <strong>ON</strong> সিলেক্ট করুন।
       </div>
 
-      {/* Invoice */}
-      <div className="invoice-page">
-        {/* Invoice No — top-LEFT */}
-        <div className="invoice-no-top">
-          <span className="invoice-no-label">Invoice:</span> {invoiceNo}
-        </div>
-
-        {/* ✅ QR Code — top-RIGHT */}
-        <div className="invoice-qr">
-          <InvoiceQR value="https://gadgeterhub.vercel.app" size={76} />
-          <div className="invoice-qr-label">Visit Us</div>
-        </div>
-
+      {/* Invoice Wrapper (for mobile screenshot scaling) */}
+      <div className="invoice-wrapper">
+        <div className="invoice-page">
         {/* WATERMARK */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
@@ -125,6 +114,12 @@ export function InvoiceClient({ order }: Props) {
         <div className="invoice-content">
           {/* HEADER */}
           <div className="invoice-header">
+            {/* ✅ QR Code — top-RIGHT (Moved inside header for alignment) */}
+            <div className="invoice-qr">
+              <InvoiceQR value="https://gadgeterhub.vercel.app" size={76} />
+              <div className="invoice-qr-label">Visit Us</div>
+            </div>
+
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="/logo.svg"
@@ -318,6 +313,7 @@ export function InvoiceClient({ order }: Props) {
             </span>
           </div>
         </div>
+      </div>
       </div>
     </>
   );

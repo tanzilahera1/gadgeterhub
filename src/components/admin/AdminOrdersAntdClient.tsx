@@ -90,15 +90,17 @@ export function AdminOrdersAntdClient({
     }
   };
 
-  const handleSaveConsignmentModal = async () => {
-    if (!inputConsignmentId.trim()) {
-      return toast.warning("Please enter a Consignment ID");
-    }
+  const handleSaveConsignmentModal = async (overrideId?: string) => {
+    const targetId = overrideId !== undefined ? overrideId : inputConsignmentId;
     setSavingConsignment(true);
     try {
-      const res = await updateOrderTrackingId(editingOrderId, inputConsignmentId);
+      const res = await updateOrderTrackingId(editingOrderId, targetId);
       if (res.success) {
-        toast.success("Pathao Consignment ID saved and live status synced!");
+        if (!targetId.trim()) {
+          toast.success("Pathao Consignment ID removed!");
+        } else {
+          toast.success("Pathao Consignment ID saved and live status synced!");
+        }
         setEditConsignmentModalOpen(false);
         router.refresh();
       } else {
@@ -468,7 +470,7 @@ export function AdminOrdersAntdClient({
       )}
 
       {/* DESKTOP VIEW: Antd Data Table */}
-      <div className="hidden md:block">
+      <div className="hidden lg:block">
         <Card style={{ borderRadius: isDashboard ? 0 : 16, overflow: "hidden", border: isDashboard ? 'none' : undefined }} styles={{ body: { padding: 0 } }}>
           <Table
             columns={columns}
@@ -491,7 +493,7 @@ export function AdminOrdersAntdClient({
       </div>
 
       {/* MOBILE VIEW: Ultra Responsive Fluid Antd Cards */}
-      <div className="block md:hidden mt-3">
+      <div className="block lg:hidden mt-3">
         {filteredOrders.length > 0 ? (
           filteredOrders.map((order) => (
             <AdminOrderMobileCard
@@ -499,6 +501,9 @@ export function AdminOrdersAntdClient({
               order={order}
               marginBottom={8}
               onAddPathaoId={openEditConsignmentModal}
+              onOpenTrackingModal={openTrackingModal}
+              onEditPathaoId={openEditConsignmentModal}
+              onSyncCourierStatus={syncSingleOrderStatus}
             />
           ))
         ) : (
@@ -530,16 +535,37 @@ export function AdminOrdersAntdClient({
         }
         open={editConsignmentModalOpen}
         onCancel={() => setEditConsignmentModalOpen(false)}
-        onOk={handleSaveConsignmentModal}
-        confirmLoading={savingConsignment}
-        okText="Save & Sync Live Status"
-        cancelText="Cancel"
+        footer={[
+          <Button key="cancel" onClick={() => setEditConsignmentModalOpen(false)} style={{ borderRadius: 8 }}>
+            Cancel
+          </Button>,
+          inputConsignmentId.trim() && (
+            <Button
+              key="clear"
+              danger
+              loading={savingConsignment}
+              onClick={() => handleSaveConsignmentModal("")}
+              style={{ borderRadius: 8, fontWeight: 700 }}
+            >
+              🗑️ Remove ID
+            </Button>
+          ),
+          <Button
+            key="submit"
+            type="primary"
+            loading={savingConsignment}
+            onClick={() => handleSaveConsignmentModal()}
+            style={{ borderRadius: 8, fontWeight: 700 }}
+          >
+            Save & Sync
+          </Button>,
+        ].filter(Boolean)}
         style={{ borderRadius: 16 }}
         styles={{ body: { padding: "16px 0 8px 0" } }}
       >
         <div className="space-y-3">
           <Text type="secondary" style={{ fontSize: "12px", display: "block" }}>
-            পাঠাও হাব থেকে বুকিং করার পর পাওয়া Consignment ID (যেমন: <Text code>SG030826FV2JHW</Text>) নিচে লিখুন।
+            পাঠাও হাব থেকে বুকিং করার পর পাওয়া Consignment ID (যেমন: <Text code>SG030826FV2JHW</Text>) নিচে লিখুন। ভুল বসানো হলে ঘরটি খালি রেখে **Save & Sync** অথবা **Remove ID** বাটনে চাপুন।
           </Text>
           <Input
             placeholder="e.g. SG030826FV2JHW"

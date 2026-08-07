@@ -2,7 +2,8 @@
 "use client";
 
 import Link from "next/link";
-import { Card, Tag, Typography, Button, Flex } from "antd";
+import { Card, Tag, Typography, Button, Flex, Tooltip } from "antd";
+import { EditOutlined, ReloadOutlined } from "@ant-design/icons";
 import { format } from "date-fns";
 import { formatPrice } from "@/lib/priceUtils";
 import { IOrder, CHANNEL_LABELS } from "@/types/order";
@@ -15,12 +16,18 @@ interface AdminOrderMobileCardProps {
   order: IOrder;
   marginBottom?: number;
   onAddPathaoId?: (orderId: string, orderNumber: string) => void;
+  onOpenTrackingModal?: (consignmentId: string, orderNumber: string) => void;
+  onEditPathaoId?: (orderId: string, orderNumber: string, consignmentId?: string) => void;
+  onSyncCourierStatus?: (orderId: string, consignmentId: string) => void;
 }
 
 export function AdminOrderMobileCard({
   order,
   marginBottom = 8,
   onAddPathaoId,
+  onOpenTrackingModal,
+  onEditPathaoId,
+  onSyncCourierStatus,
 }: AdminOrderMobileCardProps) {
   const channelKey = order.channelSource || "web";
   const channelLabel = CHANNEL_LABELS[channelKey] || "Website";
@@ -141,15 +148,52 @@ export function AdminOrderMobileCard({
           {/* Courier Status (Center) */}
           <div style={{ flex: 1, textAlign: "center" }}>
             {order.courierTrackingId ? (
-              order.courierStatus && (
-                <Tag color={
-                  order.courierStatus.toLowerCase().includes("delivered") ? "success" :
-                  order.courierStatus.toLowerCase().includes("return") ? "error" :
-                  order.courierStatus.toLowerCase().includes("hold") ? "warning" : "processing"
-                } style={{ margin: 0, fontSize: "10px", fontWeight: 700, borderRadius: 4 }}>
-                  {order.courierStatus}
-                </Tag>
-              )
+              <div className="inline-flex flex-col items-center gap-1">
+                <Flex align="center" gap={3}>
+                  <Text
+                    code
+                    style={{ fontSize: "10px", fontWeight: 900, cursor: "pointer" }}
+                    onClick={() => onOpenTrackingModal?.(order.courierTrackingId!, order.orderNumber)}
+                  >
+                    {order.courierTrackingId}
+                  </Text>
+                  {onEditPathaoId && (
+                    <Tooltip title="Edit Pathao ID">
+                      <Button
+                        size="small"
+                        type="text"
+                        style={{ width: 18, height: 18, padding: 0 }}
+                        icon={<EditOutlined style={{ fontSize: "10px", color: "#64748b" }} />}
+                        onClick={() => onEditPathaoId(orderIdStr, order.orderNumber, order.courierTrackingId)}
+                      />
+                    </Tooltip>
+                  )}
+                  {onSyncCourierStatus && (
+                    <Tooltip title="Sync Pathao Status">
+                      <Button
+                        size="small"
+                        type="text"
+                        style={{ width: 18, height: 18, padding: 0 }}
+                        icon={<ReloadOutlined style={{ fontSize: "10px", color: "#3b82f6" }} />}
+                        onClick={() => onSyncCourierStatus(orderIdStr, order.courierTrackingId!)}
+                      />
+                    </Tooltip>
+                  )}
+                </Flex>
+                {order.courierStatus && (
+                  <Tag
+                    color={
+                      order.courierStatus.toLowerCase().includes("delivered") ? "success" :
+                      order.courierStatus.toLowerCase().includes("return") ? "error" :
+                      order.courierStatus.toLowerCase().includes("hold") ? "warning" : "processing"
+                    }
+                    style={{ margin: 0, fontSize: "10px", fontWeight: 700, borderRadius: 4, cursor: "pointer" }}
+                    onClick={() => onOpenTrackingModal?.(order.courierTrackingId!, order.orderNumber)}
+                  >
+                    {order.courierStatus}
+                  </Tag>
+                )}
+              </div>
             ) : (
               onAddPathaoId && orderIdStr && (
                 <Button

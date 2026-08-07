@@ -81,8 +81,8 @@ html, body {
 /* ========== QR CODE — top-right corner (black) ========== */
 .invoice-qr {
   position: absolute;
-  top: 2mm;
-  right: 2mm;
+  top: 0;
+  right: 0;
   width: 20mm;
   height: auto;
   z-index: 5;
@@ -200,8 +200,8 @@ html, body {
   /* QR Code stays */
   .invoice-qr {
     position: absolute !important;
-    top: 2mm !important;
-    right: 2mm !important;
+    top: 0 !important;
+    right: 0 !important;
     width: 20mm !important;
     height: auto !important;
     margin: 0 !important;
@@ -526,4 +526,25 @@ html, body {
 .invoice-footer-divider {
   color: #999 !important;
   font-weight: 400;
+}
+
+/* ========== Responsive Wrapper ========== */
+.invoice-wrapper {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  padding-bottom: 30px;
+}
+
+@media screen and (max-width: 620px) {
+  .invoice-wrapper {
+    overflow: hidden;
+  }
+  .invoice-page {
+    /* Scale down the 148mm invoice to fit the screen */
+    transform: scale(calc((100vw - 32px) / 560));
+    transform-origin: top center;
+    /* Reduce bottom margin to account for scaled down height (210mm is roughly 793px) */
+    margin-bottom: calc(-793px * (1 - ((100vw - 32px) / 560)));
+  }
 }
